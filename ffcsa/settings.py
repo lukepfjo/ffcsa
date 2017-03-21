@@ -1,10 +1,16 @@
-
 from __future__ import absolute_import, unicode_literals
 import os
 
 from django import VERSION as DJANGO_VERSION
 from django.utils.translation import ugettext_lazy as _
 
+##############################
+# MEZZANINE-INVITES SETTINGS #
+##############################
+
+INVITE_CODE_LENGTH = 20
+INVITE_CODE_USAGE_WINDOW = 7
+INVITE_CODE_EXPIRY_DAYS = 0
 
 ######################
 # CARTRIDGE SETTINGS #
@@ -36,7 +42,7 @@ from django.utils.translation import ugettext_lazy as _
 # Controls the formatting of monetary values accord to the locale
 # module in the python standard library. If an empty string is
 # used, will fall back to the system's locale.
-# SHOP_CURRENCY_LOCALE = ""
+SHOP_CURRENCY_LOCALE = "en_US"
 
 # Dotted package path and name of the function that
 # is called on submit of the billing/shipping checkout step. This
@@ -83,12 +89,20 @@ SHOP_USE_RATINGS = False
 SHOP_PAYMENT_STEP_ENABLED = False
 SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
-
-
+SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 
 ######################
 # MEZZANINE SETTINGS #
 ######################
+
+PAGES_MENU_SHOW_ALL = False
+# SIGNUP_URL =
+
+ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = (
+    "username",
+)
+
+ACCOUNTS_NO_USERNAME = True
 
 # The following settings are already defined with default values in
 # the ``defaults.py`` module within each of Mezzanine's apps, but are
@@ -99,14 +113,14 @@ SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 
 # Controls the ordering and grouping of the admin menu.
 #
-# ADMIN_MENU_ORDER = (
-#     ("Content", ("pages.Page", "blog.BlogPost",
-#        "generic.ThreadedComment", (_("Media Library"), "fb_browse"),)),
-#     (_("Shop"), ("shop.Product", "shop.ProductOption", "shop.DiscountCode",
-#        "shop.Sale", "shop.Order")),
-#     ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
-#     ("Users", ("auth.User", "auth.Group",)),
-# )
+ADMIN_MENU_ORDER = (
+    (_("Shop"), ("shop.Product", "shop.Order", "shop.ProductOption", "shop.DiscountCode",
+                 "shop.Sale")),
+    ("Users", ("auth.User", "auth.Group",)),
+    ("Content", ("pages.Page", "blog.BlogPost",
+       (_("Media Library"), "fb_browse"),)),
+    ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
+)
 
 # A three item sequence, each containing a sequence of template tags
 # used to render the admin dashboard.
@@ -124,11 +138,13 @@ SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 # menus a page should appear in. Note that if a menu template is used
 # that doesn't appear in this setting, all pages will appear in it.
 
-# PAGE_MENU_TEMPLATES = (
-#     (1, _("Top navigation bar"), "pages/menus/dropdown.html"),
-#     (2, _("Left-hand tree"), "pages/menus/tree.html"),
-#     (3, _("Footer"), "pages/menus/footer.html"),
-# )
+PAGE_MENU_TEMPLATES = (
+    (1, _("Top navigation bar"), "pages/menus/dropdown.html"),
+    (2, _("Left-hand tree"), "pages/menus/tree.html"),
+    (3, _("Footer"), "pages/menus/footer.html"),
+)
+
+PAGE_MENU_TEMPLATES_DEFAULT = ()
 
 # A sequence of fields that will be injected into Mezzanine's (or any
 # library's) models. Each item in the sequence is a four item sequence.
@@ -166,7 +182,6 @@ SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 # If True, the django-modeltranslation will be added to the
 # INSTALLED_APPS setting.
 USE_MODELTRANSLATION = False
-
 
 ########################
 # MAIN DJANGO SETTINGS #
@@ -211,12 +226,11 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = False
 
-AUTHENTICATION_BACKENDS = ("mezzanine.core.auth_backends.MezzanineBackend",)
+AUTHENTICATION_BACKENDS = ["mezzanine.core.auth_backends.MezzanineBackend", "invites.auth.InviteAuthBackend"]
 
 # The numeric mode to set newly-uploaded files to. The value should be
 # a mode you'd pass directly to os.chmod.
 FILE_UPLOAD_PERMISSIONS = 0o644
-
 
 #############
 # DATABASES #
@@ -238,7 +252,6 @@ DATABASES = {
         "PORT": "",
     }
 }
-
 
 #########
 # PATHS #
@@ -280,7 +293,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(PROJECT_ROOT, "templates")
+            os.path.join(PROJECT_ROOT, "original_templates")
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -306,12 +319,13 @@ TEMPLATES = [
 if DJANGO_VERSION < (1, 9):
     del TEMPLATES[0]["OPTIONS"]["builtins"]
 
-
 ################
 # APPLICATIONS #
 ################
 
 INSTALLED_APPS = (
+    "theme",
+    "invites",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -326,14 +340,13 @@ INSTALLED_APPS = (
     "mezzanine.generic",
     "mezzanine.pages",
     "cartridge.shop",
-    #"mezzanine.blog",
+    # "mezzanine.blog",
     "mezzanine.forms",
-    #"mezzanine.galleries",
-    #"mezzanine.twitter",
+    # "mezzanine.galleries",
+    # "mezzanine.twitter",
     "mezzanine.accounts",
     # "mezzanine.mobile",
 )
-
 
 # List of middleware classes to use. Order is important; in the request phase,
 # these middleware classes will be applied in the order given, and in the
@@ -362,6 +375,7 @@ MIDDLEWARE_CLASSES = (
     # "mezzanine.core.middleware.SSLRedirectMiddleware",
     "mezzanine.pages.middleware.PageMiddleware",
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware"
 )
 
 # Store these package names here as they may change in the future since
@@ -398,12 +412,12 @@ f = os.path.join(PROJECT_APP_PATH, "local_settings.py")
 if os.path.exists(f):
     import sys
     import imp
+
     module_name = "%s.local_settings" % PROJECT_APP
     module = imp.new_module(module_name)
     module.__file__ = f
     sys.modules[module_name] = module
     exec(open(f, "rb").read())
-
 
 ####################
 # DYNAMIC SETTINGS #

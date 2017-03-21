@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import mezzanine
 from django.conf.urls import include, url
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
@@ -8,7 +9,6 @@ from mezzanine.core.views import direct_to_template
 from mezzanine.conf import settings
 
 from cartridge.shop.views import order_history
-
 
 admin.autodiscover()
 
@@ -27,10 +27,20 @@ if settings.USE_MODELTRANSLATION:
         url('^i18n/$', set_language, name='set_language'),
     ]
 
+if settings.DEBUG:
+    import debug_toolbar
+
+    urlpatterns += [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ]
+
 urlpatterns += [
 
+    # Mezzanine-Invites URLs
+    url("^", include("invites.urls")),
+
     # Cartridge URLs.
-    url("^shop/", include("cartridge.shop.urls")),
+    url("^", include("cartridge.shop.urls")),
     url("^account/orders/$", order_history, name="shop_order_history"),
 
     # We don't want to presume how your homepage works, so here are a
@@ -43,7 +53,7 @@ urlpatterns += [
     # one homepage pattern, so if you use a different one, comment this
     # one out.
 
-    url("^$", direct_to_template, {"template": "index.html"}, name="home"),
+    # url("^$", direct_to_template, {"template": "index.html"}, name="home"),
 
     # HOMEPAGE AS AN EDITABLE PAGE IN THE PAGE TREE
     # ---------------------------------------------
@@ -59,7 +69,7 @@ urlpatterns += [
     # should be used if you want to customize the homepage's template.
     # NOTE: Don't forget to import the view function too!
 
-    # url("^$", mezzanine.pages.views.page, {"slug": "/"}, name="home"),
+    url("^$", mezzanine.pages.views.page, {"slug": "/"}, name="home"),
 
     # HOMEPAGE FOR A BLOG-ONLY SITE
     # -----------------------------
