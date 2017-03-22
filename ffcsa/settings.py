@@ -322,8 +322,7 @@ if DJANGO_VERSION < (1, 9):
 ################
 
 INSTALLED_APPS = (
-    "theme",
-    "invites",
+    "ffcsa.theme",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -343,6 +342,8 @@ INSTALLED_APPS = (
     # "mezzanine.galleries",
     # "mezzanine.twitter",
     "mezzanine.accounts",
+    "ffcsa.invites",
+    "ffcsa.core",
     # "mezzanine.mobile",
 )
 

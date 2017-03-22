@@ -16,7 +16,7 @@ def signup(request, template="accounts/account_signup.html",
     """
     invitation only signup form.
     """
-    if not (request.GET.get('code') or request.GET.get('email')):
+    if not (request.GET.get('code') and request.GET.get('email')):
         raise Http404('You must have an invitation code to signup')
 
     form = ProfileForm(

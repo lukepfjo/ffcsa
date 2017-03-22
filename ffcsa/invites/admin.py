@@ -3,7 +3,7 @@ from django.contrib.messages import error, info
 from django.urls import reverse
 from mezzanine.conf import settings
 
-from invites.utils import send_invite_code_mail
+from .utils import send_invite_code_mail
 from .models import InvitationCode
 
 

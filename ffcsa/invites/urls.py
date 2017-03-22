@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from invites.views import signup
+from .views import signup
 from django.conf.urls import url
 from django.conf.urls.i18n import i18n_patterns
 

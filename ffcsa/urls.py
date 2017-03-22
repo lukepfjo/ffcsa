@@ -37,7 +37,7 @@ if settings.DEBUG:
 urlpatterns += [
 
     # Mezzanine-Invites URLs
-    url("^", include("invites.urls")),
+    url("^", include("ffcsa.invites.urls")),
 
     # Cartridge URLs.
     url("^", include("cartridge.shop.urls")),
