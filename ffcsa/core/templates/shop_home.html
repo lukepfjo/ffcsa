@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% load mezzanine_tags shop_tags i18n %}
+{% block body_id %}category{% endblock %}
+
+{% block title %}
+    Note: You must be a member of the Full Farm CSA to order products!
+{% endblock %}
+
+{% block main %}{{ block.super }}
+
+    {% include 'pages/category-list.html' %}
+
+{% endblock %}

@@ -36,7 +36,10 @@ if settings.DEBUG:
 
 urlpatterns += [
 
-    # Mezzanine-Invites URLs
+    # ffcsa-core
+    url("^", include("ffcsa.core.urls")),
+
+    # ffcsainvites URLs
     url("^", include("ffcsa.invites.urls")),
 
     # Cartridge URLs.
@@ -69,7 +72,7 @@ urlpatterns += [
     # should be used if you want to customize the homepage's template.
     # NOTE: Don't forget to import the view function too!
 
-    url("^$", mezzanine.pages.views.page, {"slug": "/"}, name="home"),
+    # url("^$", mezzanine.pages.views.page, {"slug": "/"}, name="home"),
 
     # HOMEPAGE FOR A BLOG-ONLY SITE
     # -----------------------------
