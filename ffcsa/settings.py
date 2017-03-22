@@ -98,9 +98,7 @@ SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 PAGES_MENU_SHOW_ALL = False
 # SIGNUP_URL =
 
-ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = (
-    "username",
-)
+ACCOUNTS_PROFILE_FORM_CLASS = 'invites.forms.ProfileForm'
 
 ACCOUNTS_NO_USERNAME = True
 
@@ -116,7 +114,7 @@ ACCOUNTS_NO_USERNAME = True
 ADMIN_MENU_ORDER = (
     (_("Shop"), ("shop.Product", "shop.Order", "shop.ProductOption", "shop.DiscountCode",
                  "shop.Sale")),
-    ("Users", ("auth.User", "auth.Group",)),
+    ("Users", ((_("Invites"), "invites.InvitationCode"), "auth.User", "auth.Group",)),
     ("Content", ("pages.Page", "blog.BlogPost",
        (_("Media Library"), "fb_browse"),)),
     ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
@@ -226,7 +224,7 @@ SITE_ID = 1
 # to load the internationalization machinery.
 USE_I18N = False
 
-AUTHENTICATION_BACKENDS = ["mezzanine.core.auth_backends.MezzanineBackend", "invites.auth.InviteAuthBackend"]
+AUTHENTICATION_BACKENDS = ["mezzanine.core.auth_backends.MezzanineBackend"]
 
 # The numeric mode to set newly-uploaded files to. The value should be
 # a mode you'd pass directly to os.chmod.

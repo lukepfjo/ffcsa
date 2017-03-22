@@ -84,21 +84,6 @@
         {% block all_content %}
             <div class="container">
 
-                {% nevercache %}
-                    {% if messages %}
-                        <div class="messages">
-                            {% for message in messages %}
-                                <div class="alert alert-dismissable alert-{{ message.tags }}" data-alert="alert">
-                                    <button type="button" class="close" data-dismiss="alert"
-                                            aria-hidden="true">&times;</button>
-                                    {{ message }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                {% endnevercache %}
-
-
             </div>
             {% block breadcrumb_wrapper %}
                 <section id="inner-headline">
@@ -131,6 +116,19 @@
                     </div>
                 </section>
             {% endblock %}
+            {% nevercache %}
+                {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            <div class="alert alert-dismissable alert-{{ message.tags }}" data-alert="alert">
+                                <button type="button" class="close" data-dismiss="alert"
+                                        aria-hidden="true">&times;</button>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endnevercache %}
             <section id="{% block section_id %}content{% endblock %}">
                 <div class="container">
                     <div class="row">
