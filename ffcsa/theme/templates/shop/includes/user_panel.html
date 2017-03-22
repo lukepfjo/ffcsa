@@ -1,17 +1,32 @@
 {% load i18n shop_tags mezzanine_tags %}
 {% if request.user.is_authenticated %}
     {% spaceless %}
-        <a href="{% url "shop_cart" %}">
-            <span class="glyphicon glyphicon-shopping-cart"></span>
-            {% blocktrans count request.cart.total_quantity as cart_quantity %}1 item{% plural %}{{ cart_quantity }}
-                items{% endblocktrans %}
-            {% trans "in basket" %}
-        </a>
+        <div class="shop-panel">
+            <table class="table table-condensed table-striped">
+                <thead>
+                    <tr>
+                        <th class="text-center"><a href="{% url "shop_cart" %}">Weekly Order</a></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% if not request.cart.items.exists %}
+                    <tr><td class="text-center">no items</td></tr>
+                {% endif %}
+                    {% for item in request.cart.items.all %}
+                        <tr>
+                            <td>
+                                {{ item.description }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
         {% if settings.SHOP_USE_WISHLIST %}
             <a href="{% url "shop_wishlist" %}" class="btn-wishlist">
                 <span class="glyphicon glyphicon-star"></span>
                 {% blocktrans count request.wishlist|length as wishlist_count %}Wishlist contains 1 item{% plural %}
                     Wishlist contains {{ wishlist_count }} items{% endblocktrans %}</a>
         {% endif %}
+        </div>
     {% endspaceless %}
 {% endif %}

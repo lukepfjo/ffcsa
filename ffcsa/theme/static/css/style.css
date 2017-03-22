@@ -491,6 +491,10 @@ ul.breadcrumb li a:hover {
 11. Forms
 ============================= */
 
+.form-actions {
+	background-color: inherit;
+}
+
 /* --- contact form  ---- */
 form#contactform input[type="text"],input[type="url"],input[type="email"] {
   width: 100%;
@@ -579,6 +583,15 @@ form#commentform textarea {
 #inner-headline form.input-append {
 	margin:0;
 	padding:0;
+}
+
+/* --- shop form --- */
+.shop-form #id_quantity {
+	max-width: 80px;
+}
+
+.shop-form .input_id_quantity .help-block{
+    display: none;
 }
 
 
@@ -1394,6 +1407,13 @@ ul.recent li h6 a{
 .widget ul.tags li a:hover {
 	text-decoration:none;
 	color:#fff;
+}
+
+/* --- user panel --- */
+.user-panel .shop-panel {
+    margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid grey;
 }
 
 /* ===== Widgets ===== */
