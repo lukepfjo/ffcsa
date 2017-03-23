@@ -91,6 +91,7 @@ SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Recently added', '-date_added'),)
+SHOP_CART_EXPIRY_MINUTES = 20160 # valid for 14 days
 
 ######################
 # MEZZANINE SETTINGS #
@@ -154,25 +155,19 @@ PAGE_MENU_TEMPLATES_DEFAULT = ()
 # field instance. When specifying the field class, the path
 # ``django.models.db.`` can be omitted for regular Django model fields.
 #
-# EXTRA_MODEL_FIELDS = (
-#     (
-#         # Dotted path to field.
-#         "mezzanine.blog.models.BlogPost.image",
-#         # Dotted path to field class.
-#         "somelib.fields.ImageField",
-#         # Positional args for field class.
-#         (_("Image"),),
-#         # Keyword args for field class.
-#         {"blank": True, "upload_to": "blog"},
-#     ),
-#     # Example of adding a field to *all* of Mezzanine's content types:
-#     (
-#         "mezzanine.pages.models.Page.another_field",
-#         "IntegerField", # 'django.db.models.' is implied if path is omitted.
-#         (_("Another name"),),
-#         {"blank": True, "default": 1},
-#     ),
-# )
+EXTRA_MODEL_FIELDS = (
+    (
+        "cartridge.shop.models.Cart.user_id",
+        "IntegerField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "unique": True},
+    ),
+)
+
+MIGRATION_MODULES = {
+    "shop": "ffcsa.core.migrations.shop",
+}
 
 # Setting to turn on featured images for blog posts. Defaults to False.
 #
