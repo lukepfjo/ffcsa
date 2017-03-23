@@ -11,8 +11,8 @@ from django.db import DEFAULT_DB_ALIAS
 from django.utils.encoding import force_str
 from django.contrib.sites.models import Site
 
-from invites.models import InvitationCode
-from invites.utils import send_invite_code_mail
+from ffcsa.invites.models import InvitationCode
+from ffcsa.invites.utils import send_invite_code_mail
 
 
 class Command(BaseCommand):

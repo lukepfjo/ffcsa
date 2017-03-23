@@ -21,3 +21,12 @@ def cart_add_item(self, *args, **kwargs):
 
 
 Cart.add_item = cart_add_item
+
+
+# extend the Cart model
+class CartExtend:
+    def clear(self):
+        self.items.all().delete()
+
+
+Cart.__bases__ += (CartExtend,)

@@ -5,7 +5,12 @@ from django import VERSION as DJANGO_VERSION
 from django.utils.translation import ugettext_lazy as _
 
 ##############################
-# MEZZANINE-INVITES SETTINGS #
+# FFCSA-CORE SETTINGS #
+##############################
+ORDER_CUTOFF_DAY = 3
+
+##############################
+# FFCSA-INVITES SETTINGS #
 ##############################
 
 INVITE_CODE_LENGTH = 20
@@ -91,7 +96,7 @@ SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Recently added', '-date_added'),)
-SHOP_CART_EXPIRY_MINUTES = 20160 # valid for 14 days
+SHOP_CART_EXPIRY_MINUTES = 20160  # valid for 14 days
 
 ######################
 # MEZZANINE SETTINGS #
@@ -118,7 +123,7 @@ ADMIN_MENU_ORDER = (
                  "shop.Sale")),
     ("Users", ((_("Invites"), "invites.InvitationCode"), "auth.User", "auth.Group",)),
     ("Content", ("pages.Page", "blog.BlogPost",
-       (_("Media Library"), "fb_browse"),)),
+                 (_("Media Library"), "fb_browse"),)),
     ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
 )
 
@@ -340,6 +345,7 @@ INSTALLED_APPS = (
     "mezzanine.accounts",
     "ffcsa.invites",
     "ffcsa.core",
+    "kronos",
     # "mezzanine.mobile",
 )
 
@@ -430,3 +436,8 @@ except ImportError:
     pass
 else:
     set_dynamic_settings(globals())
+
+import sys
+
+if 'test' in sys.argv or 'test_coverage' in sys.argv:  # Covers regular testing and django-coverage
+    DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'

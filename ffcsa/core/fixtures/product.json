@@ -1,0 +1,57 @@
+[
+  {
+    "model": "shop.product",
+    "pk": 1,
+    "fields": {
+      "keywords_string": "",
+      "rating_count": 0,
+      "rating_sum": 0,
+      "rating_average": 0.0,
+      "site": 1,
+      "title": "Ground Beef",
+      "slug": "ground-beef",
+      "_meta_title": "",
+      "description": "1 lb pack",
+      "gen_description": true,
+      "created": "2017-03-21T23:23:49.196Z",
+      "updated": "2017-03-21T23:28:03.428Z",
+      "status": 2,
+      "publish_date": "2017-03-21T23:23:49Z",
+      "expiry_date": null,
+      "short_url": null,
+      "in_sitemap": true,
+      "content": "<p>1 lb pack</p>",
+      "unit_price": "10.00",
+      "sale_id": null,
+      "sale_price": null,
+      "sale_from": "2017-03-21T16:23:47Z",
+      "sale_to": null,
+      "sku": "1",
+      "num_in_stock": 100,
+      "available": true,
+      "image": null,
+      "date_added": "2017-03-21T23:23:49.198Z",
+      "categories": [],
+      "related_products": [],
+      "upsell_products": []
+    }
+  },
+  {
+    "model": "shop.productvariation",
+    "pk": 1,
+    "fields": {
+      "unit_price": "10.00",
+      "sale_id": null,
+      "sale_price": null,
+      "sale_from": "2017-03-21T16:23:47Z",
+      "sale_to": null,
+      "sku": "1",
+      "num_in_stock": 100,
+      "product": 1,
+      "default": true,
+      "image": null,
+      "option1": null,
+      "option2": null
+    }
+  }
+]
