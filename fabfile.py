@@ -22,7 +22,6 @@ from fabric.contrib.project import rsync_project
 from fabric.colors import yellow, green, blue, red
 from fabric.decorators import hosts
 
-
 ################
 # Config setup #
 ################
@@ -42,7 +41,6 @@ if sys.argv[0].split(os.sep)[-1] in ("fab", "fab-script.py"):
     except (ImportError, AttributeError):
         print("Aborting, no hosts defined.")
         exit()
-
 
 env.db_pass = conf.get("DB_PASS", None)
 env.admin_pass = conf.get("ADMIN_PASS", None)
@@ -75,13 +73,11 @@ if not env.secret_key:
     print("Aborting, no SECRET_KEY setting defined.")
     exit()
 
-
 # Remote git repos need to be "bare" and reside separated from the project
 if env.deploy_tool == "git":
     env.repo_path = "/home/%s/git/%s.git" % (env.user, env.proj_name)
 else:
     env.repo_path = env.proj_path
-
 
 ##################
 # Template setup #
@@ -216,6 +212,7 @@ def log_call(func):
         header = "-" * len(func.__name__)
         _print(green("\n".join([header, func.__name__, header]), bold=True))
         return func(*args, **kawrgs)
+
     return logged
 
 
@@ -271,7 +268,8 @@ def rsync_upload():
     Uploads the project with rsync excluding some files and folders.
     """
     excludes = ["*.pyc", "*.pyo", "*.db", ".DS_Store", ".coverage",
-                "local_settings.py", "/static", "/.git", "/.hg"]
+                "local_settings.py", "/static", "/.git", "/.hg",
+                ".idea", "*.iml", ".python-version", ".gitignore", "original_t"]
     local_dir = os.getcwd() + os.sep
     return rsync_project(remote_dir=env.proj_path, local_dir=local_dir,
                          exclude=excludes)
@@ -332,20 +330,20 @@ def pip(packages):
         return run("pip install %s" % packages)
 
 
-def postgres(command):
+def mysql(command):
     """
-    Runs the given command as the postgres user.
+    Runs the given command as the mysql user.
     """
-    show = not command.startswith("psql")
-    return sudo(command, show=show, user="postgres")
+    show = not command.startswith("mysql")
+    return sudo(command, show=show, user="mysql")
 
 
 @task
-def psql(sql, show=True):
+def mysql_sql(sql, show=True):
     """
     Runs SQL against the project's database.
     """
-    out = postgres('psql -c "%s"' % sql)
+    out = mysql('mysql -e "%s"' % sql)
     if show:
         print_command(sql)
     return out
@@ -356,12 +354,12 @@ def backup(filename):
     """
     Backs up the project database.
     """
-    tmp_file = "/tmp/%s" % filename
-    # We dump to /tmp because user "postgres" can't write to other user folders
-    # We cd to / because user "postgres" might not have read permissions
+    tmp_file = "/tmp/%s.gz" % filename
+    # We dump to /tmp because user "mysql" can't write to other user folders
+    # We cd to / because user "mysql" might not have read permissions
     # elsewhere.
     with cd("/"):
-        postgres("pg_dump -Fc %s > %s" % (env.proj_name, tmp_file))
+        mysql("mysqldump  %s | gzip -9 > %s" % (env.proj_name, tmp_file))
     run("cp %s ." % tmp_file)
     sudo("rm -f %s" % tmp_file)
 
@@ -371,7 +369,7 @@ def restore(filename):
     """
     Restores the project database from a previous backup.
     """
-    return postgres("pg_restore -c -d %s %s" % (env.proj_name, filename))
+    return mysql("gunzip < %s | mysql %s" % (filename, env.proj_name))
 
 
 @task
@@ -442,8 +440,8 @@ def install():
     """
     # Install system requirements
     sudo("apt-get update -y -q")
-    apt("nginx libjpeg-dev python-dev python-setuptools git-core "
-        "postgresql libpq-dev memcached supervisor python-pip")
+    apt("nginx libjpeg-dev python-dev python-setuptools git-core mysql-server"
+        "libmysqlclient-dev libpq-dev memcached supervisor python-pip")
     run("mkdir -p /home/%s/logs" % env.user)
 
     # Install Python requirements
@@ -473,7 +471,7 @@ def create():
         if locale not in run("locale -a"):
             sudo("locale-gen %s" % env.locale)
             sudo("update-locale %s" % env.locale)
-            sudo("service postgresql restart")
+            sudo("service mysql restart")
             run("exit")
 
     # Create project path
@@ -498,14 +496,14 @@ def create():
 
     # Create DB and DB user
     pw = db_pass()
-    user_sql_args = (env.proj_name, pw.replace("'", "\'"))
-    user_sql = "CREATE USER %s WITH ENCRYPTED PASSWORD '%s';" % user_sql_args
-    psql(user_sql, show=False)
+    mysql_sql("CREATE DATABASE %s CHARACTER SET 'UTF8' COLLATE %s;"
+              % (env.proj_name, env.locale))
+    user_sql_args = (env.proj_name, pw.replace("'", "\'"), env.proj_name, env.proj_name)
+    user_sql = "CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'; GRANT ALL PRIVILEGES ON %s.* TO " \
+               "'%s'@'localhost';FLUSH PRIVILEGES" % user_sql_args
+    mysql_sql(user_sql, show=False)
     shadowed = "*" * len(pw)
     print_command(user_sql.replace("'%s'" % pw, "'%s'" % shadowed))
-    psql("CREATE DATABASE %s WITH OWNER %s ENCODING = 'UTF8' "
-         "LC_CTYPE = '%s' LC_COLLATE = '%s' TEMPLATE template0;" %
-         (env.proj_name, env.proj_name, env.locale, env.locale))
 
     # Set up SSL certificate
     if not env.ssl_disabled:
@@ -532,7 +530,7 @@ def create():
     with project():
         if env.reqs_path:
             pip("-r %s/%s" % (env.proj_path, env.reqs_path))
-        pip("gunicorn setproctitle psycopg2 "
+        pip("gunicorn setproctitle mysqlclient"
             "django-compressor python-memcached")
     # Bootstrap the DB
         manage("createdb --noinput --nodata")
@@ -575,8 +573,8 @@ def remove():
     if exists(env.repo_path):
         run("rm -rf %s" % env.repo_path)
     sudo("supervisorctl update")
-    psql("DROP DATABASE IF EXISTS %s;" % env.proj_name)
-    psql("DROP USER IF EXISTS %s;" % env.proj_name)
+    mysql_sql("DROP DATABASE IF EXISTS %s;" % env.proj_name)
+    mysql_sql("DROP USER IF EXISTS %s;" % env.proj_name)
 
 
 ##############
@@ -620,9 +618,9 @@ def deploy():
     if env.deploy_tool in env.vcs_tools:
         with cd(env.repo_path):
             if env.deploy_tool == "git":
-                    run("git rev-parse HEAD > %s/last.commit" % env.proj_path)
+                run("git rev-parse HEAD > %s/last.commit" % env.proj_path)
             elif env.deploy_tool == "hg":
-                    run("hg id -i > last.commit")
+                run("hg id -i > last.commit")
         with project():
             static_dir = static()
             if exists(static_dir):
@@ -663,10 +661,10 @@ def rollback():
         if env.deploy_tool in env.vcs_tools:
             with cd(env.repo_path):
                 if env.deploy_tool == "git":
-                        run("GIT_WORK_TREE={0} git checkout -f "
-                            "`cat {0}/last.commit`".format(env.proj_path))
+                    run("GIT_WORK_TREE={0} git checkout -f "
+                        "`cat {0}/last.commit`".format(env.proj_path))
                 elif env.deploy_tool == "hg":
-                        run("hg update -C `cat last.commit`")
+                    run("hg update -C `cat last.commit`")
             with project():
                 with cd(join(static(), "..")):
                     run("tar -xf %s/static.tar" % env.proj_path)
