@@ -183,6 +183,8 @@ USE_MODELTRANSLATION = False
 # MAIN DJANGO SETTINGS #
 ########################
 
+DEFAULT_FROM_EMAIL = "info@deckfamilyfarm.com"
+
 ADMINS = [('RJ', 'ewing.rj@gmail.com')]
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False

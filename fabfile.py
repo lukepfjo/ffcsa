@@ -42,6 +42,12 @@ if sys.argv[0].split(os.sep)[-1] in ("fab", "fab-script.py"):
         print("Aborting, no hosts defined.")
         exit()
 
+if local("uname -s", capture=True) == "Darwin":
+    try:
+        env.sudo_password = local("security find-generic-password -gwa {}".format(conf.get("KEYCHAIN_SUDO_ACCOUNT")), capture=True)
+    except:
+        pass
+
 env.db_pass = conf.get("DB_PASS", None)
 env.admin_pass = conf.get("ADMIN_PASS", None)
 env.user = conf.get("SSH_USER", getuser())

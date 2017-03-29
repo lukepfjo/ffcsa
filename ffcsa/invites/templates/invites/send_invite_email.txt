@@ -1,0 +1,8 @@
+Hi!
+
+Thanks for signing up with {{ site_name }}!
+
+You can use this link to register your account {{ display_signup_url }}.
+See you there!
+
+
