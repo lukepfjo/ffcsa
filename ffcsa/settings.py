@@ -76,10 +76,7 @@ INVITE_CODE_EXPIRY_DAYS = 0
 # Sequence of value/name pairs for types of product options,
 # eg Size, Colour. NOTE: Increasing the number of these will
 # require database migrations!
-# SHOP_OPTION_TYPE_CHOICES = (
-#     (1, "Size"),
-#     (2, "Colour"),
-# )
+SHOP_OPTION_TYPE_CHOICES = ()
 
 # Sequence of indexes from the SHOP_OPTION_TYPE_CHOICES setting that
 # control how the options should be ordered in the admin,
@@ -185,6 +182,8 @@ USE_MODELTRANSLATION = False
 ########################
 # MAIN DJANGO SETTINGS #
 ########################
+
+ADMINS = [('RJ', 'ewing.rj@gmail.com')]
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
@@ -340,7 +339,7 @@ INSTALLED_APPS = (
     "cartridge.shop",
     # "mezzanine.blog",
     "mezzanine.forms",
-    # "mezzanine.galleries",
+    "mezzanine.galleries",
     # "mezzanine.twitter",
     "mezzanine.accounts",
     "ffcsa.invites",
