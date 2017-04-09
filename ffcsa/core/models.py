@@ -1,5 +1,8 @@
+from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart
 from copy import deepcopy
+
+from django.db import models
 
 from ffcsa.core import managers
 
@@ -30,3 +33,8 @@ class CartExtend:
 
 
 Cart.__bases__ += (CartExtend,)
+
+
+class Profile(models.Model):
+    user = models.OneToOneField("auth.User")
+    weekly_budget = MoneyField("Weekly Budget", decimal_places=0)

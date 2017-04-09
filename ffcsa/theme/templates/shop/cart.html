@@ -4,7 +4,9 @@
 {% block meta_title %}{% trans "Weekly Order" %}{% endblock %}
 
 {% block title %}
-    Weekly Order: {{ order_week_start|date:"F d, Y" }} - {{ order_week_end|date:"F d, Y" }}
+    {% nevercache %}
+        Weekly Order: {{ order_week_start|date:"F d, Y" }} - {{ order_week_end|date:"F d, Y" }}
+    {% endnevercache %}
 {% endblock %}
 
 {% block body_id %}cart{% endblock %}
@@ -12,6 +14,16 @@
 {% block breadcrumb_menu %}
     {{ block.super }}
     <li>{% trans "Weekly Order" %}</li>
+{% endblock %}
+
+{% block topbar %}
+    {% if request.cart.total_price > request.user.profile.weekly_budget %}
+        <div class="alert alert-warning text-center">
+            The contents of your order total to a higher value then the
+            <strong>${{ request.user.profile.weekly_budget }}</strong> you agreed to pay. You may want to consider
+            exchanging some of the the higher value products, for a lower cost alternatives.
+        </div>
+    {% endif %}
 {% endblock %}
 
 {% block main %}

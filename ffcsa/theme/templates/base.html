@@ -62,7 +62,7 @@
 <body id="{% block body_id %}body{% endblock %}">
     <div id="wrapper">
         <header>
-            <div class="navbar navbar-default navbar-static-top" role="navigation">
+            <div class="navbar navbar-static-top" role="navigation">
                 <div class="container">
                     <div class="navbar-header">
                         <button type="button" class="navbar-toggle" data-toggle="collapse"
@@ -129,6 +129,7 @@
                     </div>
                 {% endif %}
             {% endnevercache %}
+            {% block topbar %}{% endblock %}
             <section id="{% block section_id %}content{% endblock %}">
                 <div class="container">
                     <div class="row">

@@ -5,28 +5,37 @@
             <table class="table table-condensed table-striped">
                 <thead>
                     <tr>
-                        <th class="text-center"><a href="{% url "shop_cart" %}">Weekly Order</a></th>
+                        <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Weekly Order</a></th>
                     </tr>
                 </thead>
                 <tbody>
-                {% if not request.cart.items.exists %}
-                    <tr><td class="text-center">no items</td></tr>
-                {% endif %}
+                    {% if not request.cart.items.exists %}
+                        <tr>
+                            <td class="text-center" colspan="2">no items</td>
+                        </tr>
+                    {% endif %}
                     {% for item in request.cart.items.all %}
                         <tr>
-                            <td>
+                            <td colspan="2">
                                 {{ item.description }}</td>
                         </tr>
                     {% endfor %}
+                    {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}
+                        <tr>
+                            <td><strong>budget:</strong> ${{ budget }}</td>
+                            <td class="{% if order_total > budget %}alert-warning{% endif %}">
+                                <strong>total:</strong> ${{ order_total }}</td>
+                        </tr>
+                    {% endwith %}
                 </tbody>
             </table>
 
-        {% if settings.SHOP_USE_WISHLIST %}
-            <a href="{% url "shop_wishlist" %}" class="btn-wishlist">
-                <span class="glyphicon glyphicon-star"></span>
-                {% blocktrans count request.wishlist|length as wishlist_count %}Wishlist contains 1 item{% plural %}
-                    Wishlist contains {{ wishlist_count }} items{% endblocktrans %}</a>
-        {% endif %}
+            {% if settings.SHOP_USE_WISHLIST %}
+                <a href="{% url "shop_wishlist" %}" class="btn-wishlist">
+                    <span class="glyphicon glyphicon-star"></span>
+                    {% blocktrans count request.wishlist|length as wishlist_count %}Wishlist contains 1 item{% plural %}
+                        Wishlist contains {{ wishlist_count }} items{% endblocktrans %}</a>
+            {% endif %}
         </div>
     {% endspaceless %}
 {% endif %}

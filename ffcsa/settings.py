@@ -102,7 +102,11 @@ SHOP_CART_EXPIRY_MINUTES = 20160  # valid for 14 days
 PAGES_MENU_SHOW_ALL = False
 # SIGNUP_URL =
 
-ACCOUNTS_PROFILE_FORM_CLASS = 'invites.forms.ProfileForm'
+ACCOUNTS_PROFILE_MODEL = 'ffcsa_core.Profile'
+ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
+ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
+    "weekly_budget"
+]
 
 ACCOUNTS_NO_USERNAME = True
 
