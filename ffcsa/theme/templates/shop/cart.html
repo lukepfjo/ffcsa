@@ -5,7 +5,10 @@
 
 {% block title %}
     {% nevercache %}
-        Weekly Order: {{ order_week_start|date:"F d, Y" }} - {{ order_week_end|date:"F d, Y" }}
+        {% load ffcsa_core_tags %}
+        {% order_week_start as week_start %}
+        {% order_week_end as week_end %}
+        Weekly Order: {{ week_start }} - {{ week_end }}
     {% endnevercache %}
 {% endblock %}
 
