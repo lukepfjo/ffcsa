@@ -19,15 +19,15 @@
     <li>{% trans "Weekly Order" %}</li>
 {% endblock %}
 
-{% block topbar %}
-    {% if request.cart.total_price > request.user.profile.weekly_budget %}
-        <div class="alert alert-warning text-center">
-            The contents of your order total to a higher value then the
-            <strong>${{ request.user.profile.weekly_budget }}</strong> you agreed to pay. You may want to consider
-            exchanging some of the the higher value products, for a lower cost alternatives.
-        </div>
-    {% endif %}
-{% endblock %}
+{#{% block topbar %}#}
+{#    {% if request.cart.total_price > request.user.profile.weekly_budget %}#}
+{#        <div class="alert alert-warning text-center">#}
+{#            The current value of the items in your weekly order is greater then your weekly membership contribution of#}
+{#            <strong>${{ request.user.profile.weekly_budget }}</strong>. You may want to consider exchanging some of the#}
+{#            the higher value items for lower cost alternatives.#}
+{#        </div>#}
+{#    {% endif %}#}
+{#{% endblock %}#}
 
 {% block main %}
     {% if cart_formset.forms %}

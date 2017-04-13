@@ -91,7 +91,8 @@
     {% endeditable %}
 
     {% if request.user.is_authenticated %}
-        {% if product.available and has_available_variations %}
+{#        {% if product.available and has_available_variations %}#}
+        {% if product.available %}
             <ul id="variations" class="list-unstyled">
                 {% for variation in variations %}
                     <li id="variation-{{ variation.sku }}"

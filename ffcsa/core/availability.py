@@ -8,9 +8,10 @@ def inform_user_product_unavailable(sku, product_name, cart_url):
     users_ids = Cart.objects.filter(items__sku=sku).values_list('user_id', flat=True)
     users = get_user_model().objects.filter(id__in=users_ids)
 
-    send_unavailable_email([u.email for u in users], product_name, cart_url)
+    if users:
+        send_unavailable_email([u.email for u in users], product_name, cart_url)
 
-    CartItem.objects.filter(sku=sku).delete()
+        CartItem.objects.filter(sku=sku).delete()
 
 
 def send_unavailable_email(bcc_addresses, product, cart_url):

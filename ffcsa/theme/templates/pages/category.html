@@ -4,7 +4,7 @@
 {% block body_id %}category{% endblock %}
 
 {% block title %}
-   Note: You must be a member of the Full Farm CSA to order products!
+    Note: You must be a member of the Full Farm CSA to order products!
 {% endblock %}
 
 {% block main %}{{ block.super }}
@@ -16,25 +16,27 @@
     {% endblock content %}
 
     {% if child_categories %}
-        {% include 'pages/category-list.html' with categories=child_categories  %}
+        {% include 'pages/category-list.html' with categories=child_categories %}
     {% endif %}
 
     {% if products.paginator.count != 0 %}
 
         <div class="row product-list">
             {% for product in products.object_list %}
-                <div class="col-xs-6 col-sm-4 col-lg-3 product-thumb">
-                    <a href="{{ product.get_absolute_url }}" class="thumbnail">
-                        {% if product.image %}
-                            <img src="{{ MEDIA_URL }}{% thumbnail product.image 148 148 %}">
-                        {% else %}
-                            <div class="placeholder"></div>
-                        {% endif %}
-                        <div class="caption">
-                            <h6>{{ product }}</h6>
-                        </div>
-                    </a>
-                </div>
+                {% if product.available %}
+                    <div class="col-xs-6 col-sm-4 col-lg-3 product-thumb">
+                        <a href="{{ product.get_absolute_url }}" class="thumbnail">
+                            {% if product.image %}
+                                <img src="{{ MEDIA_URL }}{% thumbnail product.image 148 148 %}">
+                            {% else %}
+                                <div class="placeholder"></div>
+                            {% endif %}
+                            <div class="caption">
+                                <h6>{{ product }}</h6>
+                            </div>
+                        </a>
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
 

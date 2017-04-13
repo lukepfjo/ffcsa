@@ -6,7 +6,7 @@ from mezzanine.conf import settings
 
 
 def shop_home(request, template="shop_home.html"):
-    root_categories = Category.objects.filter(parent__isnull=True)
+    root_categories = Category.objects.published().filter(parent__isnull=True)
 
     context = {
         'categories': root_categories,

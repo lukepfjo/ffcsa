@@ -5,7 +5,7 @@
             <table class="table table-condensed table-striped">
                 <thead>
                     <tr>
-                        <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Weekly Order</a></th>
+                        <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">View Weekly Order</a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -20,13 +20,13 @@
                                 {{ item.description }}</td>
                         </tr>
                     {% endfor %}
-                    {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}
-                        <tr>
-                            <td><strong>budget:</strong> ${{ budget }}</td>
-                            <td class="{% if order_total > budget %}alert-warning{% endif %}">
-                                <strong>total:</strong> ${{ order_total }}</td>
-                        </tr>
-                    {% endwith %}
+{#                    {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}#}
+{#                        <tr>#}
+{#                            <td><strong>budget:</strong> ${{ budget }}</td>#}
+{#                            <td class="{% if order_total > budget %}alert-warning{% endif %}">#}
+{#                                <strong>total:</strong> ${{ order_total }}</td>#}
+{#                        </tr>#}
+{#                    {% endwith %}#}
                 </tbody>
             </table>
 

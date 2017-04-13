@@ -17,8 +17,8 @@ from cartridge.shop.models import Category
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 
 
-# images get copied from thie directory
-LOCAL_IMAGE_DIR = "/Users/rjewing/PycharmProjects/ffcsa/imgs"
+# images get copied from this directory
+LOCAL_IMAGE_DIR = "/Users/rjewing/code/ffcsa/static/media/uploads/product"
 # images get copied to this directory under STATIC_ROOT
 IMAGE_SUFFIXES = [".jpg", ".JPG", ".jpeg", ".JPEG", ".tif", ".gif", ".GIF", ".png", ".PNG"]
 EMPTY_IMAGE_ENTRIES = ["Please add", "N/A", ""]
@@ -43,7 +43,7 @@ SALE_END_DATE = _("Sale End Date")
 SALE_END_TIME = _("Sale End Time")
 
 DATETIME_FORMAT = "%s %s" % (DATE_FORMAT, TIME_FORMAT)
-SITE_MEDIA_IMAGE_DIR = _("uploads/product")
+SITE_MEDIA_IMAGE_DIR = _("media/uploads/product")
 PRODUCT_IMAGE_DIR = os.path.join(settings.STATIC_ROOT, SITE_MEDIA_IMAGE_DIR)
 TYPE_CHOICES = dict()
 for id, choice in settings.SHOP_OPTION_TYPE_CHOICES:
@@ -116,10 +116,10 @@ def _make_image(image_str, product):
     root, suffix = os.path.splitext(image_str)
     if suffix not in IMAGE_SUFFIXES:
         raise CommandError("INCORRECT SUFFIX: %s" % image_str)
-    image_path = os.path.join(LOCAL_IMAGE_DIR, image_str)
-    if not os.path.exists(image_path):
-        raise CommandError("NO FILE %s" % image_path)
-    shutil.copy(image_path, PRODUCT_IMAGE_DIR)
+    # image_path = os.path.join(LOCAL_IMAGE_DIR, image_str)
+    # if not os.path.exists(image_path):
+    #     raise CommandError("NO FILE %s" % image_path)
+    # shutil.copy(image_path, PRODUCT_IMAGE_DIR)
     # shutil.copy(image_path, os.path.join(PRODUCT_IMAGE_DIR, "orig"))
     image, created = ProductImage.objects.get_or_create(
         file="%s" % (os.path.join(SITE_MEDIA_IMAGE_DIR, image_str)),
@@ -138,7 +138,7 @@ def import_products(csv_file):
     print(_("Importing .."))
     # More appropriate for testing.
     Product.objects.all().delete()
-    reader = csv.DictReader(open(csv_file), delimiter=',')
+    reader = csv.DictReader(open(csv_file, encoding='utf16'), delimiter="\t")
     for row in reader:
         print(row)
         product = _product_from_row(row)
