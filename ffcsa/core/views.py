@@ -1,6 +1,8 @@
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import AddProductForm
 from cartridge.shop.models import Category
+from django.contrib.messages import info
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from mezzanine.conf import settings
 
@@ -30,3 +32,20 @@ def product(request, slug, template="shop/product.html",
             raise Exception("Server Error")
 
     return s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+
+
+def submit_order(request):
+    if not request.user.is_authenticated():
+        raise Exception("You must be authenticated in order to add products to your cart")
+    if not request.cart.user_id:
+        request.cart.user_id = request.user.id
+    elif request.cart.user_id != request.user.id:
+        raise Exception("Server Error")
+
+    cart = request.cart
+    cart.submitted = True
+    cart.save()
+
+    info(request, "Order submitted")
+
+    return redirect("shop_cart")

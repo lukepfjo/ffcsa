@@ -82,25 +82,28 @@
         {% endspaceless %}
     {% endif %}
 
-    {% editable product.description %}
-        {{ product.description|richtext_filters|safe }}
-    {% endeditable %}
-
     {% editable product.content %}
         {{ product.content|richtext_filters|safe }}
     {% endeditable %}
 
-    {% if request.user.is_authenticated %}
-{#        {% if product.available and has_available_variations %}#}
-        {% if product.available %}
-            <ul id="variations" class="list-unstyled">
-                {% for variation in variations %}
-                    <li id="variation-{{ variation.sku }}"
-                        {% if not variation.default %}style="display:none;"{% endif %}>
-                    </li>
-                {% endfor %}
-            </ul>
+    {% if product.available and has_available_variations %}
+{#    {% if product.available %}#}
+        <ul id="variations" class="list-unstyled">
+            {% for variation in variations %}
+                <li id="variation-{{ variation.sku }}"
+                    {% if not variation.default %}style="display:none;"{% endif %}>
+                    {% if variation.has_price %}
+                        {% if variation.on_sale %}
+                            <span class="old-price">{{ variation.unit_price|currency }}</span>
+                            {% trans "On sale:" %}
+                        {% endif %}
+                        <span class="price">{{ variation.price|currency }} value</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
 
+        {% if request.user.is_authenticated %}
             {% errors_for add_product_form %}
 
             <form method="post" id="add-cart" class="shop-form">
@@ -115,10 +118,10 @@
                 </div>
             </form>
         {% else %}
-            <p class="error-msg">{% trans "This product is currently unavailable." %}</p>
+            <p class="error-msg">{% trans "Products are only available to order for members." %}</p>
         {% endif %}
     {% else %}
-        <p class="error-msg">{% trans "Products are only available to members." %}</p>
+        <p class="error-msg">{% trans "This product is currently unavailable." %}</p>
     {% endif %}
 
     {% if settings.SHOP_USE_RATINGS %}

@@ -16,17 +16,22 @@
                     {% endif %}
                     {% for item in request.cart.items.all %}
                         <tr>
-                            <td colspan="2">
+                            <td>
                                 {{ item.description }}</td>
                         </tr>
                     {% endfor %}
-{#                    {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}#}
-{#                        <tr>#}
-{#                            <td><strong>budget:</strong> ${{ budget }}</td>#}
-{#                            <td class="{% if order_total > budget %}alert-warning{% endif %}">#}
-{#                                <strong>total:</strong> ${{ order_total }}</td>#}
-{#                        </tr>#}
-{#                    {% endwith %}#}
+                </tbody>
+            </table>
+            <table class="table table-condensed">
+                <tbody>
+                    {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}
+                        <tr>
+                            <td><strong>Order Total:</strong> ${{ order_total }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Suggested Budget:</strong> ${{ budget }}</td>
+                        </tr>
+                    {% endwith %}
                 </tbody>
             </table>
 

@@ -13,8 +13,23 @@ register = template.Library()
 
 
 @register.simple_tag()
+def pickup_date_text():
+    now = datetime.datetime.now()
+
+    days_ahead = 4 - now.weekday()  # Friday is the 5th day
+    if now.weekday() >= ORDER_CUTOFF_DAY:
+        days_ahead += 7  # since order cutoff is past, add 7 days
+
+    pickup = now + datetime.timedelta(days_ahead)
+    delivery = pickup + datetime.timedelta(1)
+
+    return "Weekly order for pickup {} & delivery {}".format(formats.date_format(pickup, "D F d"),
+                                                             formats.date_format(delivery, "D F d"))
+
+
+@register.simple_tag()
 def order_week_start():
-    now = datetime.datetime.now() - datetime.timedelta(3)
+    now = datetime.datetime.now()
 
     if now.weekday() < ORDER_CUTOFF_DAY:
         delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day
@@ -29,7 +44,7 @@ def order_week_start():
 
 @register.simple_tag()
 def order_week_end():
-    now = datetime.datetime.now() - datetime.timedelta(3)
+    now = datetime.datetime.now()
 
     if now.weekday() < ORDER_CUTOFF_DAY:
         delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day

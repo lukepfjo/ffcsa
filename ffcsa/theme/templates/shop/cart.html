@@ -6,9 +6,7 @@
 {% block title %}
     {% nevercache %}
         {% load ffcsa_core_tags %}
-        {% order_week_start as week_start %}
-        {% order_week_end as week_end %}
-        Weekly Order: {{ week_start }} - {{ week_end }}
+        {% pickup_date_text %}
     {% endnevercache %}
 {% endblock %}
 
@@ -19,7 +17,7 @@
     <li>{% trans "Weekly Order" %}</li>
 {% endblock %}
 
-{#{% block topbar %}#}
+{% block topbar %}
 {#    {% if request.cart.total_price > request.user.profile.weekly_budget %}#}
 {#        <div class="alert alert-warning text-center">#}
 {#            The current value of the items in your weekly order is greater then your weekly membership contribution of#}
@@ -27,7 +25,12 @@
 {#            the higher value items for lower cost alternatives.#}
 {#        </div>#}
 {#    {% endif %}#}
-{#{% endblock %}#}
+    {% if request.cart.submitted %}
+        <div class="alert alert-info text-center">
+            You have submitted your order for this week!
+        </div>
+    {% endif %}
+{% endblock %}
 
 {% block main %}
     {% if cart_formset.forms %}
@@ -72,8 +75,16 @@
             </table>
 
             <div class="form-actions">
-                <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                       value="{% trans "Update weekly order" %}">
+                {% if request.cart.submitted %}
+                    <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
+                           value="{% trans "Update Weekly Order" %}">
+                {% else %}
+                    <a href="{% url "submit_order" %}" class="btn btn-primary btn-lg pull-right">
+                        Submit Weekly Order
+                    </a>
+                    <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
+                           value="{% trans "Update Basket" %}">
+                {% endif %}
             </div>
         </form>
 

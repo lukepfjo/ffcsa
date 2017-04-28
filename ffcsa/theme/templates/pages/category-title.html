@@ -1,0 +1,5 @@
+{% if not request.user.is_authenticated %}
+    Full Farm CSA members, please log in to your account to order
+{% else %}
+    Inventory is updated by Monday at 5pm. Order cutoff is Wednesday midnight for pickup Friday or delivery Saturday
+{% endif %}

@@ -2050,3 +2050,11 @@ article img.pull-right, article .align-right {
 .shop-category-list > div > a > .caption {
     width: 100%;
 }
+
+/* ===============================
+13. Product
+================================ */
+
+#variations {
+    margin-left: 0;
+}

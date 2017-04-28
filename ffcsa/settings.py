@@ -169,6 +169,13 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"blank": False, "null": False, "unique": True},
     ),
+    (
+        "cartridge.shop.models.Cart.submitted",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "unique": True, "default": False},
+    )
 )
 
 MIGRATION_MODULES = {
