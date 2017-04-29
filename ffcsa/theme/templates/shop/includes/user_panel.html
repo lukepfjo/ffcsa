@@ -16,8 +16,8 @@
                     {% endif %}
                     {% for item in request.cart.items.all %}
                         <tr>
-                            <td>
-                                {{ item.description }}</td>
+                            <td>{{ item.quantity }}x</td>
+                            <td>{{ item.description }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -26,7 +26,7 @@
                 <tbody>
                     {% with budget=request.user.profile.weekly_budget order_total=request.cart.total_price %}
                         <tr>
-                            <td><strong>Order Total:</strong> ${{ order_total }}</td>
+                            <td><strong>Order Value:</strong> ${{ order_total }}</td>
                         </tr>
                         <tr>
                             <td><strong>Suggested Budget:</strong> ${{ budget }}</td>

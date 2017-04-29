@@ -2,6 +2,7 @@ from cartridge.shop import views as s_views
 from cartridge.shop.forms import AddProductForm, CartItemFormSet, DiscountForm
 from cartridge.shop.models import Category
 from django.contrib.messages import info
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.views.decorators.cache import never_cache
@@ -60,4 +61,10 @@ def product(request, slug, template="shop/product.html",
         elif request.cart.user_id != request.user.id:
             raise Exception("Server Error")
 
-    return s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+    response = s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+
+    if isinstance(response, HttpResponseRedirect):
+        request.method = 'GET'
+        return s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+
+    return response

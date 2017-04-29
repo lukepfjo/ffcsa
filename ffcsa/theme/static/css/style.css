@@ -2045,10 +2045,45 @@ article img.pull-right, article .align-right {
 
 .shop-category-list > div > a > img {
     align-self: flex-start;
+    max-width: none !important;
 }
 
 .shop-category-list > div > a > .caption {
     width: 100%;
+}
+
+.shop-category-list .thumbnail:hover,
+.product-list .thumbnail:hover {
+    border: 1px solid #68A4C4;
+    cursor: hand;
+}
+
+.thumbnail .caption {
+    border: none;
+}
+
+.product-quick-add-form .item-qty {
+    margin: 7px auto;
+    margin-top: -5px;
+    max-width: 50px;
+    width: 50%;
+}
+
+.product-quick-add-form input::-webkit-outer-spin-button,
+.product-quick-add-form input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+.add-weekly-box-form .form-actions {
+    border-top: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+#weekly-box-category .product-quick-add-form {
+    display: none;
 }
 
 /* ===============================

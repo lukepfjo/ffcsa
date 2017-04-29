@@ -1,0 +1,25 @@
+{% extends "pages/category.html" %}
+
+{% load mezzanine_tags shop_tags i18n %}
+{% block body_id %}weekly-box-category{% endblock %}
+
+<div id="weekly-order-box-page">
+    {% block content %}
+        <h3>{% editable page.title %}{{ page.title }}{% endeditable %}</h3>
+        {% editable page.category.content %}
+            {{ page.category.content|safe }}
+        {% endeditable %}
+
+        {% if request.user.is_authenticated %}
+            <form method="post" class="add-weekly-box-form">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <input type="submit" name="add_box_items" class="btn btn-primary btn-lg center-block"
+                           value="{% trans "Add Items To Weekly Order" %}">
+                </div>
+            </form>
+        {% endif %}
+
+    {% endblock content %}
+
+</div>

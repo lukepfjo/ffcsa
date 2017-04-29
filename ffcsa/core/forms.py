@@ -1,4 +1,3 @@
-from cartridge.shop.models import Cart
 from django import forms
 from mezzanine.pages.admin import PageAdminForm
 

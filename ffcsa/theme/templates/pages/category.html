@@ -25,27 +25,25 @@
             {% for product in products.object_list %}
                 {% if product.available %}
                     <div class="col-xs-6 col-sm-4 col-lg-3 product-thumb">
-                        <a href="{{ product.get_absolute_url }}" class="thumbnail">
-                            {% if product.image %}
-                                <img src="{{ MEDIA_URL }}{% thumbnail product.image 148 148 %}">
-                            {% else %}
-                                <div class="placeholder"></div>
-                            {% endif %}
-                            <div class="caption">
-                                <h6>{{ product }}</h6>
-                            </div>
-                        </a>
-                        <form method="post" id="add-cart" class="shop-form">
-                            {% fields_for add_product_form %}
-                            <div class="form-actions">
-                                <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
-                                       value="{% trans "Add to Order" %}">
-                                {% if settings.SHOP_USE_WISHLIST %}
-                                    <input type="submit" class="btn btn-default btn-lg pull-left" name="add_wishlist"
-                                           value="{% trans "Save for later" %}">
+                        <div class="thumbnail">
+                            <a href="{{ product.get_absolute_url }}">
+                                {% if product.image %}
+                                    <img src="{{ MEDIA_URL }}{% thumbnail product.image 148 148 %}">
+                                {% else %}
+                                    <div class="placeholder"></div>
                                 {% endif %}
-                            </div>
-                        </form>
+                                <div class="caption">
+                                    <h6>{{ product }}</h6>
+                                </div>
+                            </a>
+                            <form method="post" class="product-quick-add-form form-group-sm">
+                                {% csrf_token %}
+                                <input type="number" class="form-control item-qty" placeholder="qty" name="item_qty"/>
+                                <input type="hidden" name="item_id" value="{{ product.id }}"/>
+                                <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
+                                       value="{% trans "Add to Order" %}">
+                            </form>
+                        </div>
                     </div>
                 {% endif %}
             {% endfor %}
