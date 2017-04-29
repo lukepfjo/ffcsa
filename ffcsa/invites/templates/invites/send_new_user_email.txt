@@ -1,0 +1,4 @@
+{{ user }} has created an account with {{ site_name }}
+
+Visit {{ user_url }} to set their weekly budget.
+

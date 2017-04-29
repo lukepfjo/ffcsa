@@ -107,6 +107,7 @@ ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "weekly_budget"
 ]
+ACCOUNTS_APPROVAL_EMAILS = 'ewing.rj@gmail.com'  # used to send notifications of new user accounts
 
 ACCOUNTS_NO_USERNAME = True
 
@@ -174,7 +175,14 @@ EXTRA_MODEL_FIELDS = (
         "BooleanField",
         (),
         # Keyword args for field class.
-        {"blank": False, "null": False, "unique": True, "default": False},
+        {"blank": False, "null": False, "default": False},
+    ),
+    (
+        "cartridge.shop.models.Cart.attending_dinner",
+        "IntegerField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": 0},
     )
 )
 
@@ -357,7 +365,6 @@ INSTALLED_APPS = (
     "mezzanine.accounts",
     "ffcsa.invites",
     "ffcsa.core",
-    "kronos",
     # "mezzanine.mobile",
 )
 

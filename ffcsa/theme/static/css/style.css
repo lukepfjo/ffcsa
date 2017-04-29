@@ -2058,3 +2058,12 @@ article img.pull-right, article .align-right {
 #variations {
     margin-left: 0;
 }
+
+/* ===============================
+14. Cart
+================================ */
+
+#id_attending_dinner {
+    max-width: 60px;
+}
+

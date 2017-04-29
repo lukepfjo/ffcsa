@@ -48,6 +48,7 @@ if local("uname -s", capture=True) == "Darwin":
     except:
         pass
 
+env.convert_orders_day = conf.get("CONVERT_ORDERS_DAY", 4)
 env.db_pass = conf.get("DB_PASS", None)
 env.admin_pass = conf.get("ADMIN_PASS", None)
 env.user = conf.get("SSH_USER", getuser())

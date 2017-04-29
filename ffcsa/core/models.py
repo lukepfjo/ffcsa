@@ -30,6 +30,7 @@ Cart.add_item = cart_add_item
 class CartExtend:
     def clear(self):
         self.submitted = False
+        self.attending_dinner = 0
         self.items.all().delete()
 
 
