@@ -36,13 +36,16 @@
                                     <h6>{{ product }}</h6>
                                 </div>
                             </a>
-                            <form method="post" class="product-quick-add-form form-group-sm">
-                                {% csrf_token %}
-                                <input type="number" class="form-control item-qty" placeholder="qty" name="item_qty"/>
-                                <input type="hidden" name="item_id" value="{{ product.id }}"/>
-                                <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
-                                       value="{% trans "Add to Order" %}">
-                            </form>
+                            {% if request.user.is_authenticated %}
+                                <form method="post" class="product-quick-add-form form-group-sm">
+                                    {% csrf_token %}
+                                    <input type="number" class="form-control item-qty" placeholder="qty"
+                                           name="item_qty"/>
+                                    <input type="hidden" name="item_id" value="{{ product.id }}"/>
+                                    <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
+                                           value="{% trans "Add to Order" %}">
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 {% endif %}

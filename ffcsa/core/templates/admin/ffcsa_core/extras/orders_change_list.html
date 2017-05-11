@@ -1,0 +1,9 @@
+{% extends "admin/change_list.html" %}
+
+{% block before_change_list_form %}
+    <form method="post">
+        {% csrf_token %}
+        {{ export_form }}
+        <input type="submit" name="export_orders" value="Export CSV"/>
+    </form>
+{% endblock %}

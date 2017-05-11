@@ -32,7 +32,7 @@ class Command(BaseCommand):
                         'billing_detail_last_name': user.last_name,
                         'billing_detail_email': user.email,
                         'total': cart.total_price(),
-                        'additional_instructions': additional_inst or None
+                        'additional_instructions': additional_inst
                     }
 
                     order = Order.objects.create(**order_dict)
