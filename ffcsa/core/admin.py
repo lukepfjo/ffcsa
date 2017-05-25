@@ -36,18 +36,10 @@ def export_as_csv(modeladmin, request, queryset):
         for item in order.items.all():
             p = Product.objects.filter(sku=item.sku).first()
 
-            # category = p.categories.exclude(slug='weekly-box').first()
-            # sub_category = None
-
-            # if category.parent:
-            #     sub_category = category
-            #     category = sub_category.parent
-
             row = row_base.copy()
             row.append(item.description)
             row.append(p.content)
             row.append(",".join([c.titles for c in p.categories.exclude(slug='weekly-box')]))
-            # row.append(sub_category.title)
             row.append(item.unit_price)
             row.append(item.quantity)
             row.append(item.total_price)
@@ -62,12 +54,25 @@ export_as_csv.short_description = "Export As CSV"
 
 def download_invoices(self, request, queryset):
     invoices = {}
+    category_map = {}
 
     for order in queryset:
         context = {"order": order}
         context.update(order.details_as_dict())
-        html = get_template("shop/order_invoice_pdf.html").render(context)
 
+        items = [i for i in order.items.all()]
+        for item in items:
+            if not item in category_map.keys():
+                p = Product.objects.filter(sku=item.sku).first()
+                if p:
+                    category_map[item.sku] = ",".join([c.titles for c in p.categories.exclude(slug='weekly-box')])
+
+        items.sort(key=lambda i: category_map[i.sku] or "")
+        context['items'] = items
+        # context['details_list'] = ["First name", "Last name", "Phone", "Email"]
+        context['details_list'] = ["First name", "Last name", "Email", "Phone", ""]
+
+        html = get_template("shop/order_packlist_pdf.html").render(context)
         invoice = tempfile.SpooledTemporaryFile()
         HTML(string=html).write_pdf(invoice)
         invoices[order.id] = invoice

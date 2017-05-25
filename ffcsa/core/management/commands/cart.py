@@ -21,7 +21,8 @@ class Command(BaseCommand):
                 if cart.submitted:
                     user = get_user_model().objects.get(id=cart.user_id)
 
-                    additional_inst = "Attending Dinner: {}".format(cart.attending_dinner) if cart.attending_dinner else ""
+                    additional_inst = "Drop Site: \t{}".format(user.profile.drop_site)
+                    additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner) if cart.attending_dinner else ""
 
 
                     order_dict = {
@@ -31,6 +32,7 @@ class Command(BaseCommand):
                         'billing_detail_first_name': user.first_name,
                         'billing_detail_last_name': user.last_name,
                         'billing_detail_email': user.email,
+                        'billing_detail_phone': user.profile.phone_number,
                         'total': cart.total_price(),
                         'additional_instructions': additional_inst
                     }

@@ -2,28 +2,31 @@ from django import forms
 from django.core.exceptions import ValidationError
 
 from mezzanine.accounts import forms as base
+from ffcsa.core.models import PHONE_REGEX
 
 from .models import InvitationCode, InviteCodeIsOutOfDate, InviteCodeInvalidEmail
 
 
 class ProfileForm(base.ProfileForm):
     username = None
-    code = forms.CharField(widget=forms.HiddenInput())
+    code = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
 
+        self.fields['phone_number'].validators.append(PHONE_REGEX)
         if self._signup:
             self.fields['email'].widget = forms.HiddenInput()
 
     def save(self, *args, **kwargs):
         user = super(ProfileForm, self).save(*args, **kwargs)
 
-        # delete the code now that it has been successfully used
-        code = InvitationCode.objects.get_code_from_key_if_valid(
-            self.data['code'], self.data['email']
-        )
-        code.delete()
+        if self._signup:
+            # delete the code now that it has been successfully used
+            code = InvitationCode.objects.get_code_from_key_if_valid(
+                self.data['code'], self.data['email']
+            )
+            code.delete()
 
         return user
 

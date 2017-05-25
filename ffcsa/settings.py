@@ -106,7 +106,8 @@ PAGES_MENU_SHOW_ALL = False
 ACCOUNTS_PROFILE_MODEL = 'ffcsa_core.Profile'
 ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
-    "weekly_budget"
+    "weekly_budget",
+    "drop_site"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'deckfamilyfarm@gmail.com'  # used to send notifications of new user accounts
 

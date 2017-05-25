@@ -2,6 +2,7 @@ from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart
 from copy import deepcopy
 
+from django.core.validators import RegexValidator
 from django.db import models
 
 from ffcsa.core import managers
@@ -36,7 +37,12 @@ class CartExtend:
 
 Cart.__bases__ += (CartExtend,)
 
+PHONE_REGEX = RegexValidator(regex=r'^\+?(1-)?\d{3}-\d{3}-\d{4}$',
+                             message="Phone number must be entered in the format: '999-999-9999'.")
+
 
 class Profile(models.Model):
     user = models.OneToOneField("auth.User")
     weekly_budget = MoneyField("Weekly Budget", decimal_places=0)
+    phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
+    drop_site = models.CharField("Drop Site", blank=True, max_length=255)
