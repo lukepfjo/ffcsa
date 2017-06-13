@@ -22,7 +22,7 @@ class Command(BaseCommand):
                     user = get_user_model().objects.get(id=cart.user_id)
 
                     additional_inst = "Drop Site: \t{}".format(user.profile.drop_site)
-                    additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner) if cart.attending_dinner else ""
+                    additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner)
 
 
                     order_dict = {

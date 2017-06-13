@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import csv
 import tempfile
 import zipfile
+import math
+from itertools import groupby
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
@@ -26,20 +28,20 @@ def export_as_csv(modeladmin, request, queryset):
     response['Content-Disposition'] = 'attachment; filename="ffcsa_order_export.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['Order Date', 'First Name', 'Last Name', 'Item', 'Description', 'Category',
-                     'Unit Price', 'Quantity', 'Total Price'])
+    writer.writerow(
+        ['Order Date', 'Last Name', 'Drop Site', 'Category', 'Item', 'SKU', 'Unit Price', 'Quantity', 'Total Price'])
 
     for order in queryset:
         user = get_user_model().objects.get(id=order.user_id)
-        row_base = [order.time, user.first_name, user.last_name]
+        row_base = [order.time, user.last_name, user.profile.drop_site]
 
         for item in order.items.all():
             p = Product.objects.filter(sku=item.sku).first()
 
             row = row_base.copy()
-            row.append(item.description)
-            row.append(p.content)
             row.append(",".join([c.titles for c in p.categories.exclude(slug='weekly-box')]))
+            row.append(item.description)
+            row.append(item.sku)
             row.append(item.unit_price)
             row.append(item.quantity)
             row.append(item.total_price)
@@ -67,8 +69,15 @@ def download_invoices(self, request, queryset):
                 if p:
                     category_map[item.sku] = ",".join([c.titles for c in p.categories.exclude(slug='weekly-box')])
 
-        items.sort(key=lambda i: category_map[i.sku] or "")
-        context['items'] = items
+        items.sort(key=lambda i: i.sku)
+
+        grouper = groupby(items, lambda i: math.floor(int(i.sku) / 1000) * 1000)
+        grouped_items = {}
+
+        for k, g in grouper:
+            grouped_items[k] = list(g)
+
+        context['grouped_items'] = grouped_items
         # context['details_list'] = ["First name", "Last name", "Phone", "Email"]
         context['details_list'] = ["First name", "Last name", "Email", "Phone", ""]
 
