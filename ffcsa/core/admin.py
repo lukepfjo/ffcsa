@@ -54,31 +54,30 @@ def export_as_csv(modeladmin, request, queryset):
 export_as_csv.short_description = "Export As CSV"
 
 
+def keySort(item):
+    return math.floor(int(item.sku) / 1000) * 1000
+
+
 def download_invoices(self, request, queryset):
     invoices = {}
-    category_map = {}
 
     for order in queryset:
         context = {"order": order}
         context.update(order.details_as_dict())
 
         items = [i for i in order.items.all()]
-        for item in items:
-            if not item in category_map.keys():
-                p = Product.objects.filter(sku=item.sku).first()
-                if p:
-                    category_map[item.sku] = ",".join([c.titles for c in p.categories.exclude(slug='weekly-box')])
 
-        items.sort(key=lambda i: i.sku)
+        items.sort(key=keySort)
 
-        grouper = groupby(items, lambda i: math.floor(int(i.sku) / 1000) * 1000)
+        grouper = groupby(items, keySort)
         grouped_items = {}
 
         for k, g in grouper:
-            grouped_items[k] = list(g)
+            if not k in grouped_items:
+                grouped_items[k] = []
+            grouped_items[k] += list(g)
 
         context['grouped_items'] = grouped_items
-        # context['details_list'] = ["First name", "Last name", "Phone", "Email"]
         context['details_list'] = ["First name", "Last name", "Email", "Phone", ""]
 
         html = get_template("shop/order_packlist_pdf.html").render(context)
