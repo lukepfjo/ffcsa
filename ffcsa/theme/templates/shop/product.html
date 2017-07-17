@@ -99,6 +99,11 @@
                         {% endif %}
                         <span class="price">{{ variation.price|currency }} value</span>
                     {% endif %}
+                    {% if variation.live_num_in_stock > 0 %}
+                        <div style="margin-top: 10px; font-weight: 700">{{ variation.live_num_in_stock }} available</div>
+                    {% elif variation.live_num_in_stock == 0 %}
+                        <div style="margin-top: 10px; font-weight: 700" class="text-danger">Out of Stock</div>
+                    {% endif %}
                 </li>
             {% endfor %}
         </ul>
