@@ -173,13 +173,6 @@ EXTRA_MODEL_FIELDS = (
         {"blank": False, "null": False, "unique": True},
     ),
     (
-        "cartridge.shop.models.Cart.submitted",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False},
-    ),
-    (
         "cartridge.shop.models.Cart.attending_dinner",
         "IntegerField",
         (),

@@ -32,15 +32,6 @@ def cart(request, template="shop/cart.html",
     if request.method == "POST":
         if cart_dinner_form.is_valid():
             cart_dinner_form.save()
-        if request.POST.get('submit_order'):
-            cart = request.cart
-            cart.submitted = True
-            cart.save()
-
-            # need to add "update_cart to POST info so the next view will process the cart
-            q = request.POST.copy();
-            q.setdefault("update_cart", "true")
-            request.POST = q
 
     extra_context['cart_dinner_form'] = cart_dinner_form
 

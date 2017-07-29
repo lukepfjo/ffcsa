@@ -18,43 +18,40 @@ class Command(BaseCommand):
         for cart in carts:
             if cart.has_items():
                 print("cart has items")
-                if cart.submitted:
-                    user = get_user_model().objects.get(id=cart.user_id)
+                user = get_user_model().objects.get(id=cart.user_id)
 
-                    additional_inst = "Drop Site: \t{}".format(user.profile.drop_site)
-                    additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner)
+                additional_inst = "Drop Site: \t{}".format(user.profile.drop_site)
+                additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner)
 
+                order_dict = {
+                    'user_id': user.id,
+                    'time': now(),
+                    'site': Site.objects.get(id=1),
+                    'billing_detail_first_name': user.first_name,
+                    'billing_detail_last_name': user.last_name,
+                    'billing_detail_email': user.email,
+                    'billing_detail_phone': user.profile.phone_number,
+                    'total': cart.total_price(),
+                    'additional_instructions': additional_inst
+                }
 
-                    order_dict = {
-                        'user_id': user.id,
-                        'time': now(),
-                        'site': Site.objects.get(id=1),
-                        'billing_detail_first_name': user.first_name,
-                        'billing_detail_last_name': user.last_name,
-                        'billing_detail_email': user.email,
-                        'billing_detail_phone': user.profile.phone_number,
-                        'total': cart.total_price(),
-                        'additional_instructions': additional_inst
-                    }
+                order = Order.objects.create(**order_dict)
+                order.save()
 
-                    order = Order.objects.create(**order_dict)
-                    order.save()
+                print("saved order")
+                for item in cart:
+                    product_fields = [f.name for f in SelectedProduct._meta.fields]
+                    item_dict = dict([(f, getattr(item, f)) for f in product_fields])
 
-                    print("saved order")
-                    for item in cart:
-                        product_fields = [f.name for f in SelectedProduct._meta.fields]
-                        item_dict = dict([(f, getattr(item, f)) for f in product_fields])
+                    # since we can't perform field injection on abstract classes we need to manually add
+                    # any injected fields here
 
-                        # since we can't perform field injection on abstract classes we need to manually add
-                        # any injected fields here
+                    item_dict['category'] = item.category
 
-                        item_dict['category'] = item.category
+                    order.items.create(**item_dict)
 
-                        order.items.create(**item_dict)
+                order.save()
 
-                    order.save()
-
-            print("cart clear")
-            cart.clear()
-            cart.save()
-
+        print("cart clear")
+        cart.clear()
+        cart.save()

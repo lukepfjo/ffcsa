@@ -25,11 +25,6 @@
     {#            the higher value items for lower cost alternatives.#}
     {#        </div>#}
     {#    {% endif %}#}
-    {% if request.cart.submitted %}
-        <div class="alert alert-info text-center">
-            You have submitted your order for this week
-        </div>
-    {% endif %}
 {% endblock %}
 
 {% block main %}
@@ -86,15 +81,8 @@
             </div>
 
             <div class="form-actions">
-                {% if request.cart.submitted %}
-                    <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                           value="{% trans "Update Weekly Order" %}">
-                {% else %}
-                    <input type="submit" name="submit_order" class="btn btn-primary btn-lg pull-right"
-                           value="{% trans "Submit Weekly Order" %}">
-                    <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                           value="{% trans "Update Basket" %}">
-                {% endif %}
+                <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
+                       value="{% trans "Update Weekly Order" %}">
             </div>
         </form>
 
