@@ -4,6 +4,7 @@ import csv
 import tempfile
 import zipfile
 import math
+import collections
 from itertools import groupby
 
 from django.contrib.auth import get_user_model
@@ -68,7 +69,7 @@ def download_invoices(self, request, queryset):
         items.sort(key=keySort)
 
         grouper = groupby(items, keySort)
-        grouped_items = {}
+        grouped_items = collections.OrderedDict()
 
         for k, g in grouper:
             if not k in grouped_items:
