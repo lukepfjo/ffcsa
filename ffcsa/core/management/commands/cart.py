@@ -43,8 +43,14 @@ class Command(BaseCommand):
                     print("saved order")
                     for item in cart:
                         product_fields = [f.name for f in SelectedProduct._meta.fields]
-                        item = dict([(f, getattr(item, f)) for f in product_fields])
-                        order.items.create(**item)
+                        item_dict = dict([(f, getattr(item, f)) for f in product_fields])
+
+                        # since we can't perform field injection on abstract classes we need to manually add
+                        # any injected fields here
+
+                        item_dict['category'] = item.category
+
+                        order.items.create(**item_dict)
 
                     order.save()
 

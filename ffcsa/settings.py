@@ -186,6 +186,21 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"blank": False, "null": False, "default": 0},
     ),
+    # can't perform field injection on abstract classes, so we need to do it for both CartItem and OrderItem
+    (
+        "cartridge.shop.models.CartItem.category",
+        "TextField",
+        (),
+        # Keyword args for field class.
+        {"blank": True},
+    ),
+    (
+        "cartridge.shop.models.OrderItem.category",
+        "TextField",
+        (),
+        # Keyword args for field class.
+        {"blank": True},
+    ),
     # (
     #     "cartridge.shop.models.ProductVariation.unit_description",
     #     "TextField",

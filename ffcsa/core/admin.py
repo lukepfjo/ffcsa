@@ -36,10 +36,8 @@ def export_as_csv(modeladmin, request, queryset):
         row_base = [order.time, user.last_name, user.profile.drop_site]
 
         for item in order.items.all():
-            p = Product.objects.filter(sku=item.sku).first()
-
             row = row_base.copy()
-            row.append(",".join([c.titles for c in p.categories.exclude(slug='weekly-box')]))
+            row.append(item.category)
             row.append(item.description)
             row.append(item.sku)
             row.append(item.unit_price)

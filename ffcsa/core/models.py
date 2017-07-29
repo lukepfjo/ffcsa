@@ -1,5 +1,5 @@
 from cartridge.shop.fields import MoneyField
-from cartridge.shop.models import Cart
+from cartridge.shop.models import Cart, Product
 from copy import deepcopy
 
 from django.core.validators import RegexValidator
@@ -22,6 +22,15 @@ def cart_add_item(self, *args, **kwargs):
         raise Exception("You must be logged in to add products to your cart")
 
     original_cart_add_item(self, *args, **kwargs)
+
+    # a bit hacky as this performs multiple saves, but add the category to the CartItem object
+    kwargs = {"sku": args[0].sku, "unit_price": args[0].price()}
+    item = self.items.get(**kwargs)
+
+    if not item.category:
+        p = Product.objects.filter(sku=item.sku).first()
+        item.category = ",".join([c.titles for c in p.categories.exclude(slug='weekly-box')])
+        item.save()
 
 
 Cart.add_item = cart_add_item
