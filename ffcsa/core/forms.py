@@ -1,4 +1,6 @@
-from cartridge.shop.models import Order
+from cartridge.shop.forms import CartItemForm
+from cartridge.shop.models import Order, ProductVariation
+from copy import deepcopy
 from django import forms
 from mezzanine.pages.admin import PageAdminForm
 
@@ -25,3 +27,20 @@ class CartDinnerForm(forms.Form):
         if 'attending_dinner' in self.changed_data:
             self._cart.attending_dinner = self.cleaned_data['attending_dinner']
             self._cart.save()
+
+
+# monkey patch the cart item form to use custom clean_quantity method
+original_cart_item_clean_quantity = deepcopy(CartItemForm.clean_quantity)
+
+
+def cart_item_clean_quantity(self):
+    # if the sku was changed while a product was in the cart, an exception will be thrown while trying to update the
+    # inventory. Since we don't use inventory much we want to catch that exception and ignore the error, acknowledging
+    # that we may have more in stock then inventory mentions
+    try:
+        original_cart_item_clean_quantity(self)
+    except ProductVariation.DoesNotExist:
+        pass
+
+
+CartItemForm.clean_quantity = cart_item_clean_quantity
