@@ -38,9 +38,9 @@ def cart_item_clean_quantity(self):
     # inventory. Since we don't use inventory much we want to catch that exception and ignore the error, acknowledging
     # that we may have more in stock then inventory mentions
     try:
-        original_cart_item_clean_quantity(self)
+        return original_cart_item_clean_quantity(self)
     except ProductVariation.DoesNotExist:
-        pass
+        return 0
 
 
 CartItemForm.clean_quantity = cart_item_clean_quantity
