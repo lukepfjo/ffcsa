@@ -8,6 +8,7 @@ import collections
 from itertools import groupby
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import reverse
@@ -33,8 +34,13 @@ def export_as_csv(modeladmin, request, queryset):
         ['Order Date', 'Last Name', 'Drop Site', 'Category', 'Item', 'SKU', 'Unit Price', 'Quantity', 'Total Price'])
 
     for order in queryset:
-        user = get_user_model().objects.get(id=order.user_id)
-        row_base = [order.time, user.last_name, user.profile.drop_site]
+        try:
+            user = get_user_model().objects.get(id=order.user_id)
+        except User.DoesNotExist:
+            pass
+        last_name = user.last_name if user else "Deleted User"
+        drop_site = user.profile.drop_site if user else "N/A"
+        row_base = [order.time, last_name, drop_site]
 
         for item in order.items.all():
             row = row_base.copy()
