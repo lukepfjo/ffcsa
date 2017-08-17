@@ -52,6 +52,6 @@ class Command(BaseCommand):
 
                 order.save()
 
-        print("cart clear")
-        cart.clear()
-        cart.save()
+            print("cart clear")
+            cart.clear()
+            cart.save()
