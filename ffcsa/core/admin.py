@@ -113,6 +113,14 @@ download_invoices.short_description = "Download Invoices"
 class MyOrderAdmin(base.OrderAdmin):
     actions = [export_as_csv, download_invoices]
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(MyOrderAdmin, self).get_form(request, obj, **kwargs)
+
+        for name, field in form.base_fields.items():
+            if name != 'billing_detail_first_name' and name != 'billing_detail_last_name':
+                field.required = False
+        return form
+
 
 class MyCategoryAdmin(base.CategoryAdmin):
     form = CategoryAdminForm
