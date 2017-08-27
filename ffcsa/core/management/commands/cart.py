@@ -47,6 +47,7 @@ class Command(BaseCommand):
                     # any injected fields here
 
                     item_dict['category'] = item.category
+                    item_dict['vendor'] = item.vendor
 
                     order.items.create(**item_dict)
 

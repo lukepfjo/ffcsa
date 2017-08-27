@@ -23,13 +23,21 @@ def cart_add_item(self, *args, **kwargs):
 
     original_cart_add_item(self, *args, **kwargs)
 
-    # a bit hacky as this performs multiple saves, but add the category to the CartItem object
+    # a bit hacky as this performs multiple saves, but add the category and vendor to the CartItem object
     kwargs = {"sku": args[0].sku, "unit_price": args[0].price()}
     item = self.items.get(**kwargs)
+
+    should_save = False
 
     if not item.category:
         p = Product.objects.filter(sku=item.sku).first()
         item.category = ",".join([c.titles for c in p.categories.exclude(slug='weekly-box')])
+        should_save = True
+    if not item.vendor:
+        item.vendor = args[0].vendor
+        should_save = True
+
+    if should_save:
         item.save()
 
 

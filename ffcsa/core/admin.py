@@ -13,7 +13,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order
+from cartridge.shop.models import Category, Product, Order, ProductVariation
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -31,7 +31,8 @@ def export_as_csv(modeladmin, request, queryset):
 
     writer = csv.writer(response)
     writer.writerow(
-        ['Order Date', 'Last Name', 'Drop Site', 'Category', 'Item', 'SKU', 'Unit Price', 'Quantity', 'Total Price'])
+        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Unit Price', 'Quantity',
+         'Total Price'])
 
     for order in queryset:
         try:
@@ -44,6 +45,7 @@ def export_as_csv(modeladmin, request, queryset):
 
         for item in order.items.all():
             row = row_base.copy()
+            row.append(item.vendor)
             row.append(item.category)
             row.append(item.description)
             row.append(item.sku)
@@ -126,7 +128,17 @@ class MyCategoryAdmin(base.CategoryAdmin):
     form = CategoryAdminForm
 
 
+productvariation_fields = base.ProductVariationAdmin.fields
+productvariation_fields.insert(4, "vendor")
+
+
+class ProductVariationAdmin(base.ProductVariationAdmin):
+    fields = productvariation_fields
+
+
 class ProductAdmin(base.ProductAdmin):
+    inlines = (base.ProductImageAdmin, ProductVariationAdmin)
+
     def save_model(self, request, obj, form, change):
         """
         Inform customers when a product in their cart has become unavailable

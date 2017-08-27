@@ -194,13 +194,27 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"blank": True},
     ),
-    # (
-    #     "cartridge.shop.models.ProductVariation.unit_description",
-    #     "TextField",
-    #     (),
-    #     # Keyword args for field class.
-    #     {"blank": True},
-    # )
+    (
+        "cartridge.shop.models.CartItem.vendor",
+        "CharField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "max_length": 255},
+    ),
+    (
+        "cartridge.shop.models.OrderItem.vendor",
+        "CharField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "max_length": 255},
+    ),
+    (
+        "cartridge.shop.models.ProductVariation.vendor",
+        "CharField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "max_length": 255},
+    )
 )
 
 MIGRATION_MODULES = {
