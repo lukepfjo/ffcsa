@@ -76,7 +76,7 @@ class Profile(models.Model):
         if not self.start_date:
             month = self.user.date_joined.month if self.user.date_joined.month <= 15 else self.user.date_joined.month + 1
         else:
-            month = self.start_date
+            month = self.start_date.month
 
         today = datetime.date.today()
 
