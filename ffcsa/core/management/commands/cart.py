@@ -1,3 +1,5 @@
+import datetime
+
 from cartridge.shop.models import Cart, Order, SelectedProduct
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
@@ -25,7 +27,8 @@ class Command(BaseCommand):
 
                 order_dict = {
                     'user_id': user.id,
-                    'time': now(),
+                    # add 1 day since all billing is based off of Friday ordering, but orders close on Thursday
+                    'time': now() + datetime.timedelta(days=1),
                     'site': Site.objects.get(id=1),
                     'billing_detail_first_name': user.first_name,
                     'billing_detail_last_name': user.last_name,

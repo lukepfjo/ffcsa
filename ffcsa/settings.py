@@ -107,7 +107,8 @@ ACCOUNTS_PROFILE_MODEL = 'ffcsa_core.Profile'
 ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "weekly_budget",
-    "drop_site"
+    "drop_site",
+    "start_date"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'deckfamilyfarm@gmail.com'  # used to send notifications of new user accounts
 
