@@ -79,12 +79,13 @@ def order_history(request, template="shop/order_history.html"):
     month_orders = ytd_orders.filter(time__month=today.month)
     month_sum = reduce(lambda x, y: x + y.total, month_orders, 0)
 
-    ytd_contrib = Decimal(request.user.profile.csa_months_ytd()) * request.user.profile.weekly_budget * Decimal(4.3333)  # 4.333 wks/month
+    weekly_budget = request.user.profile.weekly_budget if request.user.profile.weekly_budget else Decimal(0)
+    ytd_contrib = Decimal(request.user.profile.csa_months_ytd()) * weekly_budget * Decimal(4.3333)  # 4.333 wks/month
 
     extra_context = {
         'ytd_contrib': '{0:.2f}'.format(ytd_contrib),
         'ytd_ordered': ytd_sum,
-        'month_contrib': '{0:.2f}'.format(request.user.profile.weekly_budget * Decimal(4.3333)),
+        'month_contrib': '{0:.2f}'.format(weekly_budget * Decimal(4.3333)),
         'month_ordered': month_sum
     }
 
