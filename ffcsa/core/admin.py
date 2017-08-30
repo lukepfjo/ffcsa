@@ -7,6 +7,7 @@ import math
 import collections
 from itertools import groupby
 
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -52,7 +53,7 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(item.unit_price)
             row.append(item.quantity)
             row.append(item.total_price)
-            row.append(item.total_price * .8)
+            row.append(item.total_price if item.total_price else Decimal(0) * Decimal(.8))
 
             writer.writerow(row)
 
