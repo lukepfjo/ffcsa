@@ -32,8 +32,8 @@ def export_as_csv(modeladmin, request, queryset):
 
     writer = csv.writer(response)
     writer.writerow(
-        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Unit Price', 'Quantity',
-         'Total Price', 'FFCSA Total Price'])
+        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Unit Price', 'FFCSA Unit Price',
+         'Quantity', 'Total Price', 'FFCSA Total Price'])
 
     for order in queryset:
         try:
@@ -51,9 +51,10 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(item.description)
             row.append(item.sku)
             row.append(item.unit_price)
+            row.append(item.unit_price * Decimal(.8) if item.total_price else '')
             row.append(item.quantity)
             row.append(item.total_price)
-            row.append(item.total_price if item.total_price else Decimal(0) * Decimal(.8))
+            row.append(item.total_price * Decimal(.8) if item.total_price else '')
 
             writer.writerow(row)
 
