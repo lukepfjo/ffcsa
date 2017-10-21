@@ -5,6 +5,8 @@ from cartridge.shop import views as s_views
 from cartridge.shop.forms import AddProductForm, CartItemFormSet, DiscountForm
 from cartridge.shop.models import Category, Order
 from decimal import Decimal
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.messages import info
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -13,6 +15,8 @@ from django.views.decorators.cache import never_cache
 from mezzanine.conf import settings
 
 from ffcsa.core.forms import CartDinnerForm
+
+ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
 
 
 def shop_home(request, template="shop_home.html"):
@@ -90,3 +94,31 @@ def order_history(request, template="shop/order_history.html"):
     }
 
     return s_views.order_history(request, template=template, extra_context=extra_context)
+
+
+#############
+# Custom Admin Views
+#############
+
+@staff_member_required
+def admin_attending_dinner(request, template="admin/attending_dinner.html"):
+    today = datetime.date.today()
+
+    if today.weekday() < ORDER_CUTOFF_DAY:
+        delta = ORDER_CUTOFF_DAY - today.weekday()
+        order_date = today + datetime.timedelta(delta) - datetime.timedelta(7)
+    else:
+        delta = today.weekday() - ORDER_CUTOFF_DAY
+        order_date = today - datetime.timedelta(delta)
+
+    last_week_orders = Order.objects \
+        .filter(time__gte=order_date)
+
+    attendees = [{'family': o.billing_detail_last_name, 'attending_dinner': o.attending_dinner}
+                for o in last_week_orders if o.attending_dinner > 0]
+
+    context = {
+        'attendees': attendees
+    }
+
+    return TemplateResponse(request, template, context)

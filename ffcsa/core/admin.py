@@ -16,7 +16,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, ProductVariation
+from cartridge.shop.models import Category, Product, Order, ProductVariation, Sale, DiscountCode
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -185,3 +185,5 @@ admin.site.register(Product, ProductAdmin)
 
 # TODO remove all unecessary admin menus
 admin.site.unregister(ThreadedComment)
+admin.site.unregister(Sale)
+admin.site.unregister(DiscountCode)

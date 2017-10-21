@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.views.i18n import set_language
 from mezzanine.conf import settings
 
-from ffcsa.core.views import order_history
+from ffcsa.core.views import order_history, admin_attending_dinner
 
 admin.autodiscover()
 
@@ -15,6 +15,7 @@ admin.autodiscover()
 # to the project's homepage.
 
 urlpatterns = i18n_patterns(
+    url(r'^admin/dinner/$', admin_attending_dinner, name="admin_attending_dinner"),
     # Change the admin prefix here to use an alternate URL for the
     # admin interface, which would be marginally more secure.
     url("^admin/", include(admin.site.urls)),
