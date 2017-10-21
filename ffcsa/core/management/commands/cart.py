@@ -22,9 +22,6 @@ class Command(BaseCommand):
                 print("cart has items")
                 user = get_user_model().objects.get(id=cart.user_id)
 
-                additional_inst = "Drop Site: \t{}".format(user.profile.drop_site)
-                additional_inst += "\nAttending Dinner: \t{}".format(cart.attending_dinner)
-
                 order_dict = {
                     'user_id': user.id,
                     # add 1 day since all billing is based off of Friday ordering, but orders close on Thursday
@@ -35,7 +32,8 @@ class Command(BaseCommand):
                     'billing_detail_email': user.email,
                     'billing_detail_phone': user.profile.phone_number,
                     'total': cart.total_price(),
-                    'additional_instructions': additional_inst
+                    'attending_dinner': cart.attending_dinner,
+                    'drop_site': user.profile.drop_site
                 }
 
                 order = Order.objects.create(**order_dict)

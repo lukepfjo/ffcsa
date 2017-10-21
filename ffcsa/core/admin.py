@@ -8,6 +8,8 @@ import collections
 from itertools import groupby
 
 from decimal import Decimal
+
+from copy import deepcopy
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -115,8 +117,15 @@ def download_invoices(self, request, queryset):
 download_invoices.short_description = "Download Invoices"
 
 
+order_admin_fieldsets = deepcopy(base.OrderAdmin.fieldsets)
+order_admin_fieldsets_fields_list = list(order_admin_fieldsets[2][1]["fields"])
+order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
+order_admin_fieldsets_fields_list.insert(2, 'drop_site')
+order_admin_fieldsets[2][1]["fields"] = tuple(order_admin_fieldsets_fields_list)
+
 class MyOrderAdmin(base.OrderAdmin):
     actions = [export_as_csv, download_invoices]
+    fieldsets = order_admin_fieldsets
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MyOrderAdmin, self).get_form(request, obj, **kwargs)
@@ -125,6 +134,20 @@ class MyOrderAdmin(base.OrderAdmin):
             if name != 'billing_detail_first_name' and name != 'billing_detail_last_name':
                 field.required = False
         return form
+
+    def save_formset(self, request, form, formset, change):
+        total = 0
+        for item in formset.cleaned_data:
+            if item['DELETE']:
+                total -= item['id'].total_price
+            else:
+                item['total_price'] = item['unit_price'] * item['quantity']
+                total += item['total_price']
+
+        form.instance.total = total
+
+        formset.save()
+        form.instance.save()
 
 
 class MyCategoryAdmin(base.CategoryAdmin):

@@ -196,6 +196,20 @@ EXTRA_MODEL_FIELDS = (
         {"blank": True},
     ),
     (
+        "cartridge.shop.models.Order.attending_dinner",
+        "IntegerField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": 0},
+    ),
+    (
+        "cartridge.shop.models.Order.drop_site",
+        "CharField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "max_length": 255},
+    ),
+    (
         "cartridge.shop.models.CartItem.vendor",
         "CharField",
         (),
