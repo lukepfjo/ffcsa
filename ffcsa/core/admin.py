@@ -34,8 +34,8 @@ def export_as_csv(modeladmin, request, queryset):
 
     writer = csv.writer(response)
     writer.writerow(
-        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Unit Price', 'FFCSA Unit Price',
-         'Quantity', 'Total Price', 'FFCSA Total Price'])
+        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price', 'FFCSA Unit Price',
+         'Quantity', 'Member Total Price', 'FFCSA Total Price'])
 
     for order in queryset:
         try:
@@ -44,7 +44,7 @@ def export_as_csv(modeladmin, request, queryset):
             pass
         last_name = user.last_name if user else "Deleted User"
         drop_site = user.profile.drop_site if user else "N/A"
-        row_base = [order.time, last_name, drop_site]
+        row_base = [order.time.date(), last_name, drop_site]
 
         for item in order.items.all():
             row = row_base.copy()
@@ -138,9 +138,9 @@ class MyOrderAdmin(base.OrderAdmin):
     def save_formset(self, request, form, formset, change):
         total = 0
         for item in formset.cleaned_data:
-            if item['DELETE']:
-                total -= item['id'].total_price
-            else:
+            if not item['DELETE']:
+                # total -= item['id'].total_price
+            # else:
                 item['total_price'] = item['unit_price'] * item['quantity']
                 total += item['total_price']
 
