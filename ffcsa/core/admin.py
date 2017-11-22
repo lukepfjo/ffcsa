@@ -10,13 +10,11 @@ from itertools import groupby
 from decimal import Decimal
 
 from copy import deepcopy
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, ProductVariation, Sale, DiscountCode
+from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -38,12 +36,8 @@ def export_as_csv(modeladmin, request, queryset):
          'Quantity', 'Member Total Price', 'FFCSA Total Price'])
 
     for order in queryset:
-        try:
-            user = get_user_model().objects.get(id=order.user_id)
-        except User.DoesNotExist:
-            pass
-        last_name = user.last_name if user else "Deleted User"
-        drop_site = user.profile.drop_site if user else "N/A"
+        last_name = order.billing_detail_last_name
+        drop_site = order.drop_site
         row_base = [order.time.date(), last_name, drop_site]
 
         for item in order.items.all():
@@ -139,8 +133,6 @@ class MyOrderAdmin(base.OrderAdmin):
         total = 0
         for item in formset.cleaned_data:
             if not item['DELETE']:
-                # total -= item['id'].total_price
-            # else:
                 item['total_price'] = item['unit_price'] * item['quantity']
                 total += item['total_price']
 
