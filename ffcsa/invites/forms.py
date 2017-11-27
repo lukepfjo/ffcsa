@@ -15,6 +15,7 @@ class ProfileForm(base.ProfileForm):
         super(ProfileForm, self).__init__(*args, **kwargs)
 
         self.fields['phone_number'].validators.append(PHONE_REGEX)
+        self.fields['phone_number_2'].validators.append(PHONE_REGEX)
         if self._signup:
             self.fields['email'].widget = forms.HiddenInput()
 

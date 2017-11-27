@@ -84,7 +84,7 @@ def download_invoices(self, request, queryset):
             grouped_items[k] += list(g)
 
         context['grouped_items'] = grouped_items
-        context['details_list'] = ["First name", "Last name", "Email", "Phone", ""]
+        context['details_list'] = ["First name", "Last name", "Email", "Phone", "Alt. Phone"]
 
         html = get_template("shop/order_packlist_pdf.html").render(context)
         invoice = tempfile.SpooledTemporaryFile()

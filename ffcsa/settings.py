@@ -93,7 +93,7 @@ SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Recently added', '-date_added'),)
-SHOP_CART_EXPIRY_MINUTES = 20160  # valid for 14 days
+SHOP_CART_EXPIRY_MINUTES = 535600 # valid for 365 days
 SHOP_PER_PAGE_CATEGORY = 20
 
 ######################
@@ -208,6 +208,13 @@ EXTRA_MODEL_FIELDS = (
         (),
         # Keyword args for field class.
         {"blank": True, "max_length": 255},
+    ),
+    (
+        "cartridge.shop.models.Order.billing_detail_phone_2",
+        "CharField",
+        (),
+        # Keyword args for field class.
+        {"verbose_name": "Alt. Phone", "blank": True, "max_length": 255},
     ),
     (
         "cartridge.shop.models.CartItem.vendor",

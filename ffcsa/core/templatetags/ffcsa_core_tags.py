@@ -54,3 +54,15 @@ def order_week_end():
         order_week_end = now + datetime.timedelta(DAYS_IN_WEEK - delta)
 
     return formats.date_format(order_week_end, "F d, Y")
+
+@register.filter
+def get_item(dictionary, key):
+    return dictionary.get(key)
+
+@register.filter
+def get_billing_detail_field(billing_detail_list, key):
+    for (k, value) in billing_detail_list:
+        if k == key:
+            return value
+
+    return None

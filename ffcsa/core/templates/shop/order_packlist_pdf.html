@@ -1,4 +1,4 @@
-{% load shop_tags i18n %}
+{% load shop_tags i18n ffcsa_core_tags %}
 
 <style>
     table.items {
@@ -41,13 +41,11 @@
 
 <h2>{% trans "Your Details" %}</h2>
 <table style="width: 75%;">
-    {% for field, value in order_billing_detail_fields %}
-        {% if field in details_list %}
-            <tr>
-                <td style="padding: 5px;">{{ field }}:&nbsp;&nbsp;&nbsp;</td>
-                <td style="padding: 5px;">{{ value }}</td>
-            </tr>
-        {% endif %}
+    {% for field in details_list %}#}
+        <tr>
+            <td style="padding: 5px;">{{ field }}:&nbsp;&nbsp;&nbsp;</td>
+            <td style="padding: 5px;">{{ order_billing_detail_fields|get_billing_detail_field:field }}</td>
+        </tr>
     {% endfor %}
     <tr>
         <td style="padding: 5px;">Attending Dinner</td>

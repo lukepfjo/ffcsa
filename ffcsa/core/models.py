@@ -63,6 +63,7 @@ class Profile(models.Model):
     user = models.OneToOneField("auth.User")
     weekly_budget = MoneyField("Weekly Budget", decimal_places=0)
     phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
+    phone_number_2 = models.CharField("Alternate Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
 
