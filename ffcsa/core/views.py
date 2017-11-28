@@ -7,17 +7,19 @@ from cartridge.shop.models import Category, Order
 from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.messages import info
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
 from mezzanine.conf import settings
 
 from ffcsa.core.forms import CartDinnerForm
-
-ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
+from ffcsa.core.models import Payment
+from .utils import get_ytd_orders, ORDER_CUTOFF_DAY
 
 
 def shop_home(request, template="shop_home.html"):
@@ -74,11 +76,7 @@ def product(request, slug, template="shop/product.html",
 def order_history(request, template="shop/order_history.html"):
     today = datetime.date.today()
 
-    start_date = request.user.profile.start_date if request.user.profile.start_date else request.user.date_joined
-
-    ytd_orders = Order.objects \
-        .filter(user_id=request.user.id) \
-        .filter(time__gte=start_date)
+    ytd_orders = get_ytd_orders(request.user)
 
     ytd_sum = reduce(lambda x, y: x + y.total, ytd_orders, 0)
 
@@ -117,10 +115,73 @@ def admin_attending_dinner(request, template="admin/attending_dinner.html"):
         .filter(time__gte=order_date)
 
     attendees = [{'family': o.billing_detail_last_name, 'attending_dinner': o.attending_dinner}
-                for o in last_week_orders if o.attending_dinner > 0]
+                 for o in last_week_orders if o.attending_dinner > 0]
 
     context = {
         'attendees': attendees
     }
 
+    return TemplateResponse(request, template, context)
+
+
+@csrf_protect
+@staff_member_required
+def admin_bulk_payments(request, template="admin/bulk_payments.html"):
+    new_month = request.GET.get('newMonth', False)
+    ids = request.GET.get('ids', [])
+    if ids and isinstance(ids, str):
+        ids = ids.split(',')
+
+    if new_month:
+        User = get_user_model()
+        users = User.objects.filter(is_active=True)
+        extra = users.count() + 1
+        can_delete = True
+    else:
+        extra = 1 if len(ids) > 0 else 2
+        can_delete = len(ids) > 0
+
+    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount'), can_delete=can_delete,
+                                          extra=extra)
+
+    if request.method == 'POST':
+        formset = PaymentFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
+
+    if new_month:
+        formset = PaymentFormSet(queryset=Payment.objects.none())
+        TWOPLACES = Decimal(10) ** -2
+
+        i = 0
+        for user in users:
+            form = formset.forms[i]
+            weekly_budget = user.profile.weekly_budget if user.profile.weekly_budget else Decimal(0)
+            form.initial = {
+                'amount': (weekly_budget * Decimal(4.3333)).quantize(TWOPLACES),  # 4.333 wks/month
+                'user': user.id
+            }
+            i += 1
+    else:
+        formset = PaymentFormSet(queryset=Payment.objects.filter(pk__in=ids))
+
+    setattr(formset, 'opts', {
+        'verbose_name_plural': 'Payments',
+        'model_name': 'Payment'
+    })
+    context = {
+        'formset': formset,
+        'change': False,
+        'is_popup': False,
+        'to_field': False,
+        'save_on_top': False,
+        'save_as': True,
+        'show_save_and_continue': False,
+        'has_delete_permission': False,
+        'show_delete': False,
+        'has_add_permission': True,
+        'has_change_permission': True,
+        'add': False
+    }
     return TemplateResponse(request, template, context)

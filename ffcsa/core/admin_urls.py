@@ -1,0 +1,14 @@
+from __future__ import unicode_literals
+
+from django.conf.urls import url
+from django.conf.urls.i18n import i18n_patterns
+from mezzanine.conf import settings
+
+from ffcsa.core import views
+
+_slash = "/" if settings.APPEND_SLASH else ""
+
+urlpatterns = i18n_patterns(
+    url(r'^dinner%s$' % _slash, views.admin_attending_dinner, name="admin_attending_dinner"),
+    url(r'^ffcsa_core/payment/bulk%s$' % _slash, views.admin_bulk_payments, name="admin_bulk_payments"),
+)

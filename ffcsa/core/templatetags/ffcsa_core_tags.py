@@ -1,11 +1,9 @@
 import datetime
 
 from django.utils import formats
-from mezzanine.conf import settings
-
 from mezzanine import template
+from ffcsa.core.utils import ORDER_CUTOFF_DAY
 
-ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
 # only 6 days because we want to end on 1 day and start on the next. 7 days will start and end on the same week day
 DAYS_IN_WEEK = 6
 

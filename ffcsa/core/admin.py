@@ -10,7 +10,7 @@ from itertools import groupby
 from decimal import Decimal
 
 from copy import deepcopy
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
 
@@ -24,6 +24,7 @@ from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm
+from .models import Payment
 
 
 def export_as_csv(modeladmin, request, queryset):
@@ -32,8 +33,8 @@ def export_as_csv(modeladmin, request, queryset):
 
     writer = csv.writer(response)
     writer.writerow(
-        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price', 'FFCSA Unit Price',
-         'Quantity', 'Member Total Price', 'FFCSA Total Price'])
+        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price',
+         'FFCSA Unit Price', 'Quantity', 'Member Total Price', 'FFCSA Total Price'])
 
     for order in queryset:
         last_name = order.billing_detail_last_name
@@ -110,7 +111,6 @@ def download_invoices(self, request, queryset):
 
 download_invoices.short_description = "Download Invoices"
 
-
 order_admin_fieldsets = deepcopy(base.OrderAdmin.fieldsets)
 order_admin_fieldsets_fields_list = list(order_admin_fieldsets[2][1]["fields"])
 order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
@@ -168,12 +168,27 @@ class ProductAdmin(base.ProductAdmin):
             inform_user_product_unavailable(obj.sku, obj.title, cart_url)
 
 
+class PaymentAdmin(admin.ModelAdmin):
+    date_hierarchy = 'date'
+    list_display = ('user', 'date', 'amount')
+
+    actions = ['bulk_edit']
+
+    def bulk_edit(self, request, queryset):
+        selected = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect(reverse('admin_bulk_payments') + "?ids=%s" % ",".join(selected))
+
+    bulk_edit.short_description = "Edit selected payments"
+
+
 admin.site.unregister(Order)
 admin.site.register(Order, MyOrderAdmin)
 admin.site.unregister(Category)
 admin.site.register(Category, MyCategoryAdmin)
 admin.site.unregister(Product)
 admin.site.register(Product, ProductAdmin)
+
+admin.site.register(Payment, PaymentAdmin)
 
 # TODO remove all unecessary admin menus
 admin.site.unregister(ThreadedComment)

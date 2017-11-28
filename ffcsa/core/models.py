@@ -4,9 +4,11 @@ from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart, Product
 from copy import deepcopy
 
+from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 
+from .utils import get_ytd_orders
 from ffcsa.core import managers
 
 # Replace CartManager with our PersistentCartManger
@@ -22,6 +24,12 @@ original_cart_add_item = deepcopy(Cart.add_item)
 def cart_add_item(self, *args, **kwargs):
     if not self.user_id:
         raise Exception("You must be logged in to add products to your cart")
+
+    variation, quantity = args
+    item_total = variation.price() * quantity
+
+    if self.over_budget(additional_total=item_total):
+        raise Exception("You are over your budgeted amount.")
 
     original_cart_add_item(self, *args, **kwargs)
 
@@ -51,6 +59,13 @@ class CartExtend:
     def clear(self):
         self.attending_dinner = 0
         self.items.all().delete()
+
+    def over_budget(self, additional_total = 0):
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        ytd_orders = get_ytd_orders(user)
+        return False
 
 
 Cart.__bases__ += (CartExtend,)
@@ -85,3 +100,11 @@ class Profile(models.Model):
             return today.month - month
 
         return today.month - month + 12
+
+class Payment(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    date = models.DateField('Payment Date', default=datetime.date.today)
+    amount = models.DecimalField('Amount', max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.)

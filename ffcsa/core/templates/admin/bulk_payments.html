@@ -1,0 +1,106 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+
+
+<!-- JAVASCRIPTS -->
+{% block javascripts %}
+    <script src="{% static "admin/js/vendor/jquery/jquery.js" %}"></script>
+    <script src="{% static "admin/js/jquery.init.js" %}"></script>
+    <script src="{% static "admin/js/inlines.js" %}"></script>
+    {{ block.super }}
+    <script src="{% static "grappelli/js/admin/CollapsedInlineFieldsets.js" %}"></script>
+{% endblock %}
+
+{% block object-tools %}
+{% endblock %}
+
+{% block inline_field_sets %}
+
+    <div id="{{ formset.prefix }}-group"
+         class="inline-group inline-tabular{% if formset.opts.classes %} {{ formset.opts.classes|join:" " }}{% endif %}"
+         name="inlinegrouptabular">
+        <h2>{{ formset.opts.verbose_name_plural|capfirst }}</h2>
+        <ul class="inline-item-tools">
+            {% block inline-item-tools %}
+                {% if formset.opts.allow_add %}
+                    <li><a href="javascript://" class="addhandler" title="{% trans 'Add Item' %}"></a></li>{% endif %}
+            {% endblock %}
+        </ul>
+        {{ formset.management_form }}
+        {{ formset.non_form_errors }}
+        {{ formset.opts.model.opts.order_with_respect_to }}
+        <div class="items"> <!-- table, sortable container -->
+            {% for inline_admin_form in formset %}
+                {% if forloop.first %}
+                    <div class="legend"> <!-- table header -->
+                        {% for field in inline_admin_form.visible_fields %}
+                            <div class="form-cell {{ field.label|lower|slugify }}">{{ field.label|capfirst }}</div>
+                        {% endfor %}
+                        <div class="form-cell">&nbsp;</div>
+                    </div>
+                {% endif %}
+
+                <div class="inline-related{% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}{% if forloop.last %} empty-form{% endif %}"
+                     id="{{ formset.prefix }}-{% if not forloop.last %}{{ forloop.counter0 }}{% else %}empty{% endif %}"> <!-- tbody, sortable items -->
+{#                <div class="inline-related{% if inline_admin_form.original or inline_admin_form.show_url %} has_original{% endif %}"#}
+{#                     id="{{ formset.prefix }}-{{ forloop.counter0 }}"> <!-- tbody, sortable items -->#}
+                    <!-- errors -->
+                    {% if inline_admin_form.form.non_field_errors %}
+                        <div>{{ inline_admin_form.form.non_field_errors }}</div>
+                    {% endif %}
+                    <!-- Hidden title for the related object - used by Cartridge. -->
+                    <h3 style="display: none;"><b class="inline_label">{{ formset.opts.verbose_name|title }}
+                        #{{ forloop.counter }}</b>&nbsp;&nbsp;{% if inline_admin_form.original %}
+                        {{ inline_admin_form.original }}{% endif %}</h3>
+                    <!-- hidden fields -->
+                    {% spaceless %}
+                        {% for field in inline_admin_form.hidden_fields %}
+                            {{ field }}
+                        {% endfor %}
+                    {% endspaceless %}
+                    <!-- fieldsets -->
+                    <div class="fieldset module"> <!-- table-row -->
+                        {% for field in inline_admin_form.visible_fields %}
+                            <div class="item form-cell {{ field.name }} {% if field.errors %} error{% endif %}">
+                                {% if field.is_readonly %}
+                                    {{ field.contents }}
+                                {% else %}
+                                    {{ field }}&nbsp;
+                                {% endif %}
+                                {{ field.errors.as_ul }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="sortablehelper">
+        <h3><b>&nbsp;</b></h3>
+    </div>
+
+    <script type="text/javascript">
+      (function ($) {
+        var prefix = "{{ formset.prefix|escapejs }}";
+        $("#{{ formset.prefix|escapejs }}-group .inline-related").stackedFormset({
+          prefix: prefix,
+          addText: "{% filter escapejs %}{% blocktrans with formset.opts.model_name|capfirst as verbose_name %}Add another {{ verbose_name }}{% endblocktrans %}{% endfilter %}",
+          deleteText: "{% filter escapejs %}{% trans 'Delete Item' %}{% endfilter %}",
+        });
+        $(document).on("formset:added", function (event, $row, targetPrefix) {
+          if (targetPrefix === prefix) {
+            // Tweak the Delete link to resemble the ones defined in template
+            var $deleteLink = $row.find(".inline-deletelink");
+            $deleteLink
+              .appendTo($row.find("ul.inline-item-tools"))
+              .wrap("<li/>")
+              .addClass("deletelink")
+              .attr("title", $deleteLink.text())
+              .text("");
+          }
+        });
+      })(django.jQuery);
+    </script>
+
+{% endblock %}

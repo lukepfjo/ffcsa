@@ -1,0 +1,8 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+    <li><a href="{% url "admin_bulk_payments" %}?newMonth=True">{% trans "Add new month of payments" %}</a></li>
+    <li><a href="{% url "admin_bulk_payments" %}">{% trans "Bulk Add Payment" %}</a></li>
+    {{ block.super }}
+{% endblock %}

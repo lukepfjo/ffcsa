@@ -1,8 +1,9 @@
 from cartridge.shop.forms import CartItemForm
-from cartridge.shop.models import Order, ProductVariation
+from cartridge.shop.models import ProductVariation
 from copy import deepcopy
 from django import forms
 from mezzanine.pages.admin import PageAdminForm
+from . import models
 
 
 class CategoryAdminForm(PageAdminForm):
@@ -29,6 +30,12 @@ class CartDinnerForm(forms.Form):
             self._cart.save()
 
 
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = models.Payment
+        fields = '__all__'
+
+
 # monkey patch the cart item form to use custom clean_quantity method
 original_cart_item_clean_quantity = deepcopy(CartItemForm.clean_quantity)
 
@@ -41,6 +48,3 @@ def cart_item_clean_quantity(self):
         return original_cart_item_clean_quantity(self)
     except ProductVariation.DoesNotExist:
         return 0
-
-
-CartItemForm.clean_quantity = cart_item_clean_quantity
