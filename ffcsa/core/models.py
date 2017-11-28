@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .utils import get_ytd_orders
+from .utils import get_ytd_order_total, get_ytd_payment_total
 from ffcsa.core import managers
 
 # Replace CartManager with our PersistentCartManger
@@ -24,12 +24,6 @@ original_cart_add_item = deepcopy(Cart.add_item)
 def cart_add_item(self, *args, **kwargs):
     if not self.user_id:
         raise Exception("You must be logged in to add products to your cart")
-
-    variation, quantity = args
-    item_total = variation.price() * quantity
-
-    if self.over_budget(additional_total=item_total):
-        raise Exception("You are over your budgeted amount.")
 
     original_cart_add_item(self, *args, **kwargs)
 
@@ -60,12 +54,14 @@ class CartExtend:
         self.attending_dinner = 0
         self.items.all().delete()
 
-    def over_budget(self, additional_total = 0):
+    def over_budget(self, additional_total=0):
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
-        ytd_orders = get_ytd_orders(user)
-        return False
+        ytd_order_total = get_ytd_order_total(user)
+        ytd_payment_total = get_ytd_payment_total(user)
+
+        return ytd_payment_total < (ytd_order_total + additional_total + self.total_price())
 
 
 Cart.__bases__ += (CartExtend,)
@@ -82,18 +78,26 @@ class Profile(models.Model):
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
 
+    def csa_year_start_date(self):
+        """
+        member start_date for the current csa year
+        """
+        ONE_YEAR = 365
+        today = datetime.date.today()
+        start_date = self.start_date if self.start_date else self.user.date_joined.date()
+
+        while (today - start_date).days > ONE_YEAR:
+            start_date = start_date + datetime.timedelta(days=ONE_YEAR)
+
+        return start_date
+
     def csa_months_ytd(self):
         """
          number of months since the start of the user's csa year
 
          using the users join_date, no later then 1 year ago, return the number of months since then
         """
-
-        if not self.start_date:
-            month = self.user.date_joined.month if self.user.date_joined.month <= 15 else self.user.date_joined.month + 1
-        else:
-            month = self.start_date.month
-
+        month = self.csa_year_start_date().month
         today = datetime.date.today()
 
         if today.month > month:
@@ -101,10 +105,11 @@ class Profile(models.Model):
 
         return today.month - month + 12
 
+
 class Payment(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date = models.DateField('Payment Date', default=datetime.date.today)
     amount = models.DecimalField('Amount', max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.)
+        return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.amount)

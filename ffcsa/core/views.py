@@ -2,7 +2,7 @@ import datetime
 from functools import reduce
 
 from cartridge.shop import views as s_views
-from cartridge.shop.forms import AddProductForm, CartItemFormSet, DiscountForm
+from cartridge.shop.forms import CartItemFormSet, DiscountForm
 from cartridge.shop.models import Category, Order
 from decimal import Decimal
 
@@ -16,10 +16,11 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
 from mezzanine.conf import settings
+from mezzanine.utils.views import paginate
 
-from ffcsa.core.forms import CartDinnerForm
+from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
-from .utils import get_ytd_orders, ORDER_CUTOFF_DAY
+from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total
 
 
 def shop_home(request, template="shop_home.html"):
@@ -50,8 +51,7 @@ def cart(request, template="shop/cart.html",
                         discount_form_class=discount_form_class, extra_context=extra_context)
 
 
-def product(request, slug, template="shop/product.html",
-            form_class=AddProductForm, extra_context=None):
+def product(request, slug, template="shop/product.html", extra_context=None):
     """
     extends cartridge shop product view, only allowing authenticated users to add products to the cart
     """
@@ -63,6 +63,7 @@ def product(request, slug, template="shop/product.html",
         elif request.cart.user_id != request.user.id:
             raise Exception("Server Error")
 
+    form_class = wrap_AddProductForm(request.cart)
     response = s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
 
     if isinstance(response, HttpResponseRedirect):
@@ -74,26 +75,30 @@ def product(request, slug, template="shop/product.html",
 
 @login_required
 def order_history(request, template="shop/order_history.html"):
-    today = datetime.date.today()
-
-    ytd_orders = get_ytd_orders(request.user)
-
-    ytd_sum = reduce(lambda x, y: x + y.total, ytd_orders, 0)
-
-    month_orders = ytd_orders.filter(time__month=today.month)
-    month_sum = reduce(lambda x, y: x + y.total, month_orders, 0)
-
-    weekly_budget = request.user.profile.weekly_budget if request.user.profile.weekly_budget else Decimal(0)
-    ytd_contrib = Decimal(request.user.profile.csa_months_ytd()) * weekly_budget * Decimal(4.3333)  # 4.333 wks/month
+    ytd_order_total = get_ytd_order_total(request.user)
+    ytd_payment_total = get_ytd_payment_total(request.user)
 
     extra_context = {
-        'ytd_contrib': '{0:.2f}'.format(ytd_contrib),
-        'ytd_ordered': ytd_sum,
-        'month_contrib': '{0:.2f}'.format(weekly_budget * Decimal(4.3333)),
-        'month_ordered': month_sum
+        'ytd_contrib': '{0:.2f}'.format(ytd_payment_total),
+        'ytd_ordered': ytd_order_total,
+        'budget': '{0:.2f}'.format(ytd_payment_total - ytd_order_total)
     }
 
     return s_views.order_history(request, template=template, extra_context=extra_context)
+
+
+@login_required
+def payment_history(request, template="ffcsa_core/payment_history.html"):
+    """
+    Display a list of the currently logged-in user's past orders.
+    """
+    all_payments = Payment.objects.filter(user__id=request.user.id)
+    payments = paginate(all_payments.order_by('-date'),
+                        request.GET.get("page", 1),
+                        settings.SHOP_PER_PAGE_CATEGORY,
+                        settings.MAX_PAGING_LINKS)
+    context = {"payments": payments}
+    return TemplateResponse(request, template, context)
 
 
 #############
@@ -124,6 +129,36 @@ def admin_attending_dinner(request, template="admin/attending_dinner.html"):
     return TemplateResponse(request, template, context)
 
 
+User = get_user_model()
+
+
+@staff_member_required
+def admin_member_budgets(request, template="admin/member_budgets.html"):
+    users = User.objects.filter(is_active=True)
+
+    budgets = []
+
+    for user in users:
+        ytd_contrib = get_ytd_payment_total(user)
+        ytd_ordered = get_ytd_order_total(user)
+        if not ytd_ordered:
+            ytd_ordered = Decimal(0)
+        if not ytd_contrib:
+            ytd_contrib = Decimal(0)
+        budgets.append({
+            'user': user,
+            'ytd_contrib': "{0:.2f}".format(ytd_contrib),
+            'ytd_ordered': ytd_ordered,
+            'budget': "{0:.2f}".format(ytd_contrib - ytd_ordered)
+        })
+
+    context = {
+        'budgets': budgets
+    }
+
+    return TemplateResponse(request, template, context)
+
+
 @csrf_protect
 @staff_member_required
 def admin_bulk_payments(request, template="admin/bulk_payments.html"):
@@ -133,7 +168,6 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         ids = ids.split(',')
 
     if new_month:
-        User = get_user_model()
         users = User.objects.filter(is_active=True)
         extra = users.count() + 1
         can_delete = True

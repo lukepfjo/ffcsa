@@ -16,25 +16,14 @@
             <th class="left"></th>
             <th class="left">{% trans "Total Contributed" %}</th>
             <th class="right">{% trans "Total Value Ordered" %}</th>
+            <th class="right">{% trans "Remaining Budget" %}</th>
         </thead>
         <tbody>
             <tr>
-                <th class="left">This Month</th>
-                <td class="left">{{ month_contrib|currency }}</td>
-                {% if month_ordered > month_contrib %}
-                    <td class="left danger">{{ month_ordered|currency }}</td>
-                {% else %}
-                    <td class="left">{{ month_ordered|currency }}</td>
-                {% endif %}
-            </tr>
-            <tr>
                 <th class="left">CSA Year-To-Date</th>
                 <td class="left">{{ ytd_contrib|currency }}</td>
-                {% if ytd_ordered > ytd_contrib %}
-                    <td class="left danger">{{ ytd_ordered|currency }}</td>
-                {% else %}
-                    <td class="left">{{ ytd_ordered|currency }}</td>
-                {% endif %}
+                <td class="left">{{ ytd_ordered|currency }}</td>
+                <td class="left">{{ budget|currency }}</td>
             </tr>
         </tbody>
     </table>

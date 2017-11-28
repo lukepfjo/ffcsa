@@ -5,6 +5,8 @@ from django.contrib.messages import info, error
 from django.shortcuts import redirect
 from mezzanine.pages.page_processors import processor_for
 
+from ffcsa.core.forms import wrap_AddProductForm
+
 
 @processor_for("weekly-box", exact_page=True)
 def weekly_box(request, page):
@@ -38,7 +40,7 @@ def category_processor(request, page):
 
             if item:
                 # use AddProductForm b/c it does some validation w/ inventories, etc
-                form = AddProductForm({'quantity': item_qty}, product=item, to_cart=True)
+                form = wrap_AddProductForm(request.cart)({'quantity': item_qty}, product=item, to_cart=True)
                 if form.is_valid():
                     request.cart.add_item(form.variation, int(item_qty))
                     recalculate_cart(request)

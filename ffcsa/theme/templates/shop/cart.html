@@ -28,6 +28,16 @@
 {% endblock %}
 
 {% block main %}
+    {% if cart_formset.errors %}
+        {% for error in cart_formset.errors %}
+            {% if error and not error.values.0 %}
+                <div class="alert alert-dismissable alert-danger" data-alert="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    {{ error }}
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
     {% if cart_formset.forms %}
         <form method="post" class="cart-form">
             {% csrf_token %}

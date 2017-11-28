@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.views.i18n import set_language
 from mezzanine.conf import settings
 
-from ffcsa.core.views import order_history, admin_attending_dinner, admin_bulk_payments
+from ffcsa.core.views import order_history, payment_history
 
 admin.autodiscover()
 
@@ -44,6 +44,7 @@ urlpatterns += [
     # Cartridge URLs.
     url("^", include("cartridge.shop.urls")),
     url("^account/orders/$", order_history, name="shop_order_history"),
+    url("^account/payments/$", payment_history, name="payment_history"),
 
     # We don't want to presume how your homepage works, so here are a
     # few patterns you can use to set it up.
