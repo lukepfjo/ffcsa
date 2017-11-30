@@ -25,6 +25,7 @@ from weasyprint import HTML
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm
 from .models import Payment
+from .utils import recalculate_remaining_budget
 
 
 def export_as_csv(modeladmin, request, queryset):
@@ -117,6 +118,7 @@ order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
 order_admin_fieldsets_fields_list.insert(2, 'drop_site')
 order_admin_fieldsets[2][1]["fields"] = tuple(order_admin_fieldsets_fields_list)
 
+
 class MyOrderAdmin(base.OrderAdmin):
     actions = [export_as_csv, download_invoices]
     fieldsets = order_admin_fieldsets
@@ -140,6 +142,7 @@ class MyOrderAdmin(base.OrderAdmin):
 
         formset.save()
         form.instance.save()
+        recalculate_remaining_budget(request)
 
 
 class MyCategoryAdmin(base.CategoryAdmin):
@@ -171,6 +174,7 @@ class ProductAdmin(base.ProductAdmin):
 class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('user', 'date', 'amount')
+    list_filter = ("user", "date")
 
     actions = ['bulk_edit']
 
@@ -179,6 +183,10 @@ class PaymentAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse('admin_bulk_payments') + "?ids=%s" % ",".join(selected))
 
     bulk_edit.short_description = "Edit selected payments"
+
+    def save_model(self, request, obj, form, change):
+        super(PaymentAdmin, self).save_model(request, obj, form, change)
+        recalculate_remaining_budget(request)
 
 
 admin.site.unregister(Order)

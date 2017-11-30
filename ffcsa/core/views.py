@@ -20,7 +20,7 @@ from mezzanine.utils.views import paginate
 
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
-from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total
+from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget
 
 
 def shop_home(request, template="shop_home.html"):
@@ -182,6 +182,7 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         formset = PaymentFormSet(request.POST)
         if formset.is_valid():
             formset.save()
+            recalculate_remaining_budget(request)
             return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
 
     if new_month:
