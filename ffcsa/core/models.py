@@ -4,6 +4,7 @@ from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart, Product
 from copy import deepcopy
 
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models

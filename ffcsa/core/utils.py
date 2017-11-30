@@ -15,15 +15,25 @@ def get_ytd_orders(user):
 
 
 def get_ytd_order_total(user):
-    return get_ytd_orders(user) \
+    total = get_ytd_orders(user) \
         .aggregate(total=models.Sum('total'))['total']
+
+    if total is None:
+        total = Decimal(0)
+
+    return total
 
 
 def get_ytd_payment_total(user):
-    return ffcsa_models.Payment.objects \
+    total = ffcsa_models.Payment.objects \
         .filter(user=user) \
         .filter(date__gte=user.profile.csa_year_start_date()) \
         .aggregate(total=models.Sum('amount'))['total']
+
+    if total is None:
+        total = Decimal(0)
+
+    return total
 
 
 def recalculate_remaining_budget(request):
@@ -33,6 +43,9 @@ def recalculate_remaining_budget(request):
     This should be called after any cart modifications, as we take into account the request.cart.total_price()
     in the calculated remaining_budget
     """
+    if not request.user.is_authenticated():
+        return
+
     ytd_contrib = get_ytd_payment_total(request.user)
     ytd_ordered = get_ytd_order_total(request.user)
     if not ytd_ordered:
