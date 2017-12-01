@@ -8,7 +8,7 @@ class BudgetMiddleware(object):
     def process_response(self, request, response):
         # make sure that remaining_budget attached to the current session
         remaining_budget = request.session.get("remaining_budget", None)
-        if request.user.is_authenticated() and remaining_budget is None:
+        if hasattr(request, 'user') and request.user.is_authenticated() and remaining_budget is None:
             recalculate_remaining_budget(request)
 
         return response
