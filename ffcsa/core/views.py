@@ -187,7 +187,6 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
 
     if new_month:
         formset = PaymentFormSet(queryset=Payment.objects.none())
-        TWOPLACES = Decimal(10) ** -2
 
         i = 0
         for user in users:

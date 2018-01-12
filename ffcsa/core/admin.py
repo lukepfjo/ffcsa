@@ -27,6 +27,7 @@ from ffcsa.core.forms import CategoryAdminForm
 from .models import Payment
 from .utils import recalculate_remaining_budget
 
+TWOPLACES = Decimal(10) ** -2
 
 def export_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
@@ -48,11 +49,11 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(item.category)
             row.append(item.description)
             row.append(item.sku)
-            row.append(item.unit_price)
-            row.append(item.unit_price * Decimal(.8) if item.total_price else '')
+            row.append(item.unit_price.quantize(TWOPLACES) if item.unit_price else '')
+            row.append((item.unit_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
             row.append(item.quantity)
-            row.append(item.total_price)
-            row.append(item.total_price * Decimal(.8) if item.total_price else '')
+            row.append(item.total_price.quantize(TWOPLACES) if item.total_price else '')
+            row.append((item.total_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
 
             writer.writerow(row)
 
