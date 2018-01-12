@@ -4,10 +4,12 @@
 {% block body_id %}category{% endblock %}
 
 {% block title %}
-    {% include 'pages/category-title.html' %}
+    Member Store
 {% endblock %}
 
 {% block main %}{{ block.super }}
+
+    {% include 'pages/category-alert.html' %}
 
     {% include 'pages/category-list.html' %}
 

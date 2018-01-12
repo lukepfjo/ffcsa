@@ -519,7 +519,7 @@ section.callaction.row {
 }
 
 ul.breadcrumb li a:hover {
-    text-decoration: none;
+    /*text-decoration: none;*/
 }
 
 /* ============================
@@ -2102,3 +2102,16 @@ article img.pull-right, article .align-right {
     max-width: 60px;
 }
 
+/*========================================
+          RESPONSIVE TWEAKS
+==========================================*/
+/*check mezzanine.css line 470 for size*/
+
+/* hide for non-mobile */
+.callaction { display: none }
+@media (min-width: 992px) {
+    #inner-headline {
+        display: none;
+    }
+    .callaction { display: block }
+}

@@ -192,9 +192,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         i = 0
         for user in users:
             form = formset.forms[i]
-            weekly_budget = user.profile.weekly_budget if user.profile.weekly_budget else Decimal(0)
             form.initial = {
-                'amount': (weekly_budget * Decimal(4.3333)).quantize(TWOPLACES),  # 4.333 wks/month
+                'amount': user.profile.monthly_contribution,
                 'user': user.id
             }
             i += 1

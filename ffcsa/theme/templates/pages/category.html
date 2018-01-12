@@ -3,11 +3,10 @@
 {% load mezzanine_tags shop_tags i18n %}
 {% block body_id %}category{% endblock %}
 
-{% block title %}
-    {% include 'pages/category-title.html' %}
-{% endblock %}
 
 {% block main %}{{ block.super }}
+
+    {% include 'pages/category-alert.html' %}
 
     {% block content %}
         {% editable page.category.content %}

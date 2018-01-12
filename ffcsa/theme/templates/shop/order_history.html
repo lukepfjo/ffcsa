@@ -11,7 +11,7 @@
 
 {% block main %}
 
-    <div class="alert alert-warning non-field-error"><strong>Note:</strong> CSA Year-To-Date calculations were reset to only reflect orders & payments for Dec. 2017 onwards. This corresponds with a change in the csa ordering policy.</div>
+    <div class="alert alert-warning non-field-error"><strong>Note:</strong> CSA Year-To-Date calculations were reset to only reflect orders & payments for Dec. 2017 onwards.</div>
 
     <table class="table table-striped">
         <thead>
@@ -56,8 +56,8 @@
                                 {% endif %}
                                 <a class="btn btn-sm btn-default" target="_blank"
                                    href="{% url "shop_invoice" order.id %}">{% trans "View invoice" %}</a>
-                                <input type="submit" class="btn btn-sm btn-default"
-                                       value="{% trans "Re-send order email" %}">
+{#                                <input type="submit" class="btn btn-sm btn-default"#}
+{#                                       value="{% trans "Re-send order email" %}">#}
                             </form>
                         </td>
                     </tr>
