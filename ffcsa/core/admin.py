@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import csv
 import tempfile
 import zipfile
-import math
 import collections
 from itertools import groupby
 
@@ -28,6 +27,7 @@ from .models import Payment
 from .utils import recalculate_remaining_budget
 
 TWOPLACES = Decimal(10) ** -2
+
 
 def export_as_csv(modeladmin, request, queryset):
     response = HttpResponse(content_type='text/csv')
@@ -62,13 +62,42 @@ def export_as_csv(modeladmin, request, queryset):
 
 export_as_csv.short_description = "Export As CSV"
 
+DEFAULT_GROUP_KEY = 100000000
 
-def keySort(item):
-    return math.floor(int(item.sku) / 1000) * 1000
+
+def keySort(categories):
+    def func(item):
+        try:
+            cat = categories.get(titles=item.category)
+
+            # 0 is default, so don't sort
+            if not cat.parent and cat.order_on_invoice != 0:
+                return (cat.order_on_invoice, item.vendor, item.description)
+
+            if cat.parent and cat.parent.category and cat.parent.category.order_on_invoice != 0:
+                parent_order = cat.parent.category.order_on_invoice
+                order = cat.order_on_invoice
+                if order == 0:
+                    order = DEFAULT_GROUP_KEY
+
+                return (
+                    float("{}.{}".format(parent_order, order)),
+                    item.vendor,
+                    item.description
+                )
+
+        except Category.DoesNotExist:
+            pass
+
+        # just return a really high number for category
+        return (DEFAULT_GROUP_KEY, item.vendor, item.description)
+
+    return func
 
 
 def download_invoices(self, request, queryset):
     invoices = {}
+    categories = Category.objects.exclude(slug='weekly-box')
 
     for order in queryset:
         context = {"order": order}
@@ -76,12 +105,13 @@ def download_invoices(self, request, queryset):
 
         items = [i for i in order.items.all()]
 
-        items.sort(key=keySort)
+        items.sort(key=keySort(categories))
 
-        grouper = groupby(items, keySort)
+        grouper = groupby(items, keySort(categories))
         grouped_items = collections.OrderedDict()
 
         for k, g in grouper:
+            k = int(k[0])
             if not k in grouped_items:
                 grouped_items[k] = []
             grouped_items[k] += list(g)
@@ -146,8 +176,16 @@ class MyOrderAdmin(base.OrderAdmin):
         recalculate_remaining_budget(request)
 
 
+category_fields = base.CategoryAdmin.fields
+category_fieldsets = deepcopy(base.CategoryAdmin.fieldsets)
+category_fieldsets_fields_list = list(category_fieldsets[0][1]["fields"])
+category_fieldsets_fields_list.append('order_on_invoice')
+category_fieldsets[0][1]["fields"] = tuple(category_fieldsets_fields_list)
+
+
 class MyCategoryAdmin(base.CategoryAdmin):
     form = CategoryAdminForm
+    fieldsets = category_fieldsets
 
 
 productvariation_fields = base.ProductVariationAdmin.fields

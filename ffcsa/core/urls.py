@@ -13,7 +13,7 @@ urlpatterns = i18n_patterns(
     url("^$", views.shop_home, name="home"),
     url("^cart%s$" % _slash, views.cart, name="shop_cart"),
     url("^checkout%s$" % _slash, page_not_found, name="shop_checkout"),
-    url("^checkout/complete%s$" % _slash, page_not_found,name="shop_complete"),
-    url("^product/(?P<slug>.*)%s$" % _slash, views.product,name="shop_product"),
+    url("^checkout/complete%s$" % _slash, page_not_found, name="shop_complete"),
+    url("^product/(?P<slug>.*)%s$" % _slash, views.product, name="shop_product"),
     url("^wishlist%s$" % _slash, page_not_found, name="shop_wishlist"),
 )

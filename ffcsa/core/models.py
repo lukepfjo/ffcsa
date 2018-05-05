@@ -4,13 +4,16 @@ from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart, Product
 from copy import deepcopy
 
-from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 
 from .utils import get_ytd_order_total, get_ytd_payment_total
 from ffcsa.core import managers
+
+###################
+#  CART
+###################
 
 # Replace CartManager with our PersistentCartManger
 cart_manager = managers.PersistentCartManager()
@@ -67,6 +70,31 @@ class CartExtend:
 
 Cart.__bases__ += (CartExtend,)
 
+
+###################
+#  Product
+###################
+
+# monkey patch the get_category
+def product_get_category(self):
+    """
+    Returns the single category this product is associated with, or None
+    if the number of categories is not exactly 1. We exclude the weekly
+    example box category from this
+    """
+    categories = self.categories.exclude(slug='weekly-box')
+    if len(categories) == 1:
+        return categories[0]
+    return None
+
+
+Product.get_category = product_get_category
+
+###################
+#  Profile
+###################
+
+
 PHONE_REGEX = RegexValidator(regex=r'^\+?(1-)?\d{3}-\d{3}-\d{4}$',
                              message="Phone number must be entered in the format: '999-999-9999'.")
 
@@ -105,6 +133,11 @@ class Profile(models.Model):
             return today.month - month
 
         return today.month - month + 12
+
+
+###################
+#  Payment
+###################
 
 
 class Payment(models.Model):

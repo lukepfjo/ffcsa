@@ -93,7 +93,7 @@ SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Recently added', '-date_added'),)
-SHOP_CART_EXPIRY_MINUTES = 535600 # valid for 365 days
+SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
 SHOP_PER_PAGE_CATEGORY = 20
 
 ######################
@@ -236,6 +236,14 @@ EXTRA_MODEL_FIELDS = (
         (),
         # Keyword args for field class.
         {"blank": True, "max_length": 255},
+    ),
+    (
+        "cartridge.shop.models.Category.order_on_invoice",
+        "IntegerField",
+        (),
+        # Keyword args for field class.
+        {"default": 0,
+         "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
     )
 )
 

@@ -1,5 +1,4 @@
 import datetime
-from functools import reduce
 
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import CartItemFormSet, DiscountForm

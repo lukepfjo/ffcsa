@@ -2111,7 +2111,7 @@ article img.pull-right, article .align-right {
 .callaction { display: none }
 @media (min-width: 992px) {
     #inner-headline {
-        display: none;
+        /*display: none;*/
     }
     .callaction { display: block }
 }
