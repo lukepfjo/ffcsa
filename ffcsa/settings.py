@@ -298,7 +298,10 @@ LANGUAGES = (
 DEBUG = False
 
 # Whether a user's session cookie expires when the Web browser is closed.
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# The age of session cookies, in seconds.
+# SESSION_COOKIE_AGE = 2419200
 
 SITE_ID = 1
 
