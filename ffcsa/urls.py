@@ -16,6 +16,8 @@ admin.autodiscover()
 
 urlpatterns = i18n_patterns(
     url(r'^admin/', include("ffcsa.core.admin_urls")),
+    # url(r'^admin/doc', include("django.contrib.admindocs.urls")),
+    url(r'^jet/', include('jet.urls', 'jet')),  # Django JET URLS
     # Change the admin prefix here to use an alternate URL for the
     # admin interface, which would be marginally more secure.
     url("^admin/", include(admin.site.urls)),

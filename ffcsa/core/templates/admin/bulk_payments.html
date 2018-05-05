@@ -2,6 +2,17 @@
 {% load i18n static %}
 
 
+{% block breadcrumbs %}{% if not is_popup %}
+    <div class="breadcrumbs">
+        {% url "admin:index" as admin_index_url %}
+        <a href="{{ admin_index_url }}">{% trans "Home" %}</a> &rsaquo;
+        <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+        {% if has_change_permission %}<a href="../">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %} &rsaquo;
+        {% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+    </div>
+{% endif %}{% endblock %}
+
+
 <!-- JAVASCRIPTS -->
 {% block javascripts %}
     <script src="{% static "admin/js/vendor/jquery/jquery.js" %}"></script>
@@ -19,6 +30,8 @@
     <div id="{{ formset.prefix }}-group"
          class="inline-group inline-tabular{% if formset.opts.classes %} {{ formset.opts.classes|join:" " }}{% endif %}"
          name="inlinegrouptabular">
+        {{ opts }}
+        {{ app_label }}
         <h2>{{ formset.opts.verbose_name_plural|capfirst }}</h2>
         <ul class="inline-item-tools">
             {% block inline-item-tools %}

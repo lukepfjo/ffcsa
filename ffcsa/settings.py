@@ -17,6 +17,43 @@ INVITE_CODE_LENGTH = 20
 INVITE_CODE_USAGE_WINDOW = 7
 INVITE_CODE_EXPIRY_DAYS = 0
 
+##############################
+# Jet Admin Theme SETTINGS #
+##############################
+
+JET_SIDE_MENU_COMPACT = True
+# ADMIN_MENU_ORDER = (
+#     (_("Shop"), ("shop.Product", "shop.Order", "shop.ProductOption", "shop.DiscountCode",
+#                  "shop.Sale")),
+#     ("Users", ((_("Invites"), "invites.InvitationCode"), "auth.User", "auth.Group",)),
+#     ("Content", ("pages.Page", "blog.BlogPost",
+#                  (_("Media Library"), "fb_browse"),)),
+#     ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
+# )
+JET_SIDE_MENU_ITEMS = [  # A list of application or custom item dicts
+    {'label': _('FFCSA'), 'app_label': 'ffcsa_core', 'items': [
+        {'label': _('Attending Dinner'), 'url': '/admin/dinner', 'url_blank': False},
+        {'label': _('Member Budgets'), 'url': '/admin/budgets', 'url_blank': False},
+        {'name': 'payment'},
+    ]},
+    {'label': _('Shop'), 'app_label': 'shop', 'items': [
+        {'name': 'product'},
+        {'name': 'order'},
+    ]},
+    {'label': _('Users'), 'items': [
+        {'name': 'invites.invitationcode'},
+        {'name': 'auth.user'},
+        {'name': 'auth.group'},
+    ]},
+    {'label': _('Content'), 'items': [
+        {'name': 'pages.page'},
+        {'label': _("Media Library"), 'name': 'fb_browse'},
+    ]},
+    {'label': _('Site'), 'items': [
+        {'name': "conf.setting"},
+    ]},
+]
+
 ######################
 # CARTRIDGE SETTINGS #
 ######################
@@ -378,7 +415,7 @@ TEMPLATES = [
         "DIRS": [
             os.path.join(PROJECT_ROOT, "original_templates")
         ],
-        "APP_DIRS": True,
+        # "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
@@ -395,6 +432,9 @@ TEMPLATES = [
             "builtins": [
                 "mezzanine.template.loader_tags",
             ],
+            "loaders": [
+                "ffcsa.core.templates.loader.JetLoader",
+            ]
         },
     },
 ]
@@ -408,7 +448,9 @@ if DJANGO_VERSION < (1, 9):
 
 INSTALLED_APPS = (
     "ffcsa.theme",
+    "jet",
     "django.contrib.admin",
+    # "django.contrib.admindocs",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.redirects",

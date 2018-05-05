@@ -200,7 +200,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
 
     setattr(formset, 'opts', {
         'verbose_name_plural': 'Payments',
-        'model_name': 'Payment'
+        'model_name': 'Payment',
+        'app_label': 'ffcsa_core'
     })
     context = {
         'formset': formset,
