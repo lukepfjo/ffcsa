@@ -110,7 +110,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "drop_site",
     "start_date"
 ]
-ACCOUNTS_APPROVAL_EMAILS = 'deckfamilyfarm@gmail.com'  # used to send notifications of new user accounts
+ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm'  # used to send notifications of new user accounts
 
 ACCOUNTS_NO_USERNAME = True
 
@@ -255,7 +255,7 @@ USE_MODELTRANSLATION = False
 # MAIN DJANGO SETTINGS #
 ########################
 
-DEFAULT_FROM_EMAIL = "info@deckfamilyfarm.com"
+DEFAULT_FROM_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
 
 ADMINS = [('RJ', 'ewing.rj@gmail.com')]
 

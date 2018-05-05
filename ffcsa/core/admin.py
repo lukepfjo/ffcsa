@@ -46,7 +46,7 @@ def export_as_csv(modeladmin, request, queryset):
         for item in order.items.all():
             row = row_base.copy()
             row.append(item.vendor)
-            row.append(item.category)
+            row.append(item.category[0] if isinstance(item.category, (list, tuple)) else item.category)
             row.append(item.description)
             row.append(item.sku)
             row.append(item.unit_price.quantize(TWOPLACES) if item.unit_price else '')
