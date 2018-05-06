@@ -457,7 +457,8 @@ MIDDLEWARE_CLASSES = (
     "mezzanine.core.middleware.SitePermissionMiddleware",
     # Uncomment the following if using any of the SSL settings:
     # "mezzanine.core.middleware.SSLRedirectMiddleware",
-    "mezzanine.pages.middleware.PageMiddleware",
+    # "mezzanine.pages.middleware.PageMiddleware",
+    "cartridge.shop.middleware.MultiurlPageMiddleware",
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",

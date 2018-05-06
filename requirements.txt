@@ -6,7 +6,7 @@ beautifulsoup4==4.5.3
 bleach==2.0.0
 cairocffi==0.8.0
 CairoSVG==2.0.3
-git+https://github.com/rodney757/cartridge.git@526d0af7c9063837435900d754a8ada647488f2a
+git+https://github.com/rodney757/cartridge.git@f59ff94abdc6a51ed92a704acde4add28e70654d
 certifi==2018.4.16
 cffi==1.10.0
 chardet==2.3.0
@@ -17,6 +17,7 @@ Django==1.10.8
 django-common-helpers==0.9.0
 django-contrib-comments==1.8.0
 django-debug-toolbar==1.7
+django-multiurl==1.1
 Fabric3==1.13.1.post1
 filebrowser-safe==0.4.7
 future==0.16.0
