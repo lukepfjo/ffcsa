@@ -3,7 +3,6 @@ from cartridge.shop.models import ProductVariation
 from copy import deepcopy
 from django import forms
 from django.utils.translation import ugettext_lazy as _
-from django.core.exceptions import ValidationError
 from mezzanine.pages.admin import PageAdminForm
 from . import models
 
@@ -47,6 +46,14 @@ def cart_item_clean_quantity(self):
     # inventory. Since we don't use inventory much we want to catch that exception and ignore the error, acknowledging
     # that we may have more in stock then inventory mentions
     try:
+        variation = ProductVariation.objects.get(sku=self.instance.sku)
+        if not variation.product.available:
+            # setting the following will let django delete the item
+            self.fields['DELETE'].disabled = True
+            self.fields['DELETE'].initial = True
+            self.initial['DELETE'] = True
+            self.add_error(None, _("'%s' was removed from your cart as it is no longer available." % variation.product.title))
+            return 0
         return original_cart_item_clean_quantity(self)
     except ProductVariation.DoesNotExist:
         return 0
@@ -59,6 +66,9 @@ def wrap_AddProductForm(cart):
     class WrappedAddProductForm(AddProductForm):
         def clean(self):
             cleaned_data = super(WrappedAddProductForm, self).clean()
+            if not self._product.available:
+                raise forms.ValidationError(_("Product is not currently available."))
+
             item_total = self.variation.price() * self.cleaned_data['quantity']
 
             if cart.over_budget(item_total):
@@ -76,25 +86,26 @@ original_cart_item_formset_clean = deepcopy(CartItemFormSet.clean)
 def cart_item_formset_clean(self):
     new_cart_total = 0
 
-    for form in self.cleaned_data:
-        if not form['DELETE']:
-            new_quantity = form['quantity']
-            unit_price = form['id'].unit_price
+    if hasattr(self, 'cleaned_data'):
+        for form in self.cleaned_data:
+            if not form['DELETE']:
+                new_quantity = form['quantity']
+                unit_price = form['id'].unit_price
 
-            new_cart_total += unit_price * new_quantity
+                new_cart_total += unit_price * new_quantity
 
-    # Cart.over_budget takes into account the Cart.total_price() + additional_total
-    # b/c we are updating the items in the cart, we need calculate
-    # the new cart total. If new_cart_total is less then Cart.total_price()
-    # additional_total will be neg number, and over_budget should calculate correctly
-    additional_total = new_cart_total - self.instance.total_price()
+        # Cart.over_budget takes into account the Cart.total_price() + additional_total
+        # b/c we are updating the items in the cart, we need calculate
+        # the new cart total. If new_cart_total is less then Cart.total_price()
+        # additional_total will be neg number, and over_budget should calculate correctly
+        additional_total = new_cart_total - self.instance.total_price()
 
-    # if we get into a state where the cart is over_budget, allow user to only remove items
-    if self.instance.over_budget(additional_total) and additional_total > 0:
-        error = _("Updating your cart put you over budget. Try removing some items first.")
-        # hack b/c shop/views.py.cart doesn't transfer _non_form_errors attr
-        self._errors.append(error)
-        raise forms.ValidationError(error)
+        # if we get into a state where the cart is over_budget, allow user to only remove items
+        if self.instance.over_budget(additional_total) and additional_total > 0:
+            error = _("Updating your cart put you over budget. Try removing some items first.")
+            # hack b/c shop/views.py.cart doesn't transfer _non_form_errors attr
+            self._errors.append(error)
+            raise forms.ValidationError(error)
 
     return original_cart_item_formset_clean(self)
 

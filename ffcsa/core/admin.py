@@ -205,6 +205,8 @@ class ProductAdmin(base.ProductAdmin):
         """
         super(ProductAdmin, self).save_model(request, obj, form, change)
 
+        #obj.variations.all()[0].live_num_in_stock()
+
         if "available" in form.changed_data and not obj.available:
             cart_url = request.build_absolute_uri(reverse("shop_cart"))
             inform_user_product_unavailable(obj.sku, obj.title, cart_url)
