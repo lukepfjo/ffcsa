@@ -50,6 +50,7 @@ class Command(BaseCommand):
 
                     item_dict['category'] = item.category
                     item_dict['vendor'] = item.vendor
+                    item_dict['vendor_price'] = item.vendor_price
 
                     order.items.create(**item_dict)
 

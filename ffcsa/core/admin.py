@@ -9,6 +9,10 @@ from itertools import groupby
 from decimal import Decimal
 
 from copy import deepcopy
+
+from django.contrib.auth.models import Group
+from django.contrib.redirects.models import Redirect
+from django.contrib.sites.models import Site
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -36,7 +40,7 @@ def export_as_csv(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(
         ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price',
-         'FFCSA Unit Price', 'Quantity', 'Member Total Price', 'FFCSA Total Price'])
+         'Vendor Price', 'Quantity', 'Member Total Price', 'FFCSA Total Price'])
 
     for order in queryset:
         last_name = order.billing_detail_last_name
@@ -50,7 +54,10 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(item.description)
             row.append(item.sku)
             row.append(item.unit_price.quantize(TWOPLACES) if item.unit_price else '')
-            row.append((item.unit_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
+            if item.vendor_price:
+                row.append(item.vendor_price.quantize(TWOPLACES))
+            else :
+                row.append((item.unit_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
             row.append(item.quantity)
             row.append(item.total_price.quantize(TWOPLACES) if item.total_price else '')
             row.append((item.total_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
@@ -203,14 +210,31 @@ class MyCategoryAdmin(base.CategoryAdmin):
 
 productvariation_fields = base.ProductVariationAdmin.fields
 productvariation_fields.insert(4, "vendor")
+# remove sale_price, sale_from, sale_to
+productvariation_fields.pop(3)
+productvariation_fields.pop(4)
+productvariation_fields.pop(4)
+productvariation_fields.insert(2, "vendor_price")
 
 
 class ProductVariationAdmin(base.ProductVariationAdmin):
     fields = productvariation_fields
 
+product_list_display = base.ProductAdmin.list_display
+# remove sku, sale_price
+product_list_display.pop(4)
+product_list_display.pop(5)
+product_list_display.insert(4, "vendor_price")
+product_list_editable = base.ProductAdmin.list_editable
+# remove sku, sale_price
+product_list_editable.pop(2)
+product_list_editable.pop(3)
+product_list_editable.insert(2, "vendor_price")
 
 class ProductAdmin(base.ProductAdmin):
     inlines = (base.ProductImageAdmin, ProductVariationAdmin)
+    list_display = product_list_display
+    list_editable = product_list_editable
 
     def save_model(self, request, obj, form, change):
         """
@@ -255,4 +279,7 @@ admin.site.register(Payment, PaymentAdmin)
 # TODO remove all unecessary admin menus
 admin.site.unregister(ThreadedComment)
 admin.site.unregister(Sale)
+admin.site.unregister(Group)
+admin.site.unregister(Site)
+admin.site.unregister(Redirect)
 admin.site.unregister(DiscountCode)

@@ -2083,7 +2083,7 @@ article img.pull-right, article .align-right {
 }
 
 /*#weekly-box-category .product-quick-add-form {*/
-    /*display: none;*/
+/*display: none;*/
 /*}*/
 
 /* ===============================
@@ -2092,6 +2092,11 @@ article img.pull-right, article .align-right {
 
 #variations {
     margin-left: 0;
+}
+
+.vendor_price input {
+    width: 50px !important;
+    text-align: right;
 }
 
 /* ===============================
@@ -2108,10 +2113,16 @@ article img.pull-right, article .align-right {
 /*check mezzanine.css line 470 for size*/
 
 /* hide for non-mobile */
-.callaction { display: none }
+.callaction {
+    display: none
+}
+
 @media (min-width: 992px) {
     #inner-headline {
         /*display: none;*/
     }
-    .callaction { display: block }
+
+    .callaction {
+        display: block
+    }
 }

@@ -237,6 +237,8 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"blank": True, "max_length": 255},
     ),
+    # add Vendor Price to ProductVariation & OrderItem
+    # change Unit Price to Member Price
     (
         "cartridge.shop.models.Category.order_on_invoice",
         "IntegerField",
@@ -244,7 +246,36 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"default": 0,
          "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
-    )
+    ),
+    # can't inject in abstract Priced model, so need to do both Product and ProductVariation
+    (
+        "cartridge.shop.models.Product.vendor_price",
+        "cartridge.shop.fields.MoneyField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
+    ),
+    (
+        "cartridge.shop.models.ProductVariation.vendor_price",
+        "cartridge.shop.fields.MoneyField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
+    ),
+    (
+        "cartridge.shop.models.CartItem.vendor_price",
+        "cartridge.shop.fields.MoneyField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
+    ),
+    (
+        "cartridge.shop.models.OrderItem.vendor_price",
+        "cartridge.shop.fields.MoneyField",
+        (),
+        # Keyword args for field class.
+        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
+    ),
 )
 
 MIGRATION_MODULES = {

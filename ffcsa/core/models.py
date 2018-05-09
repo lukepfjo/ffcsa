@@ -1,7 +1,8 @@
 import datetime
 
+from cartridge.shop import fields
 from cartridge.shop.fields import MoneyField
-from cartridge.shop.models import Cart, Product
+from cartridge.shop.models import Cart, Product, ProductVariation, Priced
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
@@ -44,6 +45,10 @@ def cart_add_item(self, *args, **kwargs):
     if not item.vendor:
         item.vendor = args[0].vendor
         should_save = True
+    if not item.vendor_price:
+        item.vendor_price = args[0].vendor_price
+        should_save = True
+
 
     if should_save:
         item.save()
@@ -69,6 +74,22 @@ class CartExtend:
 
 
 Cart.__bases__ += (CartExtend,)
+
+###################
+#  Priced
+###################
+
+# monkey patch the Priced copy_price_fields_to to also copy vendor_price
+original_copy_price_fields_to = deepcopy(Priced.copy_price_fields_to)
+
+
+def copy_price_fields_to(self, obj_to):
+    original_copy_price_fields_to(self, obj_to)
+    setattr(obj_to, "vendor_price", getattr(self, "vendor_price"))
+    obj_to.save()
+
+
+Priced.copy_price_fields_to = copy_price_fields_to
 
 
 ###################
