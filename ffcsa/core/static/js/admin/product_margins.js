@@ -17,14 +17,14 @@ jQuery(function ($) {
         m.val(Math.round((unitVal - vendorVal) / unitVal * 100));
       } else {
         // default to 30% markup
-        m.val(20);
+        m.val(30);
         v.val(Math.round(unitVal * .7));
       }
     } else if (vendorVal) {
       if (unitVal) {
         m.val(Math.round((unitVal - vendorVal) / unitVal * 100));
       } else {
-        m.val(20);
+        m.val(30);
         u.val(Math.round(vendorVal / .7));
       }
     } else {
