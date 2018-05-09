@@ -16,16 +16,16 @@ jQuery(function ($) {
       if (vendorVal) {
         m.val(Math.round((unitVal - vendorVal) / unitVal * 100));
       } else {
-        // default to 20% markup
+        // default to 30% markup
         m.val(20);
-        v.val(Math.round(unitVal * .8));
+        v.val(Math.round(unitVal * .7));
       }
     } else if (vendorVal) {
       if (unitVal) {
         m.val(Math.round((unitVal - vendorVal) / unitVal * 100));
       } else {
         m.val(20);
-        u.val(Math.round(vendorVal / .8));
+        u.val(Math.round(vendorVal / .7));
       }
     } else {
       m.val(undefined);

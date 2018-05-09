@@ -38,7 +38,7 @@ def export_as_csv(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(
         ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price',
-         'Vendor Price', 'Quantity', 'Member Total Price', 'FFCSA Total Price'])
+         'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price'])
 
     for order in queryset:
         last_name = order.billing_detail_last_name
@@ -55,10 +55,13 @@ def export_as_csv(modeladmin, request, queryset):
             if item.vendor_price:
                 row.append(item.vendor_price.quantize(TWOPLACES))
             else:
-                row.append((item.unit_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
+                row.append((item.unit_price * Decimal(.7)).quantize(TWOPLACES) if item.total_price else '')
             row.append(item.quantity)
             row.append(item.total_price.quantize(TWOPLACES) if item.total_price else '')
-            row.append((item.total_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
+            if item.vendor_price:
+                row.append((item.vendor_price * item.quantity).quantize(TWOPLACES))
+            else:
+                row.append((item.total_price * Decimal(.7)).quantize(TWOPLACES) if item.total_price else '')
 
             writer.writerow(row)
 
