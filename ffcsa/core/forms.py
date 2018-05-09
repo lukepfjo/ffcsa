@@ -1,10 +1,36 @@
+import datetime
+
 from cartridge.shop.forms import CartItemForm, CartItemFormSet, AddProductForm
-from cartridge.shop.models import ProductVariation
+from cartridge.shop.models import ProductVariation, Order
 from copy import deepcopy
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.pages.admin import PageAdminForm
 from . import models
+
+
+class OrderAdminForm(forms.ModelForm):
+    order_date = forms.DateTimeField(label="Order Date",
+                                     initial=datetime.date.today, required=True, disabled=False,
+                                     widget=forms.DateInput(attrs={'type': 'date'}))
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def save(self, commit=True):
+        order_date = self.cleaned_data.get('order_date', None)
+        if order_date:
+            self.instance.time = order_date
+            # disable auto_now_add so we can add orders in the past
+            self.instance._meta.get_field("time").auto_now_add = False
+        return super(OrderAdminForm, self).save(commit=commit)
+
+    def clean(self):
+        cleaned_data = super(OrderAdminForm, self).clean()
+        if cleaned_data['order_date'] and self.instance.time:
+            del cleaned_data['order_date']
+        return cleaned_data
 
 
 class CategoryAdminForm(PageAdminForm):
@@ -52,7 +78,8 @@ def cart_item_clean_quantity(self):
             self.fields['DELETE'].disabled = True
             self.fields['DELETE'].initial = True
             self.initial['DELETE'] = True
-            self.add_error(None, _("'%s' was removed from your cart as it is no longer available." % variation.product.title))
+            self.add_error(None,
+                           _("'%s' was removed from your cart as it is no longer available." % variation.product.title))
             return 0
         return original_cart_item_clean_quantity(self)
     except ProductVariation.DoesNotExist:

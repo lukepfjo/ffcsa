@@ -22,7 +22,7 @@ from mezzanine.generic.models import ThreadedComment
 from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
-from ffcsa.core.forms import CategoryAdminForm
+from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
 from .models import Payment
 from .utils import recalculate_remaining_budget
 
@@ -144,6 +144,9 @@ def download_invoices(self, request, queryset):
 download_invoices.short_description = "Download Invoices"
 
 order_admin_fieldsets = deepcopy(base.OrderAdmin.fieldsets)
+order_admin_fieldsets_fields_billing_details_list = list(order_admin_fieldsets[0][1]["fields"])
+order_admin_fieldsets_fields_billing_details_list.insert(0, 'order_date')
+order_admin_fieldsets[0][1]["fields"] = tuple(order_admin_fieldsets_fields_billing_details_list)
 order_admin_fieldsets_fields_list = list(order_admin_fieldsets[2][1]["fields"])
 order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
 order_admin_fieldsets_fields_list.insert(2, 'drop_site')
@@ -153,13 +156,17 @@ order_admin_fieldsets[2][1]["fields"] = tuple(order_admin_fieldsets_fields_list)
 class MyOrderAdmin(base.OrderAdmin):
     actions = [export_as_csv, download_invoices]
     fieldsets = order_admin_fieldsets
+    form = OrderAdminForm
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MyOrderAdmin, self).get_form(request, obj, **kwargs)
 
         for name, field in form.base_fields.items():
-            if name != 'billing_detail_first_name' and name != 'billing_detail_last_name':
+            if name != 'billing_detail_first_name' and name != 'billing_detail_last_name' and name != 'order_date':
                 field.required = False
+            if obj is not None and name == 'order_date':
+                field.initial = obj.time.date()
+                field.disabled = True
         return form
 
     def save_formset(self, request, form, formset, change):
@@ -205,7 +212,7 @@ class ProductAdmin(base.ProductAdmin):
         """
         super(ProductAdmin, self).save_model(request, obj, form, change)
 
-        #obj.variations.all()[0].live_num_in_stock()
+        # obj.variations.all()[0].live_num_in_stock()
 
         if "available" in form.changed_data and not obj.available:
             cart_url = request.build_absolute_uri(reverse("shop_cart"))
