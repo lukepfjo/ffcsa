@@ -37,7 +37,7 @@ def export_as_csv(modeladmin, request, queryset):
 
     writer = csv.writer(response)
     writer.writerow(
-        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Unit Price',
+        ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Price',
          'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price'])
 
     for order in queryset:
@@ -227,11 +227,16 @@ product_list_display = base.ProductAdmin.list_display
 product_list_display.pop(4)
 product_list_display.pop(5)
 product_list_display.insert(4, "vendor_price")
+
 product_list_editable = base.ProductAdmin.list_editable
 # remove sku, sale_price
 product_list_editable.pop(2)
 product_list_editable.pop(3)
 product_list_editable.insert(2, "vendor_price")
+
+product_list_filter = list(base.ProductAdmin.list_filter)
+product_list_filter.append("variations__vendor")
+product_list_filter = tuple(product_list_filter)
 
 # add custom js & css overrides
 css = list(base.ProductAdmin.Media.css['all'])
@@ -246,6 +251,7 @@ class ProductAdmin(base.ProductAdmin):
     inlines = (base.ProductImageAdmin, ProductVariationAdmin)
     list_display = product_list_display
     list_editable = product_list_editable
+    list_filter = product_list_filter
 
     def save_model(self, request, obj, form, change):
         """
