@@ -1,0 +1,6 @@
+.margin input,
+.vendor_price input {
+    width: 50px !important;
+    text-align: right;
+}
+

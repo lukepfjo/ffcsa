@@ -10,9 +10,6 @@ from decimal import Decimal
 
 from copy import deepcopy
 
-from django.contrib.auth.models import Group
-from django.contrib.redirects.models import Redirect
-from django.contrib.sites.models import Site
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -23,6 +20,7 @@ from django.contrib import admin
 from cartridge.shop import admin as base
 
 from mezzanine.generic.models import ThreadedComment
+from mezzanine.utils.static import static_lazy as static
 from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
@@ -56,7 +54,7 @@ def export_as_csv(modeladmin, request, queryset):
             row.append(item.unit_price.quantize(TWOPLACES) if item.unit_price else '')
             if item.vendor_price:
                 row.append(item.vendor_price.quantize(TWOPLACES))
-            else :
+            else:
                 row.append((item.unit_price * Decimal(.8)).quantize(TWOPLACES) if item.total_price else '')
             row.append(item.quantity)
             row.append(item.total_price.quantize(TWOPLACES) if item.total_price else '')
@@ -220,6 +218,7 @@ productvariation_fields.insert(2, "vendor_price")
 class ProductVariationAdmin(base.ProductVariationAdmin):
     fields = productvariation_fields
 
+
 product_list_display = base.ProductAdmin.list_display
 # remove sku, sale_price
 product_list_display.pop(4)
@@ -230,6 +229,15 @@ product_list_editable = base.ProductAdmin.list_editable
 product_list_editable.pop(2)
 product_list_editable.pop(3)
 product_list_editable.insert(2, "vendor_price")
+
+# add custom js & css overrides
+css = list(base.ProductAdmin.Media.css['all'])
+css.append(static('css/admin/product.css'))
+base.ProductAdmin.Media.css['all'] = tuple(css)
+js = list(base.ProductAdmin.Media.js)
+js.append(static('js/admin/product_margins.js'))
+base.ProductAdmin.Media.js = tuple(js)
+
 
 class ProductAdmin(base.ProductAdmin):
     inlines = (base.ProductImageAdmin, ProductVariationAdmin)
@@ -279,7 +287,4 @@ admin.site.register(Payment, PaymentAdmin)
 # TODO remove all unecessary admin menus
 admin.site.unregister(ThreadedComment)
 admin.site.unregister(Sale)
-admin.site.unregister(Group)
-admin.site.unregister(Site)
-admin.site.unregister(Redirect)
 admin.site.unregister(DiscountCode)

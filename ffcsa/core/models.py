@@ -49,7 +49,6 @@ def cart_add_item(self, *args, **kwargs):
         item.vendor_price = args[0].vendor_price
         should_save = True
 
-
     if should_save:
         item.save()
 
@@ -90,6 +89,10 @@ def copy_price_fields_to(self, obj_to):
 
 
 Priced.copy_price_fields_to = copy_price_fields_to
+
+# rename unit price to member price
+Product._meta.get_field("unit_price").verbose_name = "Member Price"
+ProductVariation._meta.get_field("unit_price").verbose_name = "Member Price"
 
 
 ###################

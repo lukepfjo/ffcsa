@@ -2094,11 +2094,6 @@ article img.pull-right, article .align-right {
     margin-left: 0;
 }
 
-.vendor_price input {
-    width: 50px !important;
-    text-align: right;
-}
-
 /* ===============================
 14. Cart
 ================================ */
