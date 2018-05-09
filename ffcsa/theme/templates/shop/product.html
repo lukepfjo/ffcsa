@@ -86,6 +86,8 @@
         {{ product.content|richtext_filters|safe }}
     {% endeditable %}
 
+    <p>Farm: <span style="text-transform: lowercase;">{{ variations.0.vendor }}</span></p>
+
     {% if product.available and has_available_variations %}
 {#    {% if product.available %}#}
         <ul id="variations" class="list-unstyled">

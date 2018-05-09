@@ -164,7 +164,7 @@ class MyOrderAdmin(base.OrderAdmin):
 
         for name, field in form.base_fields.items():
             field.required = False
-            
+
             if obj and name == 'user':
                 field.disabled = True
                 field.initial = obj.user_id
