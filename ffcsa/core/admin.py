@@ -146,6 +146,7 @@ download_invoices.short_description = "Download Invoices"
 order_admin_fieldsets = deepcopy(base.OrderAdmin.fieldsets)
 order_admin_fieldsets_fields_billing_details_list = list(order_admin_fieldsets[0][1]["fields"])
 order_admin_fieldsets_fields_billing_details_list.insert(0, 'order_date')
+order_admin_fieldsets_fields_billing_details_list.insert(1, 'user')
 order_admin_fieldsets[0][1]["fields"] = tuple(order_admin_fieldsets_fields_billing_details_list)
 order_admin_fieldsets_fields_list = list(order_admin_fieldsets[2][1]["fields"])
 order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
@@ -162,11 +163,16 @@ class MyOrderAdmin(base.OrderAdmin):
         form = super(MyOrderAdmin, self).get_form(request, obj, **kwargs)
 
         for name, field in form.base_fields.items():
-            if name != 'billing_detail_first_name' and name != 'billing_detail_last_name' and name != 'order_date':
-                field.required = False
-            if obj is not None and name == 'order_date':
-                field.initial = obj.time.date()
+            field.required = False
+            
+            if obj and name == 'user':
                 field.disabled = True
+                field.initial = obj.user_id
+            if name == 'order_date':
+                field.disabled = False
+                if obj:
+                    field.initial = obj.time.date()
+                    field.disabled = True
         return form
 
     def save_formset(self, request, form, formset, change):

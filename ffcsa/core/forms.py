@@ -4,15 +4,19 @@ from cartridge.shop.forms import CartItemForm, CartItemFormSet, AddProductForm
 from cartridge.shop.models import ProductVariation, Order
 from copy import deepcopy
 from django import forms
+from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.pages.admin import PageAdminForm
 from . import models
+
+User = get_user_model()
 
 
 class OrderAdminForm(forms.ModelForm):
     order_date = forms.DateTimeField(label="Order Date",
                                      initial=datetime.date.today, required=True, disabled=False,
                                      widget=forms.DateInput(attrs={'type': 'date'}))
+    user = forms.ModelChoiceField(queryset=User.objects.all())
 
     class Meta:
         model = Order
@@ -20,16 +24,32 @@ class OrderAdminForm(forms.ModelForm):
 
     def save(self, commit=True):
         order_date = self.cleaned_data.get('order_date', None)
-        if order_date:
+        if not self.instance.id and order_date:
             self.instance.time = order_date
             # disable auto_now_add so we can add orders in the past
             self.instance._meta.get_field("time").auto_now_add = False
+
+        user = self.cleaned_data.get('user', None)
+        if not self.instance.id and user:
+            self.instance.billing_detail_first_name = user.first_name
+            self.instance.billing_detail_last_name = user.last_name
+            self.instance.billing_detail_email = user.email
+            self.instance.drop_site = user.profile.drop_site
+            self.instance.billing_detail_phone = user.profile.phone_number
+            self.instance.billing_detail_phone_2 = user.profile.phone_number_2
+            self.instance.user_id = user.id
         return super(OrderAdminForm, self).save(commit=commit)
 
     def clean(self):
         cleaned_data = super(OrderAdminForm, self).clean()
         if cleaned_data['order_date'] and self.instance.time:
             del cleaned_data['order_date']
+
+        if not cleaned_data['user'] and (
+                not cleaned_data['billing_detail_first_name'] or not cleaned_data['billing_detail_last_name']):
+            raise forms.ValidationError(
+                _("Either choose a user, or enter billing_detail_first_name and billing_detail_last_name."))
+
         return cleaned_data
 
 
