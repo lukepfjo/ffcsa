@@ -107,7 +107,7 @@ def download_invoices(self, request, queryset):
     invoices = {}
     categories = Category.objects.exclude(slug='weekly-box')
 
-    for order in queryset:
+    for order in queryset.order_by('drop_site'):
         context = {"order": order}
         context.update(order.details_as_dict())
 
@@ -130,14 +130,14 @@ def download_invoices(self, request, queryset):
         html = get_template("shop/order_packlist_pdf.html").render(context)
         invoice = tempfile.SpooledTemporaryFile()
         HTML(string=html).write_pdf(invoice)
-        invoices[order.id] = invoice
+        invoices["{}_{}".format(order.drop_site, order.id)] = invoice
         # Reset file pointer
         invoice.seek(0)
 
     with tempfile.SpooledTemporaryFile() as tmp:
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
-            for order_id, invoice in invoices.items():
-                archive.writestr("ffcsa_order_{}.pdf".format(order_id), invoice.read())
+            for id, invoice in invoices.items():
+                archive.writestr("order_{}.pdf".format(id), invoice.read())
                 invoice.close()
 
         # Reset file pointer
