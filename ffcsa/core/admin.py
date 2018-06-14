@@ -70,7 +70,7 @@ def export_as_csv(modeladmin, request, queryset):
 
 export_as_csv.short_description = "Export As CSV"
 
-DEFAULT_GROUP_KEY = 100000000
+DEFAULT_GROUP_KEY = 99
 
 
 def keySort(categories):
@@ -89,7 +89,7 @@ def keySort(categories):
                     order = DEFAULT_GROUP_KEY
 
                 return (
-                    float("{}.{}".format(parent_order, order)),
+                    int("{}{}".format(parent_order, order)),
                     item.vendor,
                     item.description
                 )
