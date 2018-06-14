@@ -70,6 +70,8 @@ def export_as_csv(modeladmin, request, queryset):
 
 export_as_csv.short_description = "Export As CSV"
 
+DEFAULT_GROUP_KEY = 100000000
+
 
 def keySort(categories):
     def func(item):
@@ -78,18 +80,16 @@ def keySort(categories):
 
             # 0 is default, so don't sort
             if not cat.parent and cat.order_on_invoice != 0:
-                return (int("{}00".format(cat.order_on_invoice)), item.vendor, item.description)
+                return (cat.order_on_invoice, item.vendor, item.description)
 
             if cat.parent and cat.parent.category and cat.parent.category.order_on_invoice != 0:
                 parent_order = cat.parent.category.order_on_invoice
                 order = cat.order_on_invoice
                 if order == 0:
-                    # we make it 99 so it prints last in the parent category
-                    # which are intervals of 100
-                    order = 99
+                    order = DEFAULT_GROUP_KEY
 
                 return (
-                    int("{}{}".format(parent_order, order)),
+                    float("{}.{}".format(parent_order, order)),
                     item.vendor,
                     item.description
                 )
@@ -98,7 +98,7 @@ def keySort(categories):
             pass
 
         # just return a really high number for category
-        return (100000, item.vendor, item.description)
+        return (DEFAULT_GROUP_KEY, item.vendor, item.description)
 
     return func
 
@@ -274,6 +274,7 @@ def export_price_list(modeladmin, request, queryset):
         writer.writerow(row)
 
     return response
+
 
 
 class ProductAdmin(base.ProductAdmin):
