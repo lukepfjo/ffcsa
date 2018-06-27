@@ -1,3 +1,4 @@
+import datetime
 from cartridge.shop.models import Order
 from cartridge.shop import utils
 from decimal import Decimal
@@ -6,6 +7,16 @@ from . import models as ffcsa_models
 from django.db import models
 
 ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
+
+
+def get_friday_pickup_date():
+    now = datetime.datetime.now()
+
+    days_ahead = 4 - now.weekday()  # Friday is the 5th day
+    if now.weekday() >= ORDER_CUTOFF_DAY:
+        days_ahead += 7  # since order cutoff is past, add 7 days
+
+    return now + datetime.timedelta(days_ahead)
 
 
 def get_ytd_orders(user):

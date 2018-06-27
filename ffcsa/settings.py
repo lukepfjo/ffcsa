@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 # FFCSA-CORE SETTINGS #
 ##############################
 ORDER_CUTOFF_DAY = 3
+SIGNUP_FEE_IN_CENTS = 10000
 
 ##############################
 # FFCSA-INVITES SETTINGS #
@@ -108,7 +109,12 @@ ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "monthly_contribution",
     "drop_site",
-    "start_date"
+    "start_date",
+    "stripe_customer_id",
+    "stripe_subscription_id",
+    "payment_method",
+    "ach_verified",
+    "paid_signup_fee",
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm'  # used to send notifications of new user accounts
 

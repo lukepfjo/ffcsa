@@ -16,4 +16,5 @@ urlpatterns = i18n_patterns(
     url("^checkout/complete%s$" % _slash, page_not_found, name="shop_complete"),
     url("^product/(?P<slug>.*)%s$" % _slash, views.product, name="shop_product"),
     url("^wishlist%s$" % _slash, page_not_found, name="shop_wishlist"),
+    url("^stripe%s$" % _slash, views.stripe_webhooks),
 )

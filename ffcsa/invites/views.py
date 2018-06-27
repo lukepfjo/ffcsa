@@ -2,14 +2,12 @@ from __future__ import unicode_literals
 
 from django.contrib.messages import info
 from django.contrib.auth import login as auth_login
-from django.http import Http404
+from django.http import Http404, HttpResponseRedirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.conf import settings
 from mezzanine.utils.email import send_mail_template
-
-from mezzanine.utils.urls import login_redirect
 
 from .forms import ProfileForm
 
@@ -44,9 +42,10 @@ def signup(request, template="accounts/account_signup.html",
             settings.ACCOUNTS_APPROVAL_EMAILS,
             context=c,
             fail_silently=True,
-            )
+        )
 
-        return login_redirect(request)
+        return HttpResponseRedirect(reverse('payments'))
+
     context = {"form": form, "title": _("Sign up")}
     context.update(extra_context or {})
     return TemplateResponse(request, template, context)

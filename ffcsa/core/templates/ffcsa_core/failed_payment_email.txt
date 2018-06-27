@@ -1,0 +1,10 @@
+Unfortunately, your payment for ${{ amount }} on {{ date }} failed for the following reason:
+
+{{ error }}
+
+If you need to update your payment source, you can do so by visiting {{ payments_url }}.
+
+If this is error occurred for another reason, we have been notified and are investigating.
+
+Sorry for any inconvenience.
+

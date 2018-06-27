@@ -10,6 +10,7 @@ from decimal import Decimal
 
 from copy import deepcopy
 
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -18,6 +19,7 @@ from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode
 from django.contrib import admin
 
 from cartridge.shop import admin as base
+from mezzanine.accounts import admin as accounts_base
 
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.utils.static import static_lazy as static
@@ -25,8 +27,11 @@ from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
+from ffcsa.core.subscriptions import update_stripe_subscription
 from .models import Payment
 from .utils import recalculate_remaining_budget
+
+User = get_user_model()
 
 TWOPLACES = Decimal(10) ** -2
 
@@ -276,6 +281,20 @@ def export_price_list(modeladmin, request, queryset):
     return response
 
 
+accounts_base.ProfileInline.readonly_fields = ['stripe_customer_id', 'stripe_subscription_id', 'payment_method',
+                                               'ach_verified']
+
+
+class UserProfileAdmin(accounts_base.UserProfileAdmin):
+    def save_model(self, request, obj, form, change):
+        """
+        Update stripe subscription if needed
+        """
+        if change and User.objects.get(id=1).profile.monthly_contribution != obj.profile.monthly_contribution:
+            update_stripe_subscription(obj)
+
+        super(UserProfileAdmin, self).save_model(request, obj, form, change)
+
 
 class ProductAdmin(base.ProductAdmin):
     actions = [export_price_list]
@@ -321,6 +340,8 @@ admin.site.unregister(Category)
 admin.site.register(Category, MyCategoryAdmin)
 admin.site.unregister(Product)
 admin.site.register(Product, ProductAdmin)
+admin.site.unregister(User)
+admin.site.register(User, UserProfileAdmin)
 
 admin.site.register(Payment, PaymentAdmin)
 

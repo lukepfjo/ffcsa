@@ -1,0 +1,52 @@
+<div class="form-group">
+    <label class="control-label">Payment Method</label>
+    <div class="radio">
+        <label>
+            <input type="radio" name="paymentType" id="paymentTypesACH" value="ACH">
+            ACH Bank Transfer
+        </label>
+    </div>
+    <div class="radio">
+        <label>
+            <input type="radio" name="paymentType" id="paymentTypesCC" value="CC">
+            Credit Card - 3% fee
+        </label>
+    </div>
+    {#                <div class="radio">#}
+    {#                    <label>#}
+    {#                        <input type="radio" name="paymentType" id="paymentTypesCRYPTO" value="CRYPTO">#}
+    {#                        Crypto Currency - 10% discount#}
+    {#                    </label>#}
+    {#                    <span id="helpBlock" class="help-block">Note: you will be invoiced monthly</span>#}
+    {#                </div>#}
+</div>
+
+<div class="collapse in" id="ach-details">
+    <div class="form-group">
+        <label class="control-label">Name on Bank Account</label>
+        <input name="achAccountName" class="form-control" value="{{ user.get_full_name }}"/>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Bank Account Type</label>
+        <select id="ach-account-type" name="achAccountType" class="form-control">
+            <option value="individual">Individual</option>
+            <option value="company">Company</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Routing Number</label>
+        <input name="achRoutingNumber" class="form-control" placeholder="123456789"/>
+    </div>
+    <div class="form-group">
+        <label class="control-label">Account Number</label>
+        <input name="achAccountNumber" class="form-control" placeholder="0000987654321"/>
+    </div>
+    <p class="alert alert-warning help-block">To validate your bank account, we will make 2 small
+        deposits.
+        Once received, you will need to come back to this page and enter the amount to complete the
+        verification.</p>
+</div>
+
+{% with True as isSubscription %}
+    {% include "ffcsa_core/cc_payment_details.html" %}
+{% endwith %}

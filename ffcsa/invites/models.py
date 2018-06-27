@@ -33,7 +33,7 @@ def get_code_length():
 
 class InvitationCodeManager(models.Manager):
     def create_invite_code(
-            self, email, site=None, name=None, creator=None
+            self, email, site=None, name=None, creator=None, drop_site=None
     ):
         chars = 'ABCDEFGHJKMPQRSTUVWXYZ'
         nums = '23456789'
@@ -46,7 +46,7 @@ class InvitationCodeManager(models.Manager):
                 break
         code = self.model(
             key=key, site=site, registered_to=email, registered_name=name,
-            created_by=creator
+            created_by=creator, drop_site=drop_site
         )
         code.save()
         return code
@@ -97,6 +97,7 @@ class InvitationCode(models.Model):
     registered_name = models.CharField(
         'name', max_length=70, blank=True, null=True
     )
+    drop_site = models.CharField("Drop Site", blank=True, max_length=255)
     key = models.CharField(
         max_length=30, blank=True, null=True, editable=False
     )

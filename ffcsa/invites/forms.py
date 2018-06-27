@@ -27,7 +27,9 @@ class ProfileForm(base.ProfileForm):
             code = InvitationCode.objects.get_code_from_key_if_valid(
                 self.data['code'], self.data['email']
             )
+            user.profile.drop_site = code.drop_site
             code.delete()
+            user.profile.save()
 
         return user
 
