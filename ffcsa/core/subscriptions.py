@@ -59,7 +59,7 @@ def update_stripe_subscription(user):
         amount=(amount * 100).quantize(0),  # in cents
         interval="month",
         interval_count=1,
-        product="prod_D6YYUySKyNFW8r",  # FFCSA Membership product
+        product=settings.STRIPE_PRODUCT_ID,
         currency="usd",
         nickname="{} Membership".format(user.get_full_name())
     )
@@ -96,7 +96,7 @@ def create_stripe_subscription(user):
         amount=(amount * 100).quantize(0),  # in cents
         interval="month",
         interval_count=1,
-        product="prod_D6YYUySKyNFW8r",  # FFCSA Membership product
+        product=settings.STRIPE_PRODUCT_ID,
         currency="usd",
         nickname="{} Membership".format(user.get_full_name())
     )
