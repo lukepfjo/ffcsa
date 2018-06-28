@@ -49,10 +49,6 @@ if local("uname -s", capture=True) == "Darwin":
         pass
 
 env.convert_orders_day = conf.get("CONVERT_ORDERS_DAY", 4)
-env.stripe_api_key = conf.get("STRIPE_API_KEY", "")
-env.stripe_secret_key = conf.get("STRIPE_SECRET_KEY", "")
-env.stripe_endpoint_secret = conf.get("STRIPE_ENDPOINT_SECRET", "")
-env.stripe_product_id = conf.get("STRIPE_PRODUCT_ID", "")
 env.db_pass = conf.get("DB_PASS", None)
 env.admin_pass = conf.get("ADMIN_PASS", None)
 env.user = conf.get("SSH_USER", getuser())
