@@ -1,9 +1,1 @@
-Order inventory has been updated for the week.
-
-Unfortunately, the following product in your order for the coming week is not available:
-
-{{ product }}
-
-Feel free to add/change your order. You can view you current order here {{ cart_url }}
-
-Sorry for any inconvenience.
+We just recieved your first payment. You can now make your first order.

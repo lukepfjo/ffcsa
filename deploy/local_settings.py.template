@@ -1,10 +1,5 @@
 from __future__ import unicode_literals
 
-STRIPE_API_KEY = "%(stripe_api_key)s";
-STRIPE_SECRET_KEY = "%(stripe_secret_key)s";
-STRIPE_ENDPOINT_SECRET = "%(stripe_endpoint_secret)s";
-STRIPE_PRODUCT_ID = "%(stripe_product_id)s";
-
 SECRET_KEY = "%(secret_key)s"
 NEVERCACHE_KEY = "%(nevercache_key)s"
 ALLOWED_HOSTS = [%(domains_python)s]
