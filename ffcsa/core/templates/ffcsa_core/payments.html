@@ -9,6 +9,8 @@
     <script src="{% static "js/jquery.validate.min.js" %}"></script>
     <script src="{% static "js/lodash.js" %}"></script>
     <script src="{% static "js/ffcsa_core/payments.js" %}"></script>
+{% endblock %}
+{% block extra_head %}
     <script src="https://js.stripe.com/v3/"></script>
 {% endblock %}
 
@@ -125,7 +127,7 @@
     <div id="payment-container"></div>
     <!-- Onetime Payment -->
     {% if user.profile.paid_signup_fee %}
-        <br />
+        <br/>
         <!-- Payment modal trigger -->
         <button type="button" class="btn btn-default" id="make-payment">
             Make a Payment
