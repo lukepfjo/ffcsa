@@ -103,8 +103,8 @@ def payments(request, template="ffcsa_core/payments.html", extra_context={}):
     if request.user.profile.stripe_subscription_id:
         subscription = stripe.Subscription.retrieve(request.user.profile.stripe_subscription_id)
         next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
-        next_payment_date = formats.date_format(next_payment_date, "D F d")
-        
+        next_payment_date = formats.date_format(next_payment_date, "D, F d")
+
     all_payments = Payment.objects.filter(user__id=request.user.id)
     payments = paginate(all_payments.order_by('-date', '-id'),
                         request.GET.get("page", 1),

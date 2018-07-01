@@ -103,7 +103,7 @@
                 ACH Bank Transfer
             {% endif %}
             .</p>
-        <p>You next payment is scheduled for {{ next_payment_date }}</p>
+        <p>You next payment is scheduled for <strong>{{ next_payment_date }}</strong></p>
         {% if user.profile.payment_method == 'ACH' %}
             <p>Note: It will take 3-5 business days before the payment is reflected in your account.</p>
         {% endif %}
