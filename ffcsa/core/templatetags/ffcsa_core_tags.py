@@ -2,10 +2,7 @@ import datetime
 
 from django.utils import formats
 from mezzanine import template
-from ffcsa.core.utils import ORDER_CUTOFF_DAY, get_friday_pickup_date
-
-# only 6 days because we want to end on 1 day and start on the next. 7 days will start and end on the same week day
-DAYS_IN_WEEK = 6
+from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start
 
 register = template.Library()
 
@@ -21,15 +18,7 @@ def pickup_date_text():
 
 @register.simple_tag()
 def order_week_start():
-    now = datetime.datetime.now()
-
-    if now.weekday() < ORDER_CUTOFF_DAY:
-        delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day
-        week_end = now + datetime.timedelta(delta)
-        week_start = week_end - datetime.timedelta(DAYS_IN_WEEK)
-    else:
-        delta = now.weekday() - ORDER_CUTOFF_DAY
-        week_start = now - datetime.timedelta(delta)
+    week_start = get_order_week_start()
 
     return formats.date_format(week_start, "F d, Y")
 
@@ -47,9 +36,11 @@ def order_week_end():
 
     return formats.date_format(order_week_end, "F d, Y")
 
+
 @register.filter
 def get_item(dictionary, key):
     return dictionary.get(key)
+
 
 @register.filter
 def get_billing_detail_field(billing_detail_list, key):

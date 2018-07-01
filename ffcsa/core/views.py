@@ -14,6 +14,7 @@ from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse, HttpResponse
 from django.urls import reverse
+from django.utils import formats
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
@@ -98,6 +99,12 @@ def payments(request, template="ffcsa_core/payments.html", extra_context={}):
     """
     Display a list of the currently logged-in user's past orders.
     """
+    next_payment_date = None
+    if request.user.profile.stripe_subscription_id:
+        subscription = stripe.Subscription.retrieve(request.user.profile.stripe_subscription_id)
+        next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
+        next_payment_date = formats.date_format(next_payment_date, "D F d")
+        
     all_payments = Payment.objects.filter(user__id=request.user.id)
     payments = paginate(all_payments.order_by('-date', '-id'),
                         request.GET.get("page", 1),
@@ -105,6 +112,7 @@ def payments(request, template="ffcsa_core/payments.html", extra_context={}):
                         settings.MAX_PAGING_LINKS)
     context = {"payments": payments,
                "contact_email": settings.DEFAULT_FROM_EMAIL,
+               "next_payment_date": next_payment_date,
                "STRIPE_API_KEY": settings.STRIPE_API_KEY}
     context.update(extra_context or {})
     return TemplateResponse(request, template, context)
@@ -152,6 +160,9 @@ def payments_subscribe(request):
 
             # we can create the subscription right now
             create_stripe_subscription(user)
+            success(request,
+                    'Your subscription has been created and your first payment is pending. '
+                    'You should see the payment credited to your account within the next few minutes')
         elif paymentType == 'ACH':
             if not user.profile.stripe_customer_id:
                 customer = stripe.Customer.create(
@@ -168,6 +179,9 @@ def payments_subscribe(request):
             user.profile.monthly_contribution = amount
             user.profile.ach_verified = customer.sources.data[0].status == 'verified'
             user.profile.save()
+            success(request,
+                    'Your subscription has been created. You will need to verify your bank account '
+                    'before your first payment is made.')
         else:
             context['subscribe_errors'].append('Unknown Payment Type')
     return payments(request, extra_context=context)
@@ -206,6 +220,7 @@ def payments_update(request):
                     user.profile.payment_method = 'CC'
                     update_subscription_fee(user)
                 user.profile.save()
+                success(request, 'Your payment method has been updated.')
             elif paymentType == 'ACH':
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 customer.source = stripeToken
@@ -215,6 +230,7 @@ def payments_update(request):
                     update_subscription_fee(user)
                 user.profile.ach_verified = customer.sources.data[0].status == 'verified'
                 user.profile.save()
+                success(request, 'Your payment method has been updated.')
             else:
                 context['update_errors'].append('Unknown Payment Type')
     except stripe.error.CardError as e:
@@ -274,7 +290,7 @@ def make_payment(request):
                 source=card.id if card else None,
                 statement_descriptor='FFCSA Payment'
             )
-            success(request, 'Payment is pending.')
+            success(request, 'Your payment is pending.')
             # Payment will be created when the charge is successful
     except stripe.error.CardError as e:
         body = e.json_body
@@ -317,6 +333,14 @@ def verify_ach(request):
 
             # we can create the subscription right now
             create_stripe_subscription(user)
+            if not Payment.objects.filter(user=user).exists():
+                success(request,
+                        'Your account has been verified and your first payment is pending. '
+                        'When your payment has been received, you will receive an email letting '
+                        'you know when your first ordering and pickup dates are. If you do not '
+                        'see this email come through, please check your spam')
+            else:
+                success(request, 'Your account has been verified.')
         except stripe.error.CardError as e:
             body = e.json_body
             err = body.get('error', {})
@@ -361,6 +385,8 @@ def stripe_webhooks(request):
                         payment = Payment.objects.create(user=user, amount=amount, date=date)
                         payment.save()
                         if sendFirstPaymentEmail:
+                            user.profile.start_date = datetime.datetime.now().date()
+                            user.profile.save()
                             send_first_payment_email(user)
         elif event.type == 'charge.failed':
             user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()

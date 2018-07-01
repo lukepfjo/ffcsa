@@ -5,7 +5,7 @@ from django.utils import formats
 from mezzanine.utils.email import send_mail_template
 from mezzanine.conf import settings
 
-from ffcsa.core.utils import get_friday_pickup_date
+from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SIGNUP_DESCRIPTION = 'FFCSA Signup Fee'
@@ -117,22 +117,28 @@ def create_stripe_subscription(user):
 
 
 def send_first_payment_email(user):
+    now = datetime.datetime.now()
+    can_order_now = 1 <= now.weekday() <= ORDER_CUTOFF_DAY
+    week_start = get_order_week_start()
+
     pickup = get_friday_pickup_date()
     if user.profile.drop_site and user.profile.drop_site.lower().strip() == 'farm':
         pickup = pickup + datetime.timedelta(1)
 
     context = {
-        'pickup': formats.date_format(pickup, "D F d"),
-        'monthly_contribution': user.profile.monthly_contribution
+        'pickup_date': formats.date_format(pickup, "D F d"),
+        'drop_site': user.profile.drop_site,
+        'can_order_now': can_order_now,
+        'order_week_start': formats.date_format(week_start, "D F d"),
     }
     send_mail_template(
-        "[{}] Payment Succeeded".format(settings.SITE_TITLE),
+        "Welcome to the FFCSA!",
         "ffcsa_core/first_payment_email",
         settings.DEFAULT_FROM_EMAIL,
         user.email,
         context=context,
         fail_silently=False,
-        # addr_bcc=bcc_addresses #TODO bcc ella?
+        addr_bcc=[settings.EMAIL_HOST_USER]
     )
 
 

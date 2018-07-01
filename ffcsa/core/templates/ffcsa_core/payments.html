@@ -67,7 +67,13 @@
                     <input class="form-control" type="text" required name="amount"
                            value="260"/>
                 {% endif %}
-                <span id="helpBlock" class="help-block">Ella send text for this</span>
+                <span id="helpBlock" class="help-block">
+                    How much should I pay? This amount will be your monthly budget for each month throughout the year,
+                    which may include either 4 weeks or 5 weeks of ordering. Although we recommend multiplying your
+                    weekly ordering amount by 4.33 (the average number of weeks in a month), you may want to give
+                    yourself some extra buffer room for those longer, 5 week months, but you can also top up your
+                    account if needed periodically.
+                </span>
             </div>
 
             {% include "ffcsa_core/payment_details.html" %}
@@ -97,6 +103,10 @@
                 ACH Bank Transfer
             {% endif %}
             .</p>
+        <p>You next payment is scheduled for {{ next_payment_date }}</p>
+        {% if user.profile.payment_method == 'ACH' %}
+            <p>Note: It will take 3-5 business days before the payment is reflected in your account.</p>
+        {% endif %}
         <button class="btn btn-default" id="edit-payment-info">Change Payment Method</button>
 
         {% if update_errors and update_errors.length > 0 %}
@@ -152,7 +162,7 @@
                                 <p>If you choose to pay with a credit card below your account will be updated the same
                                     day.</p>
                             </div>
-                            <p>This is a one time payment that will be credited to you account.</p>
+                            <p>This is a one time payment that will be credited to your account.</p>
                         {% endif %}
                         <form action="{% url "make_payment" %}" method="POST" id="payment-form" class="form">
                             {% csrf_token %}
