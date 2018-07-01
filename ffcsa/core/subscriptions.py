@@ -28,7 +28,6 @@ def charge_signup_fee_if_needed(user):
 
 def get_subscription_fee(type):
     if type == 'CC':
-        # 3% fee
         return 3
     else:
         return 0
@@ -108,7 +107,6 @@ def create_stripe_subscription(user):
             },
         ],
 
-        # TODO update subscription plan when profile is edited via admin
         # TODO integrate crypto
         tax_percent=tax_percent,
     )

@@ -21,10 +21,14 @@ jQuery(function ($) {
 
             $("#paymentTypesACH").prop('checked', true);
 
-            // mount stripe ui elements
-            cardNumber.mount('#card-number');
-            cardExpiry.mount('#card-expiry');
-            cardCvc.mount('#card-cvc');
+
+            // we only need to mount these elements if we are collecting cc details
+            if ($("#card-number").length > 0) {
+                // mount stripe ui elements
+                cardNumber.mount('#card-number');
+                cardExpiry.mount('#card-expiry');
+                cardCvc.mount('#card-cvc');
+            }
 
 
             // dynamically show payment form depending on payment type
@@ -212,7 +216,7 @@ jQuery(function ($) {
                 });
 
                 var opts = _.assign({}, validateOpts);
-                opts.rules.amount.min = 0;
+                opts.rules.amount.min = 50;
 
                 $('#payment-form').validate(opts);
             }

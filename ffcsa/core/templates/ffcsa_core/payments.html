@@ -91,7 +91,7 @@
         </form>
     {% else %}
         <p>Your monthly subscription is ${{ user.profile.monthly_contribution }} via
-            {% if user.profile.paymentType == 'CC' %}
+            {% if user.profile.payment_method == 'CC' %}
                 Credit Card
             {% else %}
                 ACH Bank Transfer
@@ -183,6 +183,11 @@
                                 {% with False as isSubscription %}
                                     {% include "ffcsa_core/cc_payment_details.html" %}
                                 {% endwith %}
+                            {% else %}
+                                <div class="form-group">
+                                    <label class="control-label">Payment Fee</label>
+                                    <p id="ccFee" class="form-control-static"></p>
+                                </div>
                             {% endif %}
                             <div class="form-group checkbox">
                                 <label>

@@ -23,7 +23,7 @@ from mezzanine.utils.views import paginate
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, update_subscription_fee
+    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee
 from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -246,15 +246,28 @@ def make_payment(request):
         hasError = True
         error(request, 'Invalid amount provided.')
 
+    if amount < 50:
+        hasError = True
+        error(request, 'Minimum payment amount is $50.')
+
     try:
         if not hasError:
             stripeToken = request.POST.get('stripeToken')
             card = None
+            isCC = False
             if stripeToken:
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 card = customer.sources.create(source=stripeToken)
+                isCC = True
+            elif user.profile.payment_method == 'CC':
+                isCC = True
+
+            if isCC:
+                fee_percentage = get_subscription_fee('CC')
+                amount = amount * (1 + fee_percentage / 100)
+
             stripe.Charge.create(
-                amount=amount * 100,  # amount in cents
+                amount=(amount * 100).quantize(0),  # in cents
                 currency='usd',
                 description='FFCSA Payment',
                 customer=user.profile.stripe_customer_id,
@@ -336,6 +349,9 @@ def stripe_webhooks(request):
                     user.profile.save()
                 else:
                     amount = charge.amount / 100  # amount is in cents
+                    if charge.source.object == 'card':
+                        fee_percent = get_subscription_fee('CC')
+                        amount = amount / (1 + fee_percent / 100)  # cc fee
                     date = datetime.datetime.fromtimestamp(charge.created)
                     existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
                     if existing_payments.exists():
