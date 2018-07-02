@@ -325,6 +325,11 @@ def verify_ach(request):
         customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
         bank_account = customer.sources.retrieve(customer.default_source)
 
+        if amount1.startswith('.'):
+            amount1 = amount1[1:]
+        if amount2.startswith('.'):
+            amount2 = amount2[1:]
+
         # verify the account
         try:
             bank_account.verify(amounts=[amount1, amount2])
