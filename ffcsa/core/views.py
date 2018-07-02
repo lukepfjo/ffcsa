@@ -332,13 +332,16 @@ def verify_ach(request):
             user.profile.save()
 
             # we can create the subscription right now
-            create_stripe_subscription(user)
-            if not Payment.objects.filter(user=user).exists():
-                success(request,
-                        'Your account has been verified and your first payment is pending. '
-                        'When your payment has been received, you will receive an email letting '
-                        'you know when your first ordering and pickup dates are. If you do not '
-                        'see this email come through, please check your spam')
+            if not user.profile.stripe_subscription_id:
+                create_stripe_subscription(user)
+                if not Payment.objects.filter(user=user).exists():
+                    success(request,
+                            'Your account has been verified and your first payment is pending. '
+                            'When your payment has been received, you will receive an email letting '
+                            'you know when your first ordering and pickup dates are. If you do not '
+                            'see this email come through, please check your spam')
+                else:
+                    success(request, 'Your account has been verified.')
             else:
                 success(request, 'Your account has been verified.')
         except stripe.error.CardError as e:
