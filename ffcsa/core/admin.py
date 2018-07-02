@@ -290,7 +290,9 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
         """
         Update stripe subscription if needed
         """
-        if change and User.objects.get(id=1).profile.monthly_contribution != obj.profile.monthly_contribution:
+        if change \
+                and User.objects.get(id=obj.id).profile.monthly_contribution != obj.profile.monthly_contribution \
+                and obj.profile.stripe_subscription_id:
             update_stripe_subscription(obj)
 
         super(UserProfileAdmin, self).save_model(request, obj, form, change)
