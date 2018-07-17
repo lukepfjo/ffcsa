@@ -88,7 +88,7 @@ jQuery(function ($) {
                     },
                 },
                 achAccountNumber: {
-                    rangelength: [12, 13],
+                    rangelength: [4, 17],
                     required: function () {
                         return $("#paymentTypesACH").is(":checked");
                     },
