@@ -83,18 +83,21 @@
                 </tbody>
             </table>
 
-            {#            <div class="form-group">#}
-            {#                {{ cart_dinner_form.attending_dinner.errors }}#}
-            {#                <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the Farm 5:30pm#}
-            {#                    (If coming to dinner, we will have your order waiting for you at the farm) </label>#}
-            {#                    {{ cart_dinner_form.attending_dinner }}#}
-            {#            </div>#}
+            {% if pickup_is_first_friday %}
+                <div class="form-group">
+                    {{ cart_dinner_form.attending_dinner.errors }}
+                    <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the
+                        Farm
+                        5:30pm (If coming to dinner, we will have your order waiting for you at the farm) </label>
+                    {{ cart_dinner_form.attending_dinner }}
+                </div>
+            {% endif %}
 
             <div class="form-actions">
                 <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                       value="{% trans "Update Weekly Order" %}" />
+                       value="{% trans "Update Weekly Order" %}"/>
                 <input type="button" name="clear_cart" class="btn btn-primary btn-lg"
-                        value="{% trans "Clear Cart" %}" />
+                       value="{% trans "Clear Cart" %}"/>
             </div>
         </form>
 
@@ -144,13 +147,13 @@
 
 
     <script type="text/javascript">
-      (function () {
-        $('input[name="clear_cart"]').click(function () {
-          $(':checkbox[id$="-DELETE"]').each(function (i, el) {
-            el.checked = true;
-          });
-          $('input[name="update_cart"]').click();
-        })
-      })();
+        (function () {
+            $('input[name="clear_cart"]').click(function () {
+                $(':checkbox[id$="-DELETE"]').each(function (i, el) {
+                    el.checked = true;
+                });
+                $('input[name="update_cart"]').click();
+            })
+        })();
     </script>
 {% endblock %}

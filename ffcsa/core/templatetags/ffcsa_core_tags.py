@@ -22,6 +22,10 @@ def order_week_start():
 
     return formats.date_format(week_start, "F d, Y")
 
+@register.simple_tag()
+def pickup_is_first_friday():
+    return get_friday_pickup_date().day <= 7
+
 
 @register.simple_tag()
 def order_week_end():

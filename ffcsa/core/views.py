@@ -393,7 +393,7 @@ def stripe_webhooks(request):
                         payment = Payment.objects.create(user=user, amount=amount, date=date)
                         payment.save()
                         if sendFirstPaymentEmail:
-                            user.profile.start_date = datetime.datetime.now().date()
+                            user.profile.start_date = date
                             user.profile.save()
                             send_first_payment_email(user)
         elif event.type == 'charge.failed':
