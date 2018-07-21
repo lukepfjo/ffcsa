@@ -1,5 +1,11 @@
 from __future__ import unicode_literals
 
+EMAIL_HOST_USER = "%(email_host_user)s"
+EMAIL_USE_SSL = True
+EMAIL_HOST = "%(email_host)s"
+EMAIL_HOST_PASSWORD = "%(email_host_password)s"
+EMAIL_PORT = 465
+
 STRIPE_API_KEY = "%(stripe_api_key)s";
 STRIPE_SECRET_KEY = "%(stripe_secret_key)s";
 STRIPE_ENDPOINT_SECRET = "%(stripe_endpoint_secret)s";

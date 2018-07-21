@@ -48,6 +48,9 @@ if local("uname -s", capture=True) == "Darwin":
     except:
         pass
 
+env.email_host_user = conf.get("EMAIL_HOST_USER", "")
+env.email_host = conf.get("EMAIL_HOST", "")
+env.email_host_password = conf.get("EMAIL_HOST_PASSWORD", "")
 env.convert_orders_day = conf.get("CONVERT_ORDERS_DAY", 4)
 env.stripe_api_key = conf.get("STRIPE_API_KEY", "")
 env.stripe_secret_key = conf.get("STRIPE_SECRET_KEY", "")
