@@ -11,6 +11,7 @@ register = template.Library()
 def pickup_date_text():
     pickup = get_friday_pickup_date()
     delivery = pickup + datetime.timedelta(1)
+    print('Testing pickup date')
 
     return "Weekly order for pickup {} & delivery {}".format(formats.date_format(pickup, "D F d"),
                                                              formats.date_format(delivery, "D F d"))
@@ -21,10 +22,6 @@ def order_week_start():
     week_start = get_order_week_start()
 
     return formats.date_format(week_start, "F d, Y")
-
-@register.simple_tag()
-def pickup_is_first_friday():
-    return get_friday_pickup_date().day <= 7
 
 
 @register.simple_tag()

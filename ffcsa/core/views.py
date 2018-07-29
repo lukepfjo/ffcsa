@@ -25,7 +25,8 @@ from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee
-from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget
+from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget, \
+    get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -53,6 +54,7 @@ def cart(request, template="shop/cart.html",
             cart_dinner_form.save()
 
     extra_context['cart_dinner_form'] = cart_dinner_form
+    extra_context['dinner_week'] = get_friday_pickup_date().day <= 7
 
     return s_views.cart(request, template=template, cart_formset_class=cart_formset_class,
                         discount_form_class=discount_form_class, extra_context=extra_context)
