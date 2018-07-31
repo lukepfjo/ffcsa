@@ -136,7 +136,7 @@
 
     <div id="payment-container"></div>
     <!-- Onetime Payment -->
-    {% if user.profile.paid_signup_fee %}
+    {% if user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
         <br/>
         <!-- Payment modal trigger -->
         <button type="button" class="btn btn-default" id="make-payment">
