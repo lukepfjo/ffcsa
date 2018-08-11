@@ -32,6 +32,14 @@
 
 <h1>{{ settings.SITE_TITLE }}</h1>
 
+{#{% if order.additional_instructions %}#}
+{#    <table style="border: 1px solid black; width: 100%; margin-bottom: 5px; padding-top: 5px; padding-bottom: 5px">#}
+{#        <tr>#}
+{#            <td>{{ order.additional_instructions }}</td>#}
+{#        </tr>#}
+{#    </table>#}
+{#{% endif %}#}
+
 <table style="border: none; width: 100%;">
     <tr>
         <td>{% trans "Order ID:" %} {{ order.id }}</td>
@@ -56,8 +64,8 @@
         <td style="padding: 5px">{{ order.drop_site }}</td>
     </tr>
     <tr>
-        <td></td>
-        <td style="padding: 5px">{{ order.additional_instructions }}</td>
+        <td style="padding: 5px;">Notes</td>
+        <td style="padding: 5px">{% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
     </tr>
 </table>
 

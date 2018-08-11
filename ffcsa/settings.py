@@ -115,6 +115,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "payment_method",
     "ach_verified",
     "paid_signup_fee",
+    "notes"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm'  # used to send notifications of new user accounts
 

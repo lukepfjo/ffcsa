@@ -34,7 +34,8 @@ class Command(BaseCommand):
                     'billing_detail_phone_2': user.profile.phone_number_2,
                     'total': cart.total_price(),
                     'attending_dinner': cart.attending_dinner,
-                    'drop_site': user.profile.drop_site
+                    'drop_site': user.profile.drop_site,
+                    'additional_instructions': user.profile.notes
                 }
 
                 order = Order.objects.create(**order_dict)

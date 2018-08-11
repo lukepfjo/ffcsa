@@ -129,11 +129,14 @@ class Profile(models.Model):
     phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
     phone_number_2 = models.CharField("Alternate Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
+    notes = models.TextField("Invoice Notes", blank=True,
+                             help_text="Use &lt;br/&gt; to enter a newline, and &lt;strong&gt;My Text&lt;/strong&gt; to make something bold.")
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
     stripe_customer_id = models.CharField(blank=False, null=True, max_length=255)
     stripe_subscription_id = models.CharField(blank=False, null=True, max_length=255)
     payment_method = models.CharField(blank=False, null=True,
-                                      choices=[('CC', 'Credit Card'), ('ACH', 'Bank Account'), ('CRYPTO', 'Crypto')], max_length=255)
+                                      choices=[('CC', 'Credit Card'), ('ACH', 'Bank Account'), ('CRYPTO', 'Crypto')],
+                                      max_length=255)
     ach_verified = models.BooleanField(default=False)
     paid_signup_fee = models.BooleanField(default=False)
 
