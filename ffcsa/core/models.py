@@ -137,7 +137,9 @@ class Profile(models.Model):
     payment_method = models.CharField(blank=False, null=True,
                                       choices=[('CC', 'Credit Card'), ('ACH', 'Bank Account'), ('CRYPTO', 'Crypto')],
                                       max_length=255)
-    ach_verified = models.BooleanField(default=False)
+    ach_status = models.CharField(blank=False, null=True, max_length=20,
+                                  choices=[('NEW', 'Unverified'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified'),
+                                           ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
 
     def csa_year_start_date(self):

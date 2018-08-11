@@ -113,7 +113,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "stripe_customer_id",
     "stripe_subscription_id",
     "payment_method",
-    "ach_verified",
+    "ach_status",
     "paid_signup_fee",
     "notes"
 ]

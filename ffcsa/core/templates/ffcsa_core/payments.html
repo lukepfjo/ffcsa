@@ -25,7 +25,7 @@
 {% block main %}
     <h3>Manage Subscription</h3>
     <!-- ACH Bank Verification-->
-    {% if user.profile.payment_method == 'ACH' and not user.profile.ach_verified %}
+    {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'NEW' or user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFYING' %}
         <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you receive
             the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to verify your
             bank account. The deposits should show on your statement withing 1-2 business days.</p>
@@ -40,10 +40,10 @@
                 </div>
                 <div class="col-xs-12 col-sm-4 verify-amounts">
                     <div class="form-group col-xs-6">
-                        <input class="form-control" required name="amount1"/>
+                        <input style="width: 100%" class="form-control" required name="amount1">
                     </div>
                     <div class="form-group col-xs-6">
-                        <input class="form-control" required name="amount2"/>
+                        <input style="width: 100%" class="form-control" required name="amount2"/>
                     </div>
                 </div>
                 <div class="col-xs-12 col-sm-3">
@@ -53,8 +53,13 @@
         </form>
         <!-- New Subscription Signup -->
     {% elif not user.profile.stripe_subscription_id %}
-        <p class="alert alert-warning">It looks like you have yet to setup a subscription. Please complete the
-            following form to complete your subscription.</p>
+        {% if user.profile.ach_status == 'FAILED' %}
+            <p class="alert alert-danger">We had trouble sending funds to your provided bank account for verification
+                purposes. Your information may have been entered incorrectly. Please try again.</p>
+        {% else %}
+            <p class="alert alert-warning">It looks like you have yet to setup a subscription. Please complete the
+                following form to complete your subscription.</p>
+        {% endif %}
         <form action="{% url "payments_subscribe" %}" method="POST" id="subscribe-form" class="form">
             {% csrf_token %}
 
@@ -153,7 +158,7 @@
                         <h4 class="modal-title">Make a Payment</h4>
                     </div>
                     <div class="modal-body">
-                        {% if user.profile.payment_method == 'ACH' and user.profile.ach_verified %}
+                        {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFIED' %}
                             <div class="alert alert-warning">
                                 <p>
                                     Note: Because your default payment method is via ACH bank transfer, it will take 3-5
@@ -173,7 +178,7 @@
                             {% if user.profile.payment_method == 'ACH' %}
                                 <div class="form-group">
                                     <label class="control-label">Payment Method</label>
-                                    {% if user.profile.ach_verified %}
+                                    {% if user.profile.ach_status == 'VERIFIED' %}
                                         <div class="radio">
                                             <label>
                                                 <input type="radio" name="paymentType" id="paymentTypesDefault"

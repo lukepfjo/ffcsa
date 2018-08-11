@@ -24,7 +24,7 @@ from mezzanine.utils.views import paginate
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee
+    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source
 from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget, \
     get_friday_pickup_date
 
@@ -179,7 +179,7 @@ def payments_subscribe(request):
                 customer.save()
             user.profile.payment_method = 'ACH'
             user.profile.monthly_contribution = amount
-            user.profile.ach_verified = customer.sources.data[0].status == 'verified'
+            user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
             user.profile.save()
             success(request,
                     'Your subscription has been created. You will need to verify your bank account '
@@ -221,6 +221,7 @@ def payments_update(request):
                 if user.profile.payment_method != 'CC':
                     user.profile.payment_method = 'CC'
                     update_subscription_fee(user)
+                user.profile.ach_status = None  # reset this so they don't receive error msg for failed ach verification
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             elif paymentType == 'ACH':
@@ -230,7 +231,7 @@ def payments_update(request):
                 if user.profile.payment_method != 'ACH':
                     user.profile.payment_method = 'ACH'
                     update_subscription_fee(user)
-                user.profile.ach_verified = customer.sources.data[0].status == 'verified'
+                user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             else:
@@ -335,7 +336,7 @@ def verify_ach(request):
         # verify the account
         try:
             bank_account.verify(amounts=[amount1, amount2])
-            user.profile.ach_verified = True
+            user.profile.ach_status = 'VERIFIED'
             user.profile.save()
 
             # we can create the subscription right now
@@ -352,6 +353,8 @@ def verify_ach(request):
             else:
                 success(request, 'Your account has been verified.')
         except stripe.error.CardError as e:
+            user.profile.ach_status = 'VERIFYING'
+            user.profile.save()
             body = e.json_body
             err = body.get('error', {})
             error(request, err.get('message'))
@@ -405,6 +408,12 @@ def stripe_webhooks(request):
             payments_url = request.build_absolute_uri(reverse("payments"))
             created = datetime.datetime.fromtimestamp(charge.created).strftime('%d-%m-%Y')
             send_failed_payment_email(user, err, charge.amount / 100, created, payments_url)
+        elif event.type == 'customer.source.updated' and event.data.object.object == 'bank_account':
+            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            if user.profile.ach_status == 'NEW' and event.data.object.status == 'verification_failed':
+                # most likely wrong account info was entered
+                clear_ach_payment_source(user, event.data.object.id)
+
 
     except ValueError as e:
         # Invalid payload

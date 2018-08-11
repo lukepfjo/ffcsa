@@ -5,7 +5,7 @@ from django.utils import formats
 from mezzanine.utils.email import send_mail_template
 from mezzanine.conf import settings
 
-from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start
+from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start, next_weekday
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SIGNUP_DESCRIPTION = 'FFCSA Signup Fee'
@@ -42,11 +42,21 @@ def update_subscription_fee(user):
     subscription.save()
 
 
+def clear_ach_payment_source(user, source_id):
+    user.profile.payment_method = None
+    user.profile.ach_status = 'FAILED'
+    user.profile.save()
+
+    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+    bank_account = customer.sources.retrieve(source_id)
+    bank_account.delete()
+
+
 def update_stripe_subscription(user):
     amount = user.profile.monthly_contribution
 
     if amount is None:
-        raise ValueError('Attempting to update a subscription but user monthly_contribution hasnt been set')
+        raise ValueError('Attempting to update a subscription but user monthly_contribution hasn\'t been set')
     if not user.profile.stripe_subscription_id:
         raise AssertionError('Attempting to update a subscription but user doesnt have a subscription')
     if not user.profile.stripe_customer_id:
@@ -119,10 +129,10 @@ def create_stripe_subscription(user):
 def send_first_payment_email(user):
     now = datetime.datetime.now()
     can_order_now = 1 <= now.weekday() <= ORDER_CUTOFF_DAY
-    week_start = get_order_week_start()
+    week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
 
     pickup = get_friday_pickup_date()
-    if user.profile.drop_site and user.profile.drop_site.lower().strip() == 'farm':
+    if user.profile.drop_site and user.profile.drop_site.lower().strip() != 'farm':
         pickup = pickup + datetime.timedelta(1)
 
     context = {
