@@ -1,6 +1,5 @@
 import datetime
 
-from cartridge.shop import fields
 from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart, Product, ProductVariation, Priced
 from copy import deepcopy

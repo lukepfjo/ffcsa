@@ -1,5 +1,6 @@
 import datetime
 import stripe
+from copy import deepcopy
 
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import CartItemFormSet, DiscountForm
@@ -61,7 +62,11 @@ def cart(request, template="shop/cart.html",
                         discount_form_class=discount_form_class, extra_context=extra_context)
 
 
-def product(request, slug, template="shop/product.html", extra_context=None):
+# monkey patch the product view
+original_product_view = deepcopy(s_views.product)
+
+
+def product(request, slug, template="shop/product.html", extra_context=None, **kwargs):
     """
     extends cartridge shop product view, only allowing authenticated users to add products to the cart
     """
@@ -74,13 +79,18 @@ def product(request, slug, template="shop/product.html", extra_context=None):
             raise Exception("Server Error")
 
     form_class = wrap_AddProductForm(request.cart)
-    response = s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+    response = original_product_view(request, slug, template=template, form_class=form_class,
+                                     extra_context=extra_context)
 
     if isinstance(response, HttpResponseRedirect):
         request.method = 'GET'
-        return s_views.product(request, slug, template=template, form_class=form_class, extra_context=extra_context)
+        return original_product_view(request, slug, template=template, form_class=form_class,
+                                     extra_context=extra_context, **kwargs)
 
     return response
+
+
+s_views.product = product
 
 
 @login_required
@@ -493,8 +503,9 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         ids = ids.split(',')
 
     if new_month:
-        users = User.objects.filter(~Q(profile__monthly_contribution__isnull=True) & ~Q(profile__monthly_contribution=0),
-                                    is_active=True, profile__stripe_subscription_id__isnull=True).order_by(
+        users = User.objects.filter(
+            ~Q(profile__monthly_contribution__isnull=True) & ~Q(profile__monthly_contribution=0),
+            is_active=True, profile__stripe_subscription_id__isnull=True).order_by(
             'last_name')
         extra = users.count() + 1
         can_delete = True
