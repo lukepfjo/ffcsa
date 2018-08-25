@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.messages import error, success
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse, HttpResponse
 from django.urls import reverse
@@ -441,7 +442,7 @@ def admin_attending_dinner(request, template="admin/attending_dinner.html"):
         order_date = today - datetime.timedelta(delta)
 
     last_week_orders = Order.objects \
-        .filter(time__gte=order_date)
+        .filter(time__gte=order_date).order_by('biling_detail_last_name')
 
     attendees = [{'family': o.billing_detail_last_name, 'attending_dinner': o.attending_dinner}
                  for o in last_week_orders if o.attending_dinner > 0]
@@ -458,7 +459,7 @@ User = get_user_model()
 
 @staff_member_required
 def admin_member_budgets(request, template="admin/member_budgets.html"):
-    users = User.objects.filter(is_active=True)
+    users = User.objects.filter(is_active=True).order_by('last_name')
 
     budgets = []
 
@@ -492,7 +493,9 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         ids = ids.split(',')
 
     if new_month:
-        users = User.objects.filter(is_active=True)
+        users = User.objects.filter(~Q(profile__monthly_contribution__isnull=True) & ~Q(profile__monthly_contribution=0),
+                                    is_active=True, profile__stripe_subscription_id__isnull=True).order_by(
+            'last_name')
         extra = users.count() + 1
         can_delete = True
     else:
@@ -521,6 +524,7 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
             }
             i += 1
     else:
+        PaymentFormSet.form.base_fields['user'].queryset = User.objects.filter(is_active=True).order_by('last_name')
         formset = PaymentFormSet(queryset=Payment.objects.filter(pk__in=ids))
 
     setattr(formset, 'opts', {

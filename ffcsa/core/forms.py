@@ -7,7 +7,6 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.pages.admin import PageAdminForm
-from . import models
 
 User = get_user_model()
 
@@ -16,7 +15,7 @@ class OrderAdminForm(forms.ModelForm):
     order_date = forms.DateTimeField(label="Order Date",
                                      initial=datetime.date.today, required=True, disabled=False,
                                      widget=forms.DateInput(attrs={'type': 'date'}))
-    user = forms.ModelChoiceField(queryset=User.objects.all())
+    user = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('last_name'))
 
     class Meta:
         model = Order
@@ -46,7 +45,7 @@ class OrderAdminForm(forms.ModelForm):
             del cleaned_data['order_date']
 
         if not cleaned_data['user'] and (
-                not cleaned_data['billing_detail_first_name'] or not cleaned_data['billing_detail_last_name']):
+                    not cleaned_data['billing_detail_first_name'] or not cleaned_data['billing_detail_last_name']):
             raise forms.ValidationError(
                 _("Either choose a user, or enter billing_detail_first_name and billing_detail_last_name."))
 
@@ -75,12 +74,6 @@ class CartDinnerForm(forms.Form):
         if 'attending_dinner' in self.changed_data:
             self._cart.attending_dinner = self.cleaned_data['attending_dinner']
             self._cart.save()
-
-
-class PaymentForm(forms.ModelForm):
-    class Meta:
-        model = models.Payment
-        fields = '__all__'
 
 
 # monkey patch the cart item form to use custom clean_quantity method

@@ -335,6 +335,11 @@ class PaymentAdmin(admin.ModelAdmin):
         super(PaymentAdmin, self).save_model(request, obj, form, change)
         recalculate_remaining_budget(request)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            kwargs["queryset"] = User.objects.filter(is_active=True).order_by('last_name')
+        return super(PaymentAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 admin.site.unregister(Order)
 admin.site.register(Order, MyOrderAdmin)
