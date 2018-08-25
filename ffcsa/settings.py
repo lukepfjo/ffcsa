@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 ##############################
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
+FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 
 ##############################
 # FFCSA-INVITES SETTINGS #

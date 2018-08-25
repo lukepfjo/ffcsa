@@ -89,7 +89,7 @@ def recalculate_remaining_budget(request):
         ytd_contrib = Decimal(0)
 
     # update remaining_budget
-    request.session["remaining_budget"] = "{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price())
+    request.session["remaining_budget"] = float("{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price()))
 
 
 # monkey patch the recalculate_cart function to update the User.remaining_budget so we don't

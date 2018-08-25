@@ -10,6 +10,7 @@ from decimal import Decimal
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.contrib.messages import error, success
+from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.db.models import Q
@@ -17,6 +18,7 @@ from django.http import HttpResponseRedirect
 from django.template.response import TemplateResponse, HttpResponse
 from django.urls import reverse
 from django.utils import formats
+from django.utils.http import is_safe_url
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
@@ -311,6 +313,64 @@ def make_payment(request):
         err = body.get('error', {})
         error(request, err.get('message'))
     return payments(request)
+
+
+@require_POST
+@login_required
+def donate(request):
+    """
+    Make a 1 donation to the feed a friend fund
+    """
+    hasError = False
+    amount = Decimal(request.POST.get('amount'))
+
+    user = request.user
+    if not amount:
+        hasError = True
+        error(request, 'Invalid amount provided.')
+
+    if amount > Decimal(request.session["remaining_budget"]):
+        hasError = True
+        error(request, 'You can not donate more then your remaining budget.')
+
+    if not hasError:
+        feed_a_friend, created = User.objects.get_or_create(username=settings.FEED_A_FRIEND_USER)
+
+        order_dict = {
+            'user_id': user.id,
+            'time': datetime.datetime.now(),
+            'site': Site.objects.get(id=1),
+            'billing_detail_first_name': user.first_name,
+            'billing_detail_last_name': user.last_name,
+            'billing_detail_email': user.email,
+            'billing_detail_phone': user.profile.phone_number,
+            'billing_detail_phone_2': user.profile.phone_number_2,
+            'total': amount,
+        }
+
+        order = Order.objects.create(**order_dict)
+
+        item_dict = {
+            'sku': 0,
+            'description': 'Feed-A-Friend Donation',
+            'quantity': 1,
+            'unit_price': amount,
+            'total_price': amount,
+            'category': 'Feed-A-Friend',
+            'vendor': 'Feed-A-Friend',
+            'vendor_price': amount,
+        }
+
+        order.items.create(**item_dict)
+        Payment.objects.create(amount=amount, user=feed_a_friend)
+        recalculate_remaining_budget(request)
+        success(request, 'Thank you for your donation to the Feed-A-Friend fund!')
+
+    next = request.GET.get('next', '/')
+    # check that next is safe
+    if not is_safe_url(next):
+        next = '/'
+    return HttpResponseRedirect(next)
 
 
 @require_POST

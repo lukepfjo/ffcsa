@@ -168,6 +168,11 @@ class Profile(models.Model):
 
         return today.month - month + 12
 
+    @property
+    def joined_before_dec_2017(self):
+        # use early nov b/c dec payments are received in nov
+        return self.user.date_joined.date() <= datetime.date(2017, 11, 5)
+
 
 ###################
 #  Payment

@@ -6,7 +6,6 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static "js/jquery.validate.min.js" %}"></script>
     <script src="{% static "js/lodash.js" %}"></script>
     <script src="{% static "js/ffcsa_core/payments.js" %}"></script>
 {% endblock %}
@@ -227,9 +226,11 @@
     {% endif %}
 
     <h3>Payment History</h3>
-    <div class="alert alert-warning non-field-error"><strong>Note:</strong> Only payments made for Dec. 2017 onwards are
-        shown here.
-    </div>
+    {% if user.profile.joined_before_dec_2017 %}
+        <div class="alert alert-warning non-field-error"><strong>Note:</strong> Only payments made for Dec. 2017 onwards are
+            shown here.
+        </div>
+    {% endif %}
     {% if payments %}
 
         <table class="table table-striped order-history">

@@ -41,12 +41,50 @@
             <a href="{% url "payments" %}" class="btn btn-sm btn-block btn-info btn-account">
                 <span class="glyphicon glyphicon-folder-open"></span> {% trans "Manage Payments " %}</a>
 
+            {% if request.session.remaining_budget > 0 %}
+                <button id="donate-button" class="btn btn-sm btn-block btn-info btn-account">
+                    <span class="glyphicon glyphicon-heart"></span> {% trans "Feed A Friend" %}</button>
+            {% endif %}
+
             {% if settings.SHOP_USE_WISHLIST %}
                 <a href="{% url "shop_wishlist" %}" class="btn-wishlist">
                     <span class="glyphicon glyphicon-star"></span>
                     {% blocktrans count request.wishlist|length as wishlist_count %}Wishlist contains 1 item{% plural %}
                         Wishlist contains {{ wishlist_count }} items{% endblocktrans %}</a>
             {% endif %}
+        </div>
+
+        <!-- Feed A Friend Modal -->
+        <div class="modal fade" id="donateModal" tabindex="-1" role="dialog" aria-labelledby="donateModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Feed A Friend</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>If you have extra budget in you account this month, you can consider donating to the
+                            Feed-A-Friend FFCSA fund, which makes it possible for families in need to be able to afford
+                            membership in the FFCSA.</p>
+                        <form action="{% url "donate" %}?next={{ request.path }}" method="POST" id="donate-form" class="form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="amount" class="control-label">Donation Amount</label>
+                                <input class="form-control" type="text"
+                                       data-rule-max="{{ request.session.remaining_budget }}" required name="amount"/>
+                            </div>
+                            {% for error in donate_errors %}
+                                <div class="alert alert-danger">{{ error }}</div>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <input type="submit" class="btn btn-info submit" id="submit-donation" value="Donate"/>
+                    </div>
+                </div>
+            </div>
         </div>
     {% endspaceless %}
 {% endif %}

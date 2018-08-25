@@ -11,6 +11,7 @@ _slash = "/" if settings.APPEND_SLASH else ""
 
 urlpatterns = i18n_patterns(
     url("^$", views.shop_home, name="home"),
+    url("^donate%s$" % _slash, views.donate, name="donate"),
     url("^cart%s$" % _slash, views.cart, name="shop_cart"),
     url("^checkout%s$" % _slash, page_not_found, name="shop_checkout"),
     url("^checkout/complete%s$" % _slash, page_not_found, name="shop_complete"),
