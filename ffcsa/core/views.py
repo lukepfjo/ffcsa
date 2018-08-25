@@ -128,6 +128,7 @@ def payments(request, template="ffcsa_core/payments.html", extra_context={}):
     context = {"payments": payments,
                "contact_email": settings.DEFAULT_FROM_EMAIL,
                "next_payment_date": next_payment_date,
+               "subscribe_errors": request.GET.getlist('error'),
                "STRIPE_API_KEY": settings.STRIPE_API_KEY}
     context.update(extra_context or {})
     return TemplateResponse(request, template, context)
@@ -139,24 +140,19 @@ def payments_subscribe(request):
     """
     Create a new subscription
     """
-    context = {
-        'subscribe_errors': []
-    }
+    errors = []
     amount = Decimal(request.POST.get('amount'))
     paymentType = request.POST.get('paymentType')
-    hasError = False
     stripeToken = request.POST.get('stripeToken')
 
     user = request.user
     if not user.profile.paid_signup_fee and not request.POST.get('signupAcknowledgement') == 'True':
-        hasError = True
-        context['subscribe_errors'].append('You must acknowledge the 1 time signup fee')
+        errors.append('You must acknowledge the 1 time signup fee')
 
     if not stripeToken:
-        hasError = True
-        context['subscribe_errors'].append('Invalid Request')
+        errors.append('Invalid Request')
 
-    if not hasError:
+    if not errors:
         if paymentType == 'CC':
             if not user.profile.stripe_customer_id:
                 customer = stripe.Customer.create(
@@ -198,8 +194,17 @@ def payments_subscribe(request):
                     'Your subscription has been created. You will need to verify your bank account '
                     'before your first payment is made.')
         else:
-            context['subscribe_errors'].append('Unknown Payment Type')
-    return payments(request, extra_context=context)
+            errors.append('Unknown Payment Type')
+
+    url = reverse('payments')
+    isFirst = True
+    for error in errors:
+        if isFirst:
+            url += "?error={}".format(error)
+        else:
+            url += "&error={}".format(error)
+
+    return HttpResponseRedirect(url)
 
 
 @require_POST
@@ -208,25 +213,20 @@ def payments_update(request):
     """
     Update a payment source
     """
-    context = {
-        'update_errors': []
-    }
-    hasError = False
+    errors = []
     paymentType = request.POST.get('paymentType')
     stripeToken = request.POST.get('stripeToken')
 
     user = request.user
     if not user.profile.stripe_customer_id or not user.profile.stripe_subscription_id:
-        hasError = True
-        context['update_errors'].append(
+        errors.append(
             'Could not find your subscription id to update. Please contact the site administrator.')
 
     if not stripeToken:
-        hasError = True
-        context['update_errors'].append('Invalid Request')
+        errors.append('Invalid Request')
 
     try:
-        if not hasError:
+        if not errors:
             if paymentType == 'CC':
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 customer.source = stripeToken
@@ -248,12 +248,21 @@ def payments_update(request):
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             else:
-                context['update_errors'].append('Unknown Payment Type')
+                errors.append('Unknown Payment Type')
     except stripe.error.CardError as e:
         body = e.json_body
         err = body.get('error', {})
-        context['update_errors'].append(err.get('message'))
-    return payments(request, extra_context=context)
+        errors.append(err.get('message'))
+
+    url = reverse('payments')
+    isFirst = True
+    for error in errors:
+        if isFirst:
+            url += "?error={}".format(error)
+        else:
+            url += "&error={}".format(error)
+
+    return HttpResponseRedirect(url)
 
 
 @require_POST
@@ -312,7 +321,8 @@ def make_payment(request):
         body = e.json_body
         err = body.get('error', {})
         error(request, err.get('message'))
-    return payments(request)
+
+    return HttpResponseRedirect(reverse('payments'))
 
 
 @require_POST
@@ -379,23 +389,18 @@ def verify_ach(request):
     """
     Verify an ACH bank account
     """
-    context = {
-        'verify_errors': []
-    }
+    errors = []
     amount1 = request.POST.get('amount1')
     amount2 = request.POST.get('amount2')
     user = request.user
-    hasError = False
 
     if not amount1 or not amount2:
-        hasError = True
-        context['verify_errors'].append('both amounts are required')
+        errors.append('both amounts are required')
 
     if not user.profile.stripe_customer_id:
-        hasError = True
-        context['verify_errors'].append('You are missing a customerId. Please contact the site administrator')
+        errors.append('You are missing a customerId. Please contact the site administrator')
 
-    if not hasError:
+    if not errors:
         customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
         bank_account = customer.sources.retrieve(customer.default_source)
 
@@ -428,7 +433,15 @@ def verify_ach(request):
             err = body.get('error', {})
             error(request, err.get('message'))
 
-    return payments(request, extra_context=context)
+    url = reverse('payments')
+    isFirst = True
+    for error in errors:
+        if isFirst:
+            url += "?error={}".format(error)
+        else:
+            url += "&error={}".format(error)
+
+    return HttpResponseRedirect(url)
 
 
 @require_POST

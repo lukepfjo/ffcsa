@@ -28,7 +28,7 @@
         <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you receive
             the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to verify your
             bank account. The deposits should show on your statement withing 1-2 business days.</p>
-        {% for error in verify_errors %}
+        {% for error in subscribe_errors %}
             <div class="alert alert-danger">{{ error }}</div>
         {% endfor %}
         <form action="{% url "payments_verify" %}" method="POST" id="verify-form" class="form-inline">
@@ -113,7 +113,7 @@
         {% endif %}
         <button class="btn btn-default" id="edit-payment-info">Change Payment Method</button>
 
-        {% if update_errors and update_errors.length > 0 %}
+        {% if subscribe_errors and subscribe_errors.length > 0 %}
             <div id="edit-payment">
         {% else %}
             <div class="hidden" id="edit-payment">
@@ -127,7 +127,7 @@
         {% include "ffcsa_core/payment_details.html" %}
 
         <div id="stripeErrors"></div>
-        {% for error in update_errors %}
+        {% for error in subscribe_errors %}
             <div class="alert alert-danger">{{ error }}</div>
         {% endfor %}
 
@@ -211,9 +211,6 @@
                             </div>
 
                             <div id="stripeErrors"></div>
-                            {% for error in subscribe_errors %}
-                                <div class="alert alert-danger">{{ error }}</div>
-                            {% endfor %}
                         </form>
                     </div>
                     <div class="modal-footer">
