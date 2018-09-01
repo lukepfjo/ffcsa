@@ -1,6 +1,6 @@
 import datetime
 
-from cartridge.shop.models import Cart, Order, SelectedProduct
+from cartridge.shop.models import Cart, Order, SelectedProduct, ProductVariation
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
@@ -52,6 +52,15 @@ class Command(BaseCommand):
                     item_dict['category'] = item.category
                     item_dict['vendor'] = item.vendor
                     item_dict['vendor_price'] = item.vendor_price
+
+                    if not item.weekly_inventory:
+                        try:
+                            variation = ProductVariation.objects.get(sku=item.sku)
+                        except ProductVariation.DoesNotExist:
+                            pass
+                        else:
+                            variation.update_stock(item.quantity * -1)
+                            variation.product.actions.purchased()
 
                     order.items.create(**item_dict)
 

@@ -47,6 +47,9 @@ def cart_add_item(self, *args, **kwargs):
     if not item.vendor_price:
         item.vendor_price = args[0].vendor_price
         should_save = True
+    if args[0].weekly_inventory != item.weekly_inventory:
+        item.weekly_inventory = args[0].weekly_inventory
+        should_save = True
 
     if should_save:
         item.save()

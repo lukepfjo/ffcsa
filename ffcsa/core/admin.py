@@ -220,7 +220,8 @@ productvariation_fields.insert(4, "vendor")
 productvariation_fields.pop(3)
 productvariation_fields.pop(4)
 productvariation_fields.pop(4)
-productvariation_fields.insert(2, "vendor_price")
+productvariation_fields.insert(2, "weekly_inventory")
+productvariation_fields.insert(3, "vendor_price")
 
 
 class ProductVariationAdmin(base.ProductVariationAdmin):

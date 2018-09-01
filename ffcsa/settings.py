@@ -255,6 +255,27 @@ EXTRA_MODEL_FIELDS = (
         {"default": 0,
          "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
     ),
+    (
+        "cartridge.shop.models.Product.weekly_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
+    ),
+    (
+        "cartridge.shop.models.ProductVariation.weekly_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
+    ),
+    (
+        "cartridge.shop.models.CartItem.weekly_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
+    ),
     # can't inject in abstract Priced model, so need to do both Product and ProductVariation
     (
         "cartridge.shop.models.Product.vendor_price",
