@@ -1,5 +1,4 @@
-from cartridge.shop.forms import AddProductForm
-from cartridge.shop.models import Product, Category
+from cartridge.shop.models import Product, Category, ProductVariation
 from cartridge.shop.utils import recalculate_cart
 from django.contrib.messages import info, error
 from django.shortcuts import redirect
@@ -16,11 +15,24 @@ def weekly_box(request, page):
     if request.method == "POST" and request.POST.get('add_box_items'):
         box_contents = Product.objects.published(for_user=request.user
                                                  ).filter(page.category.filters()).distinct()
+
+        remaining_budget = request.cart.remaining_budget()
+        info(request, "Box items added to order")
+
         for item in box_contents:
-            request.cart.add_item(item.variations.first(), 1)
+            variation = item.variations.first()
+            if not item.available:
+                info(request, "{} is no longer available".format(item.title))
+            elif remaining_budget < variation.price():
+                error(request, "You are over you budgeted amount")
+                break
+            elif not variation.has_stock(1):
+                info(request, "{} is out of stock".format(item.title))
+            else:
+                request.cart.add_item(variation, 1)
+                remaining_budget -= variation.price()
 
         recalculate_cart(request)
-        info(request, "Box items added to order")
         return redirect("shop_cart")
 
     return {}
@@ -56,6 +68,5 @@ def category_processor(request, page):
                 error(request, "No Item Found")
         elif not item_qty:
             error(request, "Please enter a quantity")
-
 
     return {}

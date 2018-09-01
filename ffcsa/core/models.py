@@ -65,13 +65,16 @@ class CartExtend:
         self.items.all().delete()
 
     def over_budget(self, additional_total=0):
+        return self.remaining_budget() < additional_total
+
+    def remaining_budget(self):
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
         ytd_order_total = get_ytd_order_total(user)
         ytd_payment_total = get_ytd_payment_total(user)
 
-        return ytd_payment_total < (ytd_order_total + additional_total + self.total_price())
+        return ytd_payment_total - (ytd_order_total + self.total_price())
 
 
 Cart.__bases__ += (CartExtend,)

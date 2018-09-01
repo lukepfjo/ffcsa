@@ -114,6 +114,7 @@ def wrap_AddProductForm(cart):
             if cart.over_budget(item_total):
                 raise forms.ValidationError(_("You are over your budgeted amount."))
 
+            # note: if adding any additional validation, need to update page_processors.weekly_box as well
             return cleaned_data
 
     return WrappedAddProductForm

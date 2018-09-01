@@ -60,7 +60,6 @@ class Command(BaseCommand):
                             pass
                         else:
                             variation.update_stock(item.quantity * -1)
-                            variation.product.actions.purchased()
 
                     order.items.create(**item_dict)
 
