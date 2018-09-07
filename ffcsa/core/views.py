@@ -525,7 +525,7 @@ def admin_attending_dinner(request, template="admin/attending_dinner.html"):
         order_date = today - datetime.timedelta(delta)
 
     last_week_orders = Order.objects \
-        .filter(time__gte=order_date).order_by('biling_detail_last_name')
+        .filter(time__gte=order_date).order_by('billing_detail_last_name')
 
     attendees = [{'family': o.billing_detail_last_name, 'attending_dinner': o.attending_dinner}
                  for o in last_week_orders if o.attending_dinner > 0]
