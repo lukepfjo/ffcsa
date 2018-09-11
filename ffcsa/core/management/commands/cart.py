@@ -53,13 +53,12 @@ class Command(BaseCommand):
                     item_dict['vendor'] = item.vendor
                     item_dict['vendor_price'] = item.vendor_price
 
-                    if not item.weekly_inventory:
-                        try:
-                            variation = ProductVariation.objects.get(sku=item.sku)
-                        except ProductVariation.DoesNotExist:
-                            pass
-                        else:
+                    try:
+                        variation = ProductVariation.objects.get(sku=item.sku)
+                        if not variation.weekly_inventory:
                             variation.update_stock(item.quantity * -1)
+                    except ProductVariation.DoesNotExist:
+                        pass
 
                     order.items.create(**item_dict)
 
