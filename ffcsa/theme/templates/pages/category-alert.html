@@ -1,11 +1,9 @@
 {% if not request.user.is_authenticated %}
     <div class="alert alert-warning non-field-error">FFCSA members please sign in to make you order</div>
 {% else %}
-    <div class="alert alert-warning non-field-error"><strong>Orders can only be made between Mon. at 5pm & Wed. at
-        midnight.</strong>
-        <br/><br/>Substitutions may be made due to changes in availability and any substituted items will of similar
-        type
-        and value. Supporting small farms means you get to experience seasonal variations!
+    <div class="alert alert-warning non-field-error"><strong>Please place order between Monday 5PM and Wednesday Midnight.</strong>
+        <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
+        type and value. Supporting small farms means you get to experience seasonal variations!
     </div>
 {% endif %}
 
