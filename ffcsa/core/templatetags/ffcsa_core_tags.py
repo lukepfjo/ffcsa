@@ -11,7 +11,6 @@ register = template.Library()
 def pickup_date_text():
     pickup = get_friday_pickup_date()
     delivery = pickup + datetime.timedelta(1)
-    print('Testing pickup date')
 
     return "Weekly order for pickup {} & delivery {}".format(formats.date_format(pickup, "D F d"),
                                                              formats.date_format(delivery, "D F d"))

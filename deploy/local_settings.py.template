@@ -48,3 +48,24 @@ CACHES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 GOOGLE_ANALYTICS_ID = "UA-96409336-1"
+
+ADMINS = [('RJ', "%(admin_email)s")]
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/home/%(user)s/logs/%(proj_name)s_django.log',
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'INFO',
+            'handlers': ['file'],
+            'propagate': True,
+        }
+    }
+}

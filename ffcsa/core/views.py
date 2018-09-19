@@ -305,7 +305,7 @@ def make_payment(request):
 
             if isCC:
                 fee_percentage = get_subscription_fee('CC')
-                amount = amount * (1 + fee_percentage / 100)
+                amount = amount * Decimal((1 + fee_percentage / 100))
 
             stripe.Charge.create(
                 amount=(amount * 100).quantize(0),  # in cents
