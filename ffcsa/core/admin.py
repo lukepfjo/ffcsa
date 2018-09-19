@@ -43,7 +43,8 @@ def export_as_csv(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(
         ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Price',
-         'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price'])
+         'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price', 'Parent Category Order On Invoice',
+         'Child Category Order On Invoice'])
 
     for order in queryset:
         last_name = order.billing_detail_last_name
@@ -67,6 +68,14 @@ def export_as_csv(modeladmin, request, queryset):
                 row.append((item.vendor_price * item.quantity).quantize(TWOPLACES))
             else:
                 row.append((item.total_price * Decimal(.7)).quantize(TWOPLACES) if item.total_price else '')
+
+            category = Category.objects.filter(description__contains=item.category).first()
+            if category:
+                if category.parent:
+                    row.append(category.parent.category.order_on_invoice)
+                else:
+                    row.append('')
+                row.append(category.order_on_invoice)
 
             writer.writerow(row)
 
