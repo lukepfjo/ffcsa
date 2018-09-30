@@ -325,6 +325,17 @@ USE_MODELTRANSLATION = False
 
 DEFAULT_FROM_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "default",
+    },
+    "ffcsa.core.budgets": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "budgets",
+    }
+}
+
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = []

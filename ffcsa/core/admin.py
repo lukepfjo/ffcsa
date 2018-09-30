@@ -29,7 +29,6 @@ from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
 from ffcsa.core.subscriptions import update_stripe_subscription
 from .models import Payment
-from .utils import recalculate_remaining_budget
 
 User = get_user_model()
 
@@ -208,7 +207,6 @@ class MyOrderAdmin(base.OrderAdmin):
 
         formset.save()
         form.instance.save()
-        recalculate_remaining_budget(request)
 
 
 category_fields = base.CategoryAdmin.fields
@@ -340,10 +338,6 @@ class PaymentAdmin(admin.ModelAdmin):
         return HttpResponseRedirect(reverse('admin_bulk_payments') + "?ids=%s" % ",".join(selected))
 
     bulk_edit.short_description = "Edit selected payments"
-
-    def save_model(self, request, obj, form, change):
-        super(PaymentAdmin, self).save_model(request, obj, form, change)
-        recalculate_remaining_budget(request)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "user":

@@ -5,6 +5,7 @@ from copy import deepcopy
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import CartItemFormSet, DiscountForm
 from cartridge.shop.models import Category, Order
+from django.contrib.sessions.backends.cache import SessionStore
 from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -29,8 +30,7 @@ from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source
-from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, recalculate_remaining_budget, \
-    get_friday_pickup_date
+from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -373,7 +373,6 @@ def donate(request):
 
         order.items.create(**item_dict)
         Payment.objects.create(amount=amount, user=feed_a_friend)
-        recalculate_remaining_budget(request)
         success(request, 'Thank you for your donation to the Feed-A-Friend fund!')
 
     next = request.GET.get('next', '/')
@@ -593,7 +592,6 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         formset = PaymentFormSet(request.POST)
         if formset.is_valid():
             formset.save()
-            recalculate_remaining_budget(request)
             return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
 
     if new_month:
