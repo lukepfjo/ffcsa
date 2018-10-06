@@ -97,6 +97,7 @@ SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Recently added', '-date_added'),)
 SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
 SHOP_PER_PAGE_CATEGORY = 20
+SHOP_HIDE_UNAVAILABLE = True
 
 ######################
 # MEZZANINE SETTINGS #
@@ -447,7 +448,6 @@ TEMPLATES = [
         "DIRS": [
             os.path.join(PROJECT_ROOT, "original_templates")
         ],
-        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.contrib.auth.context_processors.auth",
@@ -463,6 +463,11 @@ TEMPLATES = [
             ],
             "builtins": [
                 "mezzanine.template.loader_tags",
+            ],
+            "loaders": [
+                "mezzanine.template.loaders.host_themes.Loader",
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
             ],
         },
     },
@@ -516,12 +521,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "cartridge.shop.middleware.ShopMiddleware",
     "mezzanine.core.request.CurrentRequestMiddleware",
     "mezzanine.core.middleware.RedirectFallbackMiddleware",
-    "mezzanine.core.middleware.TemplateForDeviceMiddleware",
-    "mezzanine.core.middleware.TemplateForHostMiddleware",
     "mezzanine.core.middleware.AdminLoginInterfaceSelectorMiddleware",
     "mezzanine.core.middleware.SitePermissionMiddleware",
     # Uncomment the following if using any of the SSL settings:
@@ -530,7 +535,6 @@ MIDDLEWARE_CLASSES = (
     "cartridge.shop.middleware.MultiurlPageMiddleware",
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 )
 
 # Store these package names here as they may change in the future since
