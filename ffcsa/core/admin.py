@@ -330,6 +330,7 @@ class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('user', 'date', 'amount')
     list_filter = ("user", "date")
+    search_fields = ["user__first_name", "user__last_name"]
 
     actions = ['bulk_edit']
 
