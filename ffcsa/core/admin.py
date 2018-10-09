@@ -70,11 +70,14 @@ def export_as_csv(modeladmin, request, queryset):
 
             category = Category.objects.filter(description__contains=item.category).first()
             if category:
+                add_blank = True
                 if category.parent:
                     row.append(category.parent.category.order_on_invoice)
-                else:
-                    row.append('')
+                    add_blank = False
+
                 row.append(category.order_on_invoice)
+                if add_blank:
+                    row.append('')
 
             writer.writerow(row)
 
