@@ -5,7 +5,6 @@ from copy import deepcopy
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import CartItemFormSet, DiscountForm
 from cartridge.shop.models import Category, Order
-from django.contrib.sessions.backends.cache import SessionStore
 from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -417,12 +416,18 @@ def verify_ach(request):
                 create_stripe_subscription(user)
                 if not Payment.objects.filter(user=user).exists():
                     success(request,
-                            'Your account has been verified and your first payment is pending. '
+                            'Your account has been verified and your first payment is processing. '
                             'When your payment has been received, you will receive an email letting '
                             'you know when your first ordering and pickup dates are. If you do not '
-                            'see this email come through, please check your spam')
+                            'see this email in the next 5 - 7 business days, please check your spam')
                 else:
-                    success(request, 'Your account has been verified.')
+                    subscription = stripe.Subscription.retrieve(user.profile.stripe_subscription_id)
+                    next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
+                    next_payment_date = formats.date_format(next_payment_date, "D, F d")
+                    success(request,
+                            'Congratulations, your account has been verified and your first payment is processing. '
+                            'You will be seeing this amount show up in your member store account in 5 - 7 business '
+                            'days. Your next scheduled payment will be ' + next_payment_date)
             else:
                 success(request, 'Your account has been verified.')
         except stripe.error.CardError as e:
