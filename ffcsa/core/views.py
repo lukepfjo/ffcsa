@@ -371,7 +371,7 @@ def donate(request):
         }
 
         order.items.create(**item_dict)
-        Payment.objects.create(amount=amount, user=feed_a_friend)
+        Payment.objects.create(amount=amount, user=feed_a_friend, notes="Donation from {}".format(user.get_full_name()))
         success(request, 'Thank you for your donation to the Feed-A-Friend fund!')
 
     next = request.GET.get('next', '/')
