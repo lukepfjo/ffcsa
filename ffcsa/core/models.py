@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .utils import get_ytd_order_total, get_ytd_payment_total
+from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
 
 ###################
@@ -71,8 +71,8 @@ class CartExtend:
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
-        ytd_order_total = get_ytd_order_total(user)
-        ytd_payment_total = get_ytd_payment_total(user)
+        ytd_order_total = get_order_total(user)
+        ytd_payment_total = get_payment_total(user)
 
         return ytd_payment_total - (ytd_order_total + self.total_price())
 
@@ -146,33 +146,6 @@ class Profile(models.Model):
                                   choices=[('NEW', 'Unverified'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified'),
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
-
-    def csa_year_start_date(self):
-        """
-        member start_date for the current csa year
-        """
-        ONE_YEAR = 365
-        today = datetime.date.today()
-        start_date = self.start_date if self.start_date else self.user.date_joined.date()
-
-        while (today - start_date).days > ONE_YEAR:
-            start_date = start_date + datetime.timedelta(days=ONE_YEAR)
-
-        return start_date
-
-    def csa_months_ytd(self):
-        """
-         number of months since the start of the user's csa year
-
-         using the users join_date, no later then 1 year ago, return the number of months since then
-        """
-        month = self.csa_year_start_date().month
-        today = datetime.date.today()
-
-        if today.month > month:
-            return today.month - month
-
-        return today.month - month + 12
 
     @property
     def joined_before_dec_2017(self):

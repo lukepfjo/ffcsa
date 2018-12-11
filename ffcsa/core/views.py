@@ -29,7 +29,7 @@ from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source
-from .utils import ORDER_CUTOFF_DAY, get_ytd_order_total, get_ytd_payment_total, get_friday_pickup_date
+from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -96,8 +96,8 @@ s_views.product = product
 
 @login_required
 def order_history(request, template="shop/order_history.html"):
-    ytd_order_total = get_ytd_order_total(request.user)
-    ytd_payment_total = get_ytd_payment_total(request.user)
+    ytd_order_total = get_order_total(request.user)
+    ytd_payment_total = get_payment_total(request.user)
 
     extra_context = {
         'ytd_contrib': '{0:.2f}'.format(ytd_payment_total),
@@ -551,8 +551,8 @@ def admin_member_budgets(request, template="admin/member_budgets.html"):
     budgets = []
 
     for user in users:
-        ytd_contrib = get_ytd_payment_total(user)
-        ytd_ordered = get_ytd_order_total(user)
+        ytd_contrib = get_payment_total(user)
+        ytd_ordered = get_order_total(user)
         if not ytd_ordered:
             ytd_ordered = Decimal(0)
         if not ytd_contrib:
