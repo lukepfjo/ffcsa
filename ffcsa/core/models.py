@@ -162,6 +162,7 @@ class Payment(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     date = models.DateField('Payment Date', default=datetime.date.today)
     amount = models.DecimalField('Amount', max_digits=10, decimal_places=2)
+    pending = models.BooleanField('Pending', default=False)
     notes = models.TextField('Notes', null=True, blank=True)
 
     def __str__(self):

@@ -28,7 +28,9 @@ from mezzanine.utils.views import paginate
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source
+    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source, \
+    send_subscription_canceled_email, \
+    send_pending_payment_email
 from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -463,7 +465,23 @@ def stripe_webhooks(request):
             payload, sig_header, settings.STRIPE_ENDPOINT_SECRET
         )
 
-        if event.type == 'charge.succeeded':
+        if event.type == 'charge.pending':
+            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            charge = event.data.object
+            # only save pending ach transfers. cc payments are basically instant
+            if user and charge.source.object == 'bank_account':
+                amount = charge.amount / 100  # amount is in cents
+                date = datetime.datetime.fromtimestamp(charge.created)
+                existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
+                if existing_payments.exists():
+                    raise AssertionError(
+                        "Pending Payment Error: That payment already exists: {}".format(existing_payments.first()))
+                else:
+                    payment = Payment.objects.create(user=user, amount=amount, date=date, pending=True)
+                    payment.save()
+                    payments_url = request.build_absolute_uri(reverse("payments"))
+                    send_pending_payment_email(user, payments_url)
+        elif event.type == 'charge.succeeded':
             user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
             if user:
@@ -477,11 +495,16 @@ def stripe_webhooks(request):
                         amount = amount / (1 + fee_percent / 100)  # cc fee
                     date = datetime.datetime.fromtimestamp(charge.created)
                     existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
-                    if existing_payments.exists():
-                        raise AssertionError("That payment already exists: {}".format(existing_payments.first()))
+                    if existing_payments.filter(pending=False).exists():
+                        raise AssertionError(
+                            "That payment already exists: {}".format(existing_payments.filter(pending=False).first()))
                     else:
                         sendFirstPaymentEmail = not Payment.objects.filter(user=user).exists()
-                        payment = Payment.objects.create(user=user, amount=amount, date=date)
+                        payment = existing_payments.filter(pending=True).first()
+                        if payment is None:
+                            payment = Payment.objects.create(user=user, amount=amount, date=date)
+                        else:
+                            payment.pending = False
                         payment.save()
                         if sendFirstPaymentEmail:
                             user.profile.start_date = date
@@ -499,6 +522,14 @@ def stripe_webhooks(request):
             if user.profile.ach_status == 'NEW' and event.data.object.status == 'verification_failed':
                 # most likely wrong account info was entered
                 clear_ach_payment_source(user, event.data.object.id)
+        elif event.type == 'customer.subscription.deleted':
+            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user.profile.stripe_subscription_id = None
+            user.profile.save()
+            date = datetime.datetime.fromtimestamp(event.data.object.canceled_at).strftime('%d-%m-%Y')
+            payments_url = request.build_absolute_uri(reverse("payments"))
+            send_subscription_canceled_email(user, date, payments_url)
+
 
 
     except ValueError as e:

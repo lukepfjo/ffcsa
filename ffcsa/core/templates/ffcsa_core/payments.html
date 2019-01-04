@@ -235,14 +235,17 @@
                 <th class="left">ID</th>
                 <th class="left">{% trans "Date" %}</th>
                 <th class="right">{% trans "Amount" %}</th>
-                <th>&nbsp;</th>
             </thead>
             <tbody>
                 {% for payment in payments.object_list %}
                     <tr>
                         <td class="left">{{ payment.id }}</td>
                         <td class="left">{{ payment.date|date:"SHORT_DATE_FORMAT" }}</td>
-                        <td class="right">{{ payment.amount|currency }}</td>
+                        <td class="right">
+                            {% if payment.pending %}
+                                (pending)
+                            {% endif %}
+                            {{ payment.amount|currency }}
                         </td>
                     </tr>
                 {% endfor %}

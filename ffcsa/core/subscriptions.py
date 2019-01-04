@@ -174,3 +174,43 @@ def send_failed_payment_email(user, error, amount, date, payments_url):
         fail_silently=False,
         addr_bcc=[settings.DEFAULT_FROM_EMAIL]
     )
+
+
+def send_subscription_canceled_email(user, date, payments_url):
+    to = user.email if user else settings.ADMINS[0][1]
+    context = {
+        'date': date,
+        'payments_url': payments_url
+    }
+
+    subject = "[{}] Subscription Canceled".format(settings.SITE_TITLE)
+    if not user:
+        subject += " - NO User Found"
+    send_mail_template(
+        subject,
+        "ffcsa_core/subscription_canceled_email",
+        settings.DEFAULT_FROM_EMAIL,
+        to,
+        context=context,
+        fail_silently=False,
+        addr_bcc=[settings.DEFAULT_FROM_EMAIL]
+    )
+
+def send_pending_payment_email(user, payments_url):
+    to = user.email if user else settings.ADMINS[0][1]
+    context = {
+        'payments_url': payments_url
+    }
+
+    subject = "[{}] Payment Pending".format(settings.SITE_TITLE)
+    if not user:
+        subject += " - NO User Found"
+    send_mail_template(
+        subject,
+        "ffcsa_core/pending_payment_email",
+        settings.DEFAULT_FROM_EMAIL,
+        to,
+        context=context,
+        fail_silently=False,
+        addr_bcc=[settings.DEFAULT_FROM_EMAIL]
+    )

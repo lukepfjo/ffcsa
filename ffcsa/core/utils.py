@@ -61,7 +61,7 @@ def get_order_total(user):
 
 def get_payment_total(user):
     total = ffcsa_models.Payment.objects \
-        .filter(user=user) \
+        .filter(user=user, pending=False) \
         .aggregate(total=models.Sum('amount'))['total']
 
     if total is None:
