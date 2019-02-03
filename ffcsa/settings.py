@@ -119,7 +119,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "paid_signup_fee",
     "notes"
 ]
-ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm'  # used to send notifications of new user accounts
+ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 
 ACCOUNTS_NO_USERNAME = True
 

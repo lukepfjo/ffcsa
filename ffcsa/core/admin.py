@@ -4,13 +4,16 @@ import csv
 import tempfile
 import zipfile
 import collections
+import stripe
 from itertools import groupby
 
 from decimal import Decimal
 
 from copy import deepcopy
 
+from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
+from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -301,10 +304,28 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
         """
         Update stripe subscription if needed
         """
+        user = User.objects.get(id=obj.id)
         if change \
-                and User.objects.get(id=obj.id).profile.monthly_contribution != obj.profile.monthly_contribution \
+                and user.profile.monthly_contribution != obj.profile.monthly_contribution \
                 and obj.profile.stripe_subscription_id:
             update_stripe_subscription(obj)
+        if change and obj.profile.non_subscribing_member:
+            if user.profile.stripe_subscription_id:
+                # TODO: this is not a very good UX
+                self.message_user(request, 'Non-subscribing members can not have an existing subscription',
+                                  messages.ERROR)
+                raise ValidationError('Non-subscribing members can not have an existing subscription')
+            # create stripe user if not already existing
+            if not obj.profile.stripe_customer_id:
+                customer = stripe.Customer.create(
+                    email=user.email,
+                    description=user.get_full_name()
+                )
+                user.profile.stripe_customer_id = customer.id
+
+            # only accepts CC payments
+            obj.profile.payment_method = 'CC'
+            obj.profile.ach_status = None
 
         super(UserProfileAdmin, self).save_model(request, obj, form, change)
 

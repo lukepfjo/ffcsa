@@ -146,6 +146,8 @@ class Profile(models.Model):
                                   choices=[('NEW', 'Unverified'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified'),
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
+    non_subscribing_member = models.BooleanField(default=False,
+                                                 help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
 
     @property
     def joined_before_dec_2017(self):

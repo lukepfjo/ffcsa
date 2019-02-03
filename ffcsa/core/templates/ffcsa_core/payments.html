@@ -22,125 +22,128 @@
 {% endblock %}
 
 {% block main %}
-    <h3>Manage Subscription</h3>
-    <!-- ACH Bank Verification-->
-    {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'NEW' or user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFYING' %}
-        <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you receive
-            the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to verify your
-            bank account. The deposits should show on your statement withing 1-2 business days.</p>
-        {% for error in subscribe_errors %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endfor %}
-        <form action="{% url "payments_verify" %}" method="POST" id="verify-form" class="form-inline">
-            {% csrf_token %}
-            <div class="row">
-                <div class="col-xs-12 col-sm-3">
-                    <label for="amount1" class="control-label">Deposit Amounts</label>
-                </div>
-                <div class="col-xs-12 col-sm-4 verify-amounts">
-                    <div class="form-group col-xs-6">
-                        <input style="width: 100%" class="form-control" required name="amount1">
+    {% if not user.profile.non_subscribing_member %}
+        <h3>Manage Subscription</h3>
+        <!-- ACH Bank Verification-->
+        {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'NEW' or user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFYING' %}
+            <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you receive
+                the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to verify your
+                bank account. The deposits should show on your statement withing 1-2 business days.</p>
+            {% for error in subscribe_errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+            <form action="{% url "payments_verify" %}" method="POST" id="verify-form" class="form-inline">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-xs-12 col-sm-3">
+                        <label for="amount1" class="control-label">Deposit Amounts</label>
                     </div>
-                    <div class="form-group col-xs-6">
-                        <input style="width: 100%" class="form-control" required name="amount2"/>
+                    <div class="col-xs-12 col-sm-4 verify-amounts">
+                        <div class="form-group col-xs-6">
+                            <input style="width: 100%" class="form-control" required name="amount1">
+                        </div>
+                        <div class="form-group col-xs-6">
+                            <input style="width: 100%" class="form-control" required name="amount2"/>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-3">
+                        <button class="btn btn-info" type="submit">Verify and Make Payment</button>
                     </div>
                 </div>
-                <div class="col-xs-12 col-sm-3">
-                    <button class="btn btn-info" type="submit">Verify and Make Payment</button>
-                </div>
-            </div>
-        </form>
-        <!-- New Subscription Signup -->
-    {% elif not user.profile.stripe_subscription_id %}
-        {% if user.profile.ach_status == 'FAILED' %}
-            <p class="alert alert-danger">We had trouble sending funds to your provided bank account for verification
-                purposes. Your information may have been entered incorrectly. Please try again.</p>
-        {% else %}
-            <p class="alert alert-warning">It looks like you have yet to setup a subscription. Please complete the
-                following form to complete your subscription.</p>
-        {% endif %}
-        <form action="{% url "payments_subscribe" %}" method="POST" id="subscribe-form" class="form">
-            {% csrf_token %}
+            </form>
+            <!-- New Subscription Signup -->
+        {% elif not user.profile.stripe_subscription_id %}
+            {% if user.profile.ach_status == 'FAILED' %}
+                <p class="alert alert-danger">We had trouble sending funds to your provided bank account for
+                    verification
+                    purposes. Your information may have been entered incorrectly. Please try again.</p>
+            {% else %}
+                <p class="alert alert-warning">It looks like you have yet to setup a subscription. Please complete the
+                    following form to complete your subscription.</p>
+            {% endif %}
+            <form action="{% url "payments_subscribe" %}" method="POST" id="subscribe-form" class="form">
+                {% csrf_token %}
 
-            <div class="form-group">
-                <label for="amount" class="control-label">Monthly Contribution Amount</label>
-                {% if user.profile.monthly_contribution != None %}
-                    <input class="form-control" type="text" required name="amount"
-                           value="{{ user.profile.monthly_contribution }}"/>
-                {% else %}
-                    <input class="form-control" type="text" required name="amount"
-                           value="260"/>
-                {% endif %}
-                <span id="helpBlock" class="help-block">
+                <div class="form-group">
+                    <label for="amount" class="control-label">Monthly Contribution Amount</label>
+                    {% if user.profile.monthly_contribution != None %}
+                        <input class="form-control" type="text" required name="amount"
+                               value="{{ user.profile.monthly_contribution }}"/>
+                    {% else %}
+                        <input class="form-control" type="text" required name="amount"
+                               value="260"/>
+                    {% endif %}
+                    <span id="helpBlock" class="help-block">
                     How much should I pay? This amount will be your monthly budget for each month throughout the year,
                     which may include either 4 weeks or 5 weeks of ordering. Although we recommend multiplying your
                     weekly ordering amount by 4.33 (the average number of weeks in a month), you may want to give
                     yourself some extra buffer room for those longer, 5 week months, but you can also top up your
                     account if needed periodically.
                 </span>
-            </div>
-
-            {% include "ffcsa_core/payment_details.html" %}
-
-
-            {% if not user.profile.paid_signup_fee %}
-                <div class="form-group checkbox">
-                    <label>
-                        <input required type="checkbox" name="signupAcknowledgement" value="True"> I acknowledge
-                        that I will also be charged a one time sign up fee of <strong>$100</strong>
-                    </label>
                 </div>
+
+                {% include "ffcsa_core/payment_details.html" %}
+
+
+                {% if not user.profile.paid_signup_fee %}
+                    <div class="form-group checkbox">
+                        <label>
+                            <input required type="checkbox" name="signupAcknowledgement" value="True"> I acknowledge
+                            that I will also be charged a one time sign up fee of <strong>$100</strong>
+                        </label>
+                    </div>
+                {% endif %}
+
+                <div id="stripeErrors"></div>
+                {% for error in subscribe_errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+
+                <button class="btn btn-default btn-info" type="submit">Subscribe</button>
+            </form>
+        {% else %}
+            <p>Your monthly subscription is ${{ user.profile.monthly_contribution }} via
+                {% if user.profile.payment_method == 'CC' %}
+                    Credit Card
+                {% else %}
+                    ACH Bank Transfer
+                {% endif %}
+                .</p>
+            <p>You next payment is scheduled for <strong>{{ next_payment_date }}</strong></p>
+            {% if user.profile.payment_method == 'ACH' %}
+                <p>Note: It will take 3-5 business days before the payment is reflected in your account.</p>
             {% endif %}
+            <button class="btn btn-default" id="edit-payment-info">Change Payment Method</button>
+
+            {% if subscribe_errors and subscribe_errors.length > 0 %}
+                <div id="edit-payment">
+            {% else %}
+                <div class="hidden" id="edit-payment">
+            {% endif %}
+        <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
+            {% csrf_token %}
+            <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
+
+            <br/>
+            <p>To change your monthly contribution, please <a href="mailto:{{ contact_email }}">contact us</a>.</p>
+            {% include "ffcsa_core/payment_details.html" %}
 
             <div id="stripeErrors"></div>
             {% for error in subscribe_errors %}
                 <div class="alert alert-danger">{{ error }}</div>
             {% endfor %}
 
-            <button class="btn btn-default btn-info" type="submit">Subscribe</button>
+            <button class="btn btn-danger btn-info" id="edit-payment-cancel">Cancel</button>
+            <button class="btn btn-info" type="submit">Save</button>
         </form>
-    {% else %}
-        <p>Your monthly subscription is ${{ user.profile.monthly_contribution }} via
-            {% if user.profile.payment_method == 'CC' %}
-                Credit Card
-            {% else %}
-                ACH Bank Transfer
-            {% endif %}
-            .</p>
-        <p>You next payment is scheduled for <strong>{{ next_payment_date }}</strong></p>
-        {% if user.profile.payment_method == 'ACH' %}
-            <p>Note: It will take 3-5 business days before the payment is reflected in your account.</p>
+
+        </div>
         {% endif %}
-        <button class="btn btn-default" id="edit-payment-info">Change Payment Method</button>
-
-        {% if subscribe_errors and subscribe_errors.length > 0 %}
-            <div id="edit-payment">
-        {% else %}
-            <div class="hidden" id="edit-payment">
-        {% endif %}
-    <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
-        {% csrf_token %}
-        <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
-
-        <br/>
-        <p>To change your monthly contribution, please <a href="mailto:{{ contact_email }}">contact us</a>.</p>
-        {% include "ffcsa_core/payment_details.html" %}
-
-        <div id="stripeErrors"></div>
-        {% for error in subscribe_errors %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endfor %}
-
-        <button class="btn btn-danger btn-info" id="edit-payment-cancel">Cancel</button>
-        <button class="btn btn-info" type="submit">Save</button>
-    </form>
-
-    </div>
     {% endif %}
 
     <div id="payment-container"></div>
     <!-- Onetime Payment -->
-    {% if user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
+    {% if user.profile.non_subscribing_member or user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
         <br/>
         <!-- Payment modal trigger -->
         <button type="button" class="btn btn-default" id="make-payment">
@@ -174,7 +177,7 @@
                                 <label for="amount" class="control-label">Payment Amount</label>
                                 <input class="form-control" type="text" required name="amount"/>
                             </div>
-                            {% if user.profile.payment_method == 'ACH' %}
+                            {% if user.profile.payment_method == 'ACH' or user.profile.non_subscribing_member %}
                                 <div class="form-group">
                                     <label class="control-label">Payment Method</label>
                                     {% if user.profile.ach_status == 'VERIFIED' %}
@@ -224,7 +227,8 @@
 
     <h3>Payment History</h3>
     {% if user.profile.joined_before_dec_2017 %}
-        <div class="alert alert-warning non-field-error"><strong>Note:</strong> Only payments made for Dec. 2017 onwards are
+        <div class="alert alert-warning non-field-error"><strong>Note:</strong> Only payments made for Dec. 2017 onwards
+            are
             shown here.
         </div>
     {% endif %}
