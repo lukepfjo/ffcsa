@@ -33,7 +33,7 @@ def get_code_length():
 
 class InvitationCodeManager(models.Manager):
     def create_invite_code(
-            self, email, site=None, name=None, creator=None, drop_site=None
+            self, email, site=None, name=None, creator=None, drop_site=None, non_subscribing_member=False
     ):
         chars = 'ABCDEFGHJKMPQRSTUVWXYZ'
         nums = '23456789'
@@ -46,7 +46,7 @@ class InvitationCodeManager(models.Manager):
                 break
         code = self.model(
             key=key, site=site, registered_to=email, registered_name=name,
-            created_by=creator, drop_site=drop_site
+            created_by=creator, drop_site=drop_site, non_subscribing_member=non_subscribing_member
         )
         code.save()
         return code
@@ -98,6 +98,8 @@ class InvitationCode(models.Model):
         'name', max_length=70, blank=True, null=True
     )
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
+    non_subscribing_member = models.BooleanField(default=False,
+                                                 help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
     key = models.CharField(
         max_length=30, blank=True, null=True, editable=False
     )

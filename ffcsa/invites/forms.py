@@ -28,6 +28,7 @@ class ProfileForm(base.ProfileForm):
                 self.data['code'], self.data['email']
             )
             user.profile.drop_site = code.drop_site
+            user.profile.non_subscribing_member = code.non_subscribing_member
             code.delete()
             user.profile.save()
 

@@ -19,6 +19,7 @@ class InvitationCodeAdmin(admin.ModelAdmin):
                 name=obj.registered_name,
                 creator=request.user,
                 drop_site=obj.drop_site,
+                non_subscribing_member=obj.non_subscribing_member
             )
         site_url = request.build_absolute_uri(reverse("home"))
         display_signup_url = request.build_absolute_uri(reverse("mezzanine_signup"))
