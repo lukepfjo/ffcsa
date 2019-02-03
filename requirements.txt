@@ -6,7 +6,7 @@ beautifulsoup4==4.5.3
 bleach==2.0.0
 cairocffi==0.8.0
 CairoSVG==2.0.3
-git+https://github.com/rodney757/cartridge.git@2421a8dbe66cb55f34820a3d4f3197dd70f8286a
+git+https://github.com/ewingrj/cartridge.git@2421a8dbe66cb55f34820a3d4f3197dd70f8286a
 certifi==2018.4.16
 cffi==1.10.0
 chardet==2.3.0
