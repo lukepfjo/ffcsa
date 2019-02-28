@@ -288,9 +288,9 @@ def make_payment(request):
         hasError = True
         error(request, 'Invalid amount provided.')
 
-    if amount < 50:
+    if amount < 20:
         hasError = True
-        error(request, 'Minimum payment amount is $50.')
+        error(request, 'Minimum payment amount is $20.')
 
     try:
         if not hasError:

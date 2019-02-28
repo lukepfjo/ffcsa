@@ -216,7 +216,7 @@ jQuery(function ($) {
                 });
 
                 var opts = _.assign({}, validateOpts);
-                opts.rules.amount.min = 50;
+                opts.rules.amount.min = 20;
 
                 $('#payment-form').validate(opts);
             }
