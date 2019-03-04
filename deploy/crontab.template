@@ -4,3 +4,6 @@
 
 # Convert cart to orders & restart the server to clear the cached budgets
 1 0 * * %(convert_orders_day)s %(user)s %(manage)s cart && kill -HUP `cat /home/ffcsa/mezzanine/ffcsa/gunicorn.pid`
+
+# send weekly reminder email
+0 17 * * %(order_reminder_email_day)s %(user)s %(manage)s reminder
