@@ -321,7 +321,7 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
                     email=user.email,
                     description=user.get_full_name()
                 )
-                user.profile.stripe_customer_id = customer.id
+                obj.profile.stripe_customer_id = customer.id
 
             # only accepts CC payments
             obj.profile.payment_method = 'CC'

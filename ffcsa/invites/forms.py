@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+import stripe
 
 from mezzanine.accounts import forms as base
 from ffcsa.core.models import PHONE_REGEX
@@ -28,6 +29,16 @@ class ProfileForm(base.ProfileForm):
                 self.data['code'], self.data['email']
             )
             user.profile.drop_site = code.drop_site
+            if code.non_subscribing_member:
+                customer = stripe.Customer.create(
+                    email=user.email,
+                    description=user.get_full_name()
+                )
+                user.profile.stripe_customer_id = customer.id
+
+            # only accepts CC payments
+            user.profile.payment_method = 'CC'
+            user.profile.ach_status = None
             user.profile.non_subscribing_member = code.non_subscribing_member
             code.delete()
             user.profile.save()
