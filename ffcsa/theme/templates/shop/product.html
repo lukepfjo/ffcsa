@@ -24,21 +24,21 @@
     {{ block.super }}
     <script src="{% static "mezzanine/js/magnific-popup.js" %}"></script>
     <script>
-        $(document).ready(function () {
-            $('#product-images-large').magnificPopup({
-                delegate: 'a',
-                type: 'image',
-                gallery: {
-                    enabled: true,
-                }
-            });
-        });
+      $(document).ready(function () {
+        $('#product-images-large').magnificPopup({
+          delegate: 'a',
+          type: 'image',
+          gallery: {
+            enabled: true,
+          },
+        })
+      })
     </script>
 {% endblock %}
 
 {% block extra_head %}
     {{ block.super }}
-    <script>var variations = {{ variations_json|safe }};</script>
+    <script>var variations = {{ variations_json|safe }}</script>
     <script src="{% static "cartridge/js/product_variations.js" %}"></script>
 {% endblock %}
 
@@ -89,7 +89,7 @@
     <p>Farm: <span style="text-transform: lowercase;">{{ variations.0.vendor }}</span></p>
 
     {% if product.available and has_available_variations %}
-{#    {% if product.available %}#}
+        {#    {% if product.available %}#}
         <ul id="variations" class="list-unstyled">
             {% for variation in variations %}
                 <li id="variation-{{ variation.sku }}"
@@ -102,7 +102,8 @@
                         <span class="price">{{ variation.price|currency }} value</span>
                     {% endif %}
                     {% if variation.has_stock and variation.live_num_in_stock is not None %}
-                        <div style="margin-top: 10px; font-weight: 700">{{ variation.live_num_in_stock }} available</div>
+                        <div style="margin-top: 10px; font-weight: 700">{{ variation.live_num_in_stock }} available
+                        </div>
                     {% elif not variation.has_stock %}
                         <div style="margin-top: 10px; font-weight: 700" class="text-danger">Out of Stock</div>
                     {% endif %}
@@ -110,7 +111,7 @@
             {% endfor %}
         </ul>
 
-        {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated and request.user.profile.can_order %}
             {% errors_for add_product_form %}
 
             <form method="post" id="add-cart" class="shop-form">

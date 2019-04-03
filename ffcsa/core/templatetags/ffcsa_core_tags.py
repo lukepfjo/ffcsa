@@ -1,5 +1,7 @@
 import datetime
 
+from django.template.loader import get_template
+from django import forms
 from django.utils import formats
 from mezzanine import template
 from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start
@@ -49,3 +51,28 @@ def get_billing_detail_field(billing_detail_list, key):
             return value
 
     return None
+
+
+@register.filter
+def is_checkbox(boundfield):
+    """Return True if this field's widget is a CheckboxInput."""
+    return isinstance(boundfield.field.widget, forms.CheckboxInput)
+
+
+@register.simple_tag(takes_context=True)
+def fields_for(context, form, *exclude_fields, template="includes/form_fields_exclude.html"):
+    """
+    Renders fields for a form with an optional template choice.
+    """
+    context["form_for_fields"] = form
+    context["exclude_fields"] = exclude_fields
+    return get_template(template).render(context.flatten())
+
+
+@register.simple_tag(takes_context=True)
+def render_field(context, field, template="includes/form_field.html"):
+    """
+    Renders a single form field
+    """
+    context["field"] = field
+    return get_template(template).render(context.flatten())

@@ -8,8 +8,8 @@ from cartridge.shop.models import Category, Order
 from decimal import Decimal
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import get_user_model
-from django.contrib.messages import error, success
+from django.contrib.auth import get_user_model, login as auth_login
+from django.contrib.messages import error, success, info
 from django.contrib.sites.models import Site
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
@@ -23,9 +23,10 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings
+from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
-from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
+from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email
@@ -92,6 +93,53 @@ def product(request, slug, template="shop/product.html", extra_context=None, **k
 
 
 s_views.product = product
+
+
+def signup(request, template="accounts/account_signup.html",
+           extra_context=None):
+    """
+    signup view.
+    """
+    form = ProfileForm(request.POST or None, request.FILES or None)
+
+    if request.method == "POST" and form.is_valid():
+        new_user = form.save()
+        info(request, "Successfully signed up")
+        auth_login(request, new_user)
+
+        c = {
+            'user': "{} {}".format(new_user.first_name, new_user.last_name),
+            'user_url': request.build_absolute_uri(reverse("admin:auth_user_change", args=(new_user.id,))),
+            'drop_site': form.cleaned_data['drop_site'],
+            'phone_number': form.cleaned_data['phone_number'],
+            'phone_number2': form.cleaned_data['phone_number_2'],
+            'best_time_to_reach': form.cleaned_data['best_time_to_reach'],
+            'communication_method': form.cleaned_data['communication_method'],
+            'family_stats': form.cleaned_data['family_stats'],
+            'hear_about_us': form.cleaned_data['hear_about_us'],
+        }
+        send_mail_template(
+            "New User Signup %s" % settings.SITE_TITLE,
+            "ffcsa_core/send_admin_new_user_email",
+            settings.DEFAULT_FROM_EMAIL,
+            settings.ACCOUNTS_APPROVAL_EMAILS,
+            context=c,
+            fail_silently=True,
+        )
+        send_mail_template(
+            "Welcome to the FFCSA!",
+            "ffcsa_core/send_new_user_email",
+            settings.DEFAULT_FROM_EMAIL,
+            new_user.email,
+            fail_silently=False,
+            addr_bcc=[settings.EMAIL_HOST_USER]
+        )
+
+        return HttpResponseRedirect(reverse('payments'))
+
+    context = {"form": form, "title": "Sign up"}
+    context.update(extra_context or {})
+    return TemplateResponse(request, template, context)
 
 
 @login_required

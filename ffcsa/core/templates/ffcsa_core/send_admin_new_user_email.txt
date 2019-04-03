@@ -1,0 +1,26 @@
+{{ user }} has just signed up.
+
+You will need to contact them to discuss the Raw Dairy Program. Then you will need to activate their account by
+    visiting {{ user_url }} before they can place an order. Make sure to verify that they
+    have signed the Product Liability Form.
+
+Drop Site
+{{ drop_site }}
+
+Phone Number
+{{ phone_number }}
+
+    Phone Number Alternate
+    {{ phone_number_2 }}
+
+What is the best time to reach you?
+{{ best_time_to_reach }}
+
+What is your preferred method of communication?
+{{ communication_method }}
+
+How many adults and children are in your family?
+{{ family_stats }}
+
+How did you hear about us?
+{{ hear_about_us }}

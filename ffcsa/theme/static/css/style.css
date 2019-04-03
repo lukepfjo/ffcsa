@@ -530,6 +530,23 @@ ul.breadcrumb li a:hover {
     background-color: inherit;
 }
 
+fieldset {
+    border-top: 1px solid #E7E7E7;
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.checkbox {
+    position: relative;
+}
+
+.checkbox input[type=checkbox], .checkbox-inline input[type=checkbox] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-left: 0;
+}
+
 /* --- contact form  ---- */
 form#contactform input[type="text"], input[type="url"], input[type="email"] {
     width: 100%;

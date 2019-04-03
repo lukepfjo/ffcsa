@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n mezzanine_tags ffcsa_core_tags %}
+
+{% block meta_title %}{{ title }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_id %}account{% endblock %}
+
+{% block breadcrumb_menu %}
+    {{ block.super }}
+    <li>{{ title }}</li>
+{% endblock %}
+
+{% block main %}
+
+    {% if request.user.is_authenticated %}
+        <p>{% trans "You're already logged in. If you'd like to create a new account, you'll need to log out first." %}</p>
+    {% else %}
+        <p>Thanks for choosing the Full Farm CSA!</p>
+        <p>If you haven't done so already, you can check out our current selection of products <a href="/">here</a> and
+            find out more information about our CSA by visiting <a target="_blank"
+                                                                   href="https://deckfamilyfarm.com/full-farm-csa/">our
+                FAQs page</a>.</p>
+        <p>Please note that the commitment to our year-round CSA is 12 months, with a 1 month trial option available
+            once the $100 sign up fee has been paid. <strong>The $100 sign up fee is waived for members who pay for the
+                entire year in advance.</strong></p>
+        <p>We encourage all CSA members to visit the Deck Family Farm (in Junction City) at least once during or before
+            their time in the CSA, so come check us out! Our open gate policy is Monday - Saturday during business
+            hours. Let us know when you may be coming and we can arrange a mini tour.</p>
+
+        {% errors_for form %}
+
+        <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+            <fieldset>
+                {% render_field form.first_name %}
+                {% render_field form.last_name %}
+                {% render_field form.email %}
+                {% render_field form.password1 %}
+                {% render_field form.password2 %}
+            </fieldset>
+
+            <fieldset>
+                {% render_field form.drop_site %}
+                {% render_field form.product_agreement %}
+                {% render_field form.payment_agreement %}
+            </fieldset>
+
+            <fieldset>
+                {% render_field form.best_time_to_reach %}
+                {% render_field form.communication_method %}
+                {% render_field form.family_stats %}
+                {% render_field form.hear_about_us %}
+
+                <p>After signing up, our Dairy Manager will reach out to go over a few points regarding our Raw Dairy
+                    Program. After your conversation, your account will be approved and you can make your first
+                    order!</p>
+                <div class="form-actions">
+                    {% block account_form_actions %}
+                        <input class="btn btn-primary btn-lg pull-right" type="submit" value="{{ title }}">
+                    {% endblock %}
+                </div>
+            </fieldset>
+        </form>
+    {% endif %}
+
+{% endblock %}

@@ -7,6 +7,8 @@ from copy import deepcopy
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
+from django import forms
+from django.utils.safestring import mark_safe
 
 from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
@@ -131,7 +133,7 @@ PHONE_REGEX = RegexValidator(regex=r'^\+?(1-)?\d{3}-\d{3}-\d{4}$',
 class Profile(models.Model):
     user = models.OneToOneField("auth.User")
     monthly_contribution = MoneyField("Monthly Contribution", decimal_places=2)
-    phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
+    phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], max_length=15)
     phone_number_2 = models.CharField("Alternate Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
     notes = models.TextField("Invoice Notes", blank=True,
@@ -146,6 +148,14 @@ class Profile(models.Model):
                                   choices=[('NEW', 'Unverified'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified'),
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
+    can_order = models.BooleanField("Has had dairy conversation", default=False)
+    payment_agreement = models.BooleanField(
+        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 12 months, with a minimium of $260 per month. If I need to change my monthly payment amount, I will notify the FFCSA admin and keep changes to a maximum of two times per year.",
+        default=False)
+    product_agreement = models.FileField("Liability Agreement Form",
+                                         upload_to='uploads/member_docs/',
+                                         help_text=mark_safe(
+                                             "Please <a target='_blank' href='/static/docs/Product Liability Agreement.pdf'>download this form</a> and have all adult members in your household sign. Then upload here."))
     non_subscribing_member = models.BooleanField(default=False,
                                                  help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
 

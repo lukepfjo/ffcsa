@@ -10,6 +10,15 @@ from django.utils.translation import ugettext_lazy as _
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
+DROP_SITE_CHOICES = (
+    ('Farm', 'Eugene - Deck Family Farm (Friday)'),
+    ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
+    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
+    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
+    ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    ('Corvallis', 'Corvallis - Member Drop Site (Tuesday)'),
+)
 
 ##############################
 # FFCSA-INVITES SETTINGS #
@@ -107,7 +116,7 @@ PAGES_MENU_SHOW_ALL = False
 # SIGNUP_URL =
 
 ACCOUNTS_PROFILE_MODEL = 'ffcsa_core.Profile'
-ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.invites.forms.ProfileForm'
+ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.core.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "monthly_contribution",
     "drop_site",
@@ -117,7 +126,9 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "payment_method",
     "ach_status",
     "paid_signup_fee",
-    "notes"
+    "notes",
+    "non_subscribing_member",
+    "can_order"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 
@@ -135,7 +146,8 @@ ACCOUNTS_NO_USERNAME = True
 ADMIN_MENU_ORDER = (
     (_("Shop"), ("shop.Product", "shop.Order", "shop.ProductOption", "shop.DiscountCode",
                  "shop.Sale")),
-    ("Users", ((_("Invites"), "invites.InvitationCode"), "auth.User", "auth.Group",)),
+    # ("Users", ((_("Invites"), "invites.InvitationCode"), "auth.User", "auth.Group",)),
+    ("Users", (("auth.User", "auth.Group",))),
     ("Content", ("pages.Page", "blog.BlogPost",
                  (_("Media Library"), "fb_browse"),)),
     ("Site", ("sites.Site", "redirects.Redirect", "conf.Setting")),
@@ -501,7 +513,7 @@ INSTALLED_APPS = (
     "mezzanine.galleries",
     # "mezzanine.twitter",
     "mezzanine.accounts",
-    "ffcsa.invites",
+    # "ffcsa.invites",
     "ffcsa.core",
     # "mezzanine.mobile",
 )
@@ -570,13 +582,13 @@ OPTIONAL_APPS = (
 f = os.path.join(PROJECT_APP_PATH, "local_settings.py")
 if os.path.exists(f):
     import sys
-    import imp
+import imp
 
-    module_name = "%s.local_settings" % PROJECT_APP
-    module = imp.new_module(module_name)
-    module.__file__ = f
-    sys.modules[module_name] = module
-    exec(open(f, "rb").read())
+module_name = "%s.local_settings" % PROJECT_APP
+module = imp.new_module(module_name)
+module.__file__ = f
+sys.modules[module_name] = module
+exec(open(f, "rb").read())
 
 ####################
 # DYNAMIC SETTINGS #

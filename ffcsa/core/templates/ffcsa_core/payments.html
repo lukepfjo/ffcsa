@@ -55,11 +55,17 @@
         {% elif not user.profile.stripe_subscription_id %}
             {% if user.profile.ach_status == 'FAILED' %}
                 <p class="alert alert-danger">We had trouble sending funds to your provided bank account for
-                    verification
-                    purposes. Your information may have been entered incorrectly. Please try again.</p>
+                    verification purposes. Your information may have been entered incorrectly. Please try again.</p>
             {% else %}
-                <p class="alert alert-warning">It looks like you have yet to setup a subscription. Please complete the
-                    following form to complete your subscription.</p>
+                <p class="alert alert-warning">It looks like you have yet to setup a subscription.
+                    <br/>
+                    <br/>
+                    <strong>If you would like to skip the $100 sign up fee and pay for the entire year in
+                        advance</strong>, (minimum $260 / month, $3,120 total) send a personal check made out to "Full
+                    Farm CSA" by mail to: PO box 565 Junction City, OR 97448
+                    <br/>
+                    <br/>
+                    <strong>Otherwise,</strong> please complete the following form to setup your subscription.</p>
             {% endif %}
             <form action="{% url "payments_subscribe" %}" method="POST" id="subscribe-form" class="form">
                 {% csrf_token %}
@@ -74,7 +80,7 @@
                                value="260"/>
                     {% endif %}
                     <span id="helpBlock" class="help-block">
-                    How much should I pay? This amount will be your monthly budget for each month throughout the year,
+                    minimum $260. <br/>How much should I pay? This amount will be your monthly budget for each month throughout the year,
                     which may include either 4 weeks or 5 weeks of ordering. Although we recommend multiplying your
                     weekly ordering amount by 4.33 (the average number of weeks in a month), you may want to give
                     yourself some extra buffer room for those longer, 5 week months, but you can also top up your

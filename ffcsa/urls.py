@@ -39,7 +39,7 @@ urlpatterns += [
     url("^", include("ffcsa.core.urls")),
 
     # ffcsainvites URLs
-    url("^", include("ffcsa.invites.urls")),
+    # url("^", include("ffcsa.invites.urls")),
 
     # Cartridge URLs.
     url("^", include("cartridge.shop.urls")),

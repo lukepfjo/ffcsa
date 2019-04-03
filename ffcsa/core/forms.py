@@ -6,7 +6,12 @@ from copy import deepcopy
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import ugettext_lazy as _
+from mezzanine.conf import settings
 from mezzanine.pages.admin import PageAdminForm
+from mezzanine.accounts import forms as accounts_forms
+from mezzanine.utils.deprecation import mark_safe
+
+from ffcsa.core.models import PHONE_REGEX
 
 User = get_user_model()
 
@@ -152,3 +157,42 @@ def cart_item_formset_clean(self):
 
 
 CartItemFormSet.clean = cart_item_formset_clean
+
+
+class ProfileForm(accounts_forms.ProfileForm):
+    username = None
+
+    def __init__(self, *args, **kwargs):
+        super(ProfileForm, self).__init__(*args, **kwargs)
+
+        self.fields['phone_number'].validators.append(PHONE_REGEX)
+        self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
+        self.fields['phone_number_2'].validators.append(PHONE_REGEX)
+        self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
+
+        if self._signup:
+            self.fields['drop_site'] = forms.ChoiceField(choices=settings.DROP_SITE_CHOICES, required=True,
+                                                         label="Drop Site Location",
+                                                         help_text="The location to pickup your weekly order.")
+            # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
+            self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
+                                                                required=True)
+            self.fields['communication_method'] = forms.ChoiceField(
+                label="What is your preferred method of communication?", required=True,
+                choices=(("Email", "Email"), ("Phone", "Phone"), ("Text", "Text")))
+            self.fields['family_stats'] = forms.CharField(label="How many adults and children are in your family?",
+                                                          required=True, widget=forms.Textarea(attrs={'rows': 3}))
+            self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
+                                                           widget=forms.Textarea(attrs={'rows': 3}))
+        else:
+            self.fields['payment_agreement'].widget = forms.HiddenInput()
+            self.fields['product_agreement'].widget = forms.HiddenInput()
+
+    def save(self, *args, **kwargs):
+        user = super(ProfileForm, self).save(*args, **kwargs)
+
+        if self._signup:
+            user.profile.drop_site = self.cleaned_data['drop_site']
+            user.profile.save()
+
+        return user

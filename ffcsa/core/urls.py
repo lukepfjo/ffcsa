@@ -7,10 +7,16 @@ from mezzanine.core.views import page_not_found
 
 from ffcsa.core import views
 
+ACCOUNT_URL = getattr(settings, "ACCOUNT_URL", "/accounts/")
+SIGNUP_URL = getattr(
+    settings, "SIGNUP_URL", "/%s/signup/" % ACCOUNT_URL.strip("/")
+)
+
 _slash = "/" if settings.APPEND_SLASH else ""
 
 urlpatterns = i18n_patterns(
     url("^$", views.shop_home, name="home"),
+    url("^%s%s$" % (SIGNUP_URL.strip("/"), _slash), views.signup, name="mezzanine_signup"),
     url("^donate%s$" % _slash, views.donate, name="donate"),
     url("^cart%s$" % _slash, views.cart, name="shop_cart"),
     url("^checkout%s$" % _slash, page_not_found, name="shop_checkout"),

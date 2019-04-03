@@ -16,8 +16,8 @@ jQuery(function ($) {
       if (vendorVal) {
         m.val(Math.round((unitVal - vendorVal) / unitVal * 100));
       } else {
-        // default to 30% markup
-        m.val(30);
+        // default to 32% markup
+        m.val(32);
         v.val(Math.round(unitVal * .7 * 100) / 100);
       }
     } else if (vendorVal) {
