@@ -28,9 +28,7 @@ from mezzanine.utils.views import paginate
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, update_subscription_fee, get_subscription_fee, clear_ach_payment_source, \
-    send_subscription_canceled_email, \
-    send_pending_payment_email
+    SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email
 from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -232,9 +230,6 @@ def payments_update(request):
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 customer.source = stripeToken
                 customer.save()
-                if user.profile.payment_method != 'CC':
-                    user.profile.payment_method = 'CC'
-                    update_subscription_fee(user)
                 user.profile.ach_status = None  # reset this so they don't receive error msg for failed ach verification
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
@@ -242,9 +237,6 @@ def payments_update(request):
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 customer.source = stripeToken
                 customer.save()
-                if user.profile.payment_method != 'ACH':
-                    user.profile.payment_method = 'ACH'
-                    update_subscription_fee(user)
                 user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
@@ -296,17 +288,9 @@ def make_payment(request):
         if not hasError:
             stripeToken = request.POST.get('stripeToken')
             card = None
-            isCC = False
             if stripeToken:
                 customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                 card = customer.sources.create(source=stripeToken)
-                isCC = True
-            elif user.profile.payment_method == 'CC':
-                isCC = True
-
-            if isCC:
-                fee_percentage = get_subscription_fee('CC')
-                amount = amount * Decimal((1 + fee_percentage / 100))
 
             stripe.Charge.create(
                 amount=(amount * 100).quantize(0),  # in cents
@@ -490,9 +474,6 @@ def stripe_webhooks(request):
                     user.profile.save()
                 else:
                     amount = charge.amount / 100  # amount is in cents
-                    if charge.source.object == 'card':
-                        fee_percent = get_subscription_fee('CC')
-                        amount = amount / (1 + fee_percent / 100)  # cc fee
                     date = datetime.datetime.fromtimestamp(charge.created)
                     existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
                     if existing_payments.filter(pending=False).exists():

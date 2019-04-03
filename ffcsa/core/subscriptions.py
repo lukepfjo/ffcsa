@@ -26,22 +26,6 @@ def charge_signup_fee_if_needed(user):
         # we update the user.profile.paid_signup_fee when the payment goes through
 
 
-def get_subscription_fee(type):
-    if type == 'CC':
-        return 3
-    else:
-        return 0
-
-
-def update_subscription_fee(user):
-    if not user.profile.stripe_subscription_id:
-        raise AssertionError('Attempting to update a subscription but user doesnt have a subscription')
-
-    subscription = stripe.Subscription.retrieve(user.profile.stripe_subscription_id)
-    subscription.tax_percent = get_subscription_fee(user.profile.payment_method)
-    subscription.save()
-
-
 def clear_ach_payment_source(user, source_id):
     user.profile.payment_method = None
     user.profile.ach_status = 'FAILED'
@@ -62,8 +46,6 @@ def update_stripe_subscription(user):
     if not user.profile.stripe_customer_id:
         raise AssertionError('Attempting to update a subscription but user has not stripe customer id')
 
-    tax_percent = get_subscription_fee(user.profile.payment_method)
-
     plan = stripe.Plan.create(
         amount=(amount * 100).quantize(0),  # in cents
         interval="month",
@@ -73,7 +55,6 @@ def update_stripe_subscription(user):
         nickname="{} Membership".format(user.get_full_name())
     )
     subscription = stripe.Subscription.retrieve(user.profile.stripe_subscription_id)
-    subscription.tax_percent = tax_percent
 
     try:
         subscription.plan.delete()
@@ -100,8 +81,6 @@ def create_stripe_subscription(user):
     if not user.profile.stripe_customer_id:
         raise AssertionError('Attempting to create a subscription but user has not stripe customer id')
 
-    tax_percent = get_subscription_fee(user.profile.payment_method)
-
     plan = stripe.Plan.create(
         amount=(amount * 100).quantize(0),  # in cents
         interval="month",
@@ -119,7 +98,6 @@ def create_stripe_subscription(user):
         ],
 
         # TODO integrate crypto
-        tax_percent=tax_percent,
     )
     user.profile.stripe_subscription_id = subscription.id
     user.profile.save()
@@ -195,6 +173,7 @@ def send_subscription_canceled_email(user, date, payments_url):
         fail_silently=False,
         addr_bcc=[settings.DEFAULT_FROM_EMAIL]
     )
+
 
 def send_pending_payment_email(user, payments_url):
     to = user.email if user else settings.ADMINS[0][1]

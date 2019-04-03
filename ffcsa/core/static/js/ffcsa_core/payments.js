@@ -12,12 +12,6 @@ jQuery(function ($) {
         function init() {
             $('#cc-details #ach-details #crypto-details').collapse();
 
-            function setFee() {
-                $('#ccFee').text('$ ' + (Math.round($('input[name=amount]').val() * .03 * 100) / 100).toFixed(2));
-            }
-
-            $('input[name=amount]').change(setFee);
-            setFee();
 
             $("#paymentTypesACH").prop('checked', true);
 

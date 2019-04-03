@@ -192,7 +192,7 @@
                                     <div class="radio">
                                         <label>
                                             <input type="radio" name="paymentType" id="paymentTypesCC" value="CC">
-                                            Credit Card - 3% fee
+                                            Credit Card
                                         </label>
                                     </div>
                                 </div>
@@ -200,11 +200,6 @@
                                 {% with False as isSubscription %}
                                     {% include "ffcsa_core/cc_payment_details.html" %}
                                 {% endwith %}
-                            {% else %}
-                                <div class="form-group">
-                                    <label class="control-label">Payment Fee</label>
-                                    <p id="ccFee" class="form-control-static"></p>
-                                </div>
                             {% endif %}
                             <div class="form-group checkbox">
                                 <label>
