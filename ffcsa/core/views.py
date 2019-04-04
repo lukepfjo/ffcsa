@@ -137,7 +137,7 @@ def signup(request, template="accounts/account_signup.html",
 
         return HttpResponseRedirect(reverse('payments'))
 
-    context = {"form": form, "title": "Sign up"}
+    context = {"form": form, "title": "Join Now!"}
     context.update(extra_context or {})
     return TemplateResponse(request, template, context)
 
