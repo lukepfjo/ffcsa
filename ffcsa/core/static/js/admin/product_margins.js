@@ -18,11 +18,11 @@ jQuery(function ($) {
       } else {
         // default to 32% markup
         m.val(32);
-        v.val(Math.round(unitVal * .7 * 100) / 100);
+        v.val(Math.round(unitVal * .68 * 100) / 100);
       }
     } else if (vendorVal) {
-      m.val(30);
-      u.val(Math.round(vendorVal / .7 * 100) / 100);
+      m.val(32);
+      u.val(Math.round(vendorVal / .68 * 100) / 100);
     } else {
       m.val(undefined);
     }
