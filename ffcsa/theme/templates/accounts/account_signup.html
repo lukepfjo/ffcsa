@@ -30,6 +30,7 @@
         {% errors_for form %}
 
         <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+            {% csrf_token %}
             <fieldset>
                 {% render_field form.first_name %}
                 {% render_field form.last_name %}
@@ -46,6 +47,8 @@
 
             <fieldset>
                 {% render_field form.best_time_to_reach %}
+                {% render_field form.phone_number %}
+                {% render_field form.phone_number_2 %}
                 {% render_field form.communication_method %}
                 {% render_field form.family_stats %}
                 {% render_field form.hear_about_us %}

@@ -4,6 +4,7 @@ directory=%(proj_path)s
 user=%(user)s
 autostart=true
 stdout_logfile = /home/%(user)s/logs/%(proj_name)s_supervisor
+stderr_logfile = /home/%(user)s/logs/%(proj_name)s_supervisor_error
 autorestart=true
 redirect_stderr=true
 environment=LANG="%(locale)s",LC_ALL="%(locale)s",LC_LANG="%(locale)s"
