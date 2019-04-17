@@ -185,6 +185,20 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['product_agreement'].widget = forms.HiddenInput()
 
+    def get_profile_fields_form(self):
+        return ProfileFieldsForm
+
+    def save(self, *args, **kwargs):
+        user = super(ProfileForm, self).save(*args, **kwargs)
+
+        if self._signup:
+            user.profile.drop_site = self.cleaned_data['drop_site']
+            user.profile.save()
+
+        return user
+
+
+class ProfileFieldsForm(accounts_forms.ProfileFieldsForm):
     def sanitize_phone_number(self, num):
         if not num or not num.strip():
             return num
@@ -202,12 +216,3 @@ class ProfileForm(accounts_forms.ProfileForm):
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
         return self.sanitize_phone_number(num)
-
-    def save(self, *args, **kwargs):
-        user = super(ProfileForm, self).save(*args, **kwargs)
-
-        if self._signup:
-            user.profile.drop_site = self.cleaned_data['drop_site']
-            user.profile.save()
-
-        return user
