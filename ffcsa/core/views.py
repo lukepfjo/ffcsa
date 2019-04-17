@@ -117,6 +117,7 @@ def signup(request, template="accounts/account_signup.html",
             'communication_method': form.cleaned_data['communication_method'],
             'family_stats': form.cleaned_data['family_stats'],
             'hear_about_us': form.cleaned_data['hear_about_us'],
+            'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
         c['csv_data'] = """
