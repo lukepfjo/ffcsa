@@ -70,9 +70,12 @@ def fields_for(context, form, *exclude_fields, template="includes/form_fields_ex
 
 
 @register.simple_tag(takes_context=True)
-def render_field(context, field, template="includes/form_field.html"):
+def render_field(context, field, **kwargs):
     """
     Renders a single form field
     """
+    template = kwargs.get('template', "includes/form_field.html")
     context["field"] = field
+    context["show_required"] = True
+    context.update(kwargs)
     return get_template(template).render(context.flatten())

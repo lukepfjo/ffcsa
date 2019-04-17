@@ -118,6 +118,20 @@ def signup(request, template="accounts/account_signup.html",
             'family_stats': form.cleaned_data['family_stats'],
             'hear_about_us': form.cleaned_data['hear_about_us'],
         }
+
+        c['csv_data'] = """
+        {last_name},{first_name}\t{date}\t{drop_site}\t{phone}\t{email}\t{method}\t\t\t\t{family_stats}\t{hear_about_us}""".format(
+            last_name=new_user.last_name,
+            first_name=new_user.first_name,
+            date=datetime.date.today(),
+            phone=c['phone_number'],
+            drop_site=c['drop_site'],
+            email=new_user.email,
+            method=c['communication_method'],
+            family_stats=c['family_stats'],
+            hear_about_us=c['hear_about_us']
+        )
+
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
             "ffcsa_core/send_admin_new_user_email",
@@ -127,7 +141,7 @@ def signup(request, template="accounts/account_signup.html",
             fail_silently=True,
         )
         send_mail_template(
-            "Welcome to the FFCSA!",
+            "Congratulations on your new Full Farm CSA account!",
             "ffcsa_core/send_new_user_email",
             settings.DEFAULT_FROM_EMAIL,
             new_user.email,

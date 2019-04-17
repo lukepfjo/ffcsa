@@ -2119,6 +2119,14 @@ article img.pull-right, article .align-right {
     max-width: 60px;
 }
 
+/* ===============================
+15. Signup page
+================================ */
+
+#signup_form .input_id_product_agreement {
+    margin: 20px 0;
+}
+
 /*========================================
           RESPONSIVE TWEAKS
 ==========================================*/

@@ -9,9 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from mezzanine.conf import settings
 from mezzanine.pages.admin import PageAdminForm
 from mezzanine.accounts import forms as accounts_forms
-from mezzanine.utils.deprecation import mark_safe
-
-from ffcsa.core.models import PHONE_REGEX
 
 User = get_user_model()
 
@@ -165,15 +162,14 @@ class ProfileForm(accounts_forms.ProfileForm):
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
 
-        self.fields['phone_number'].validators.append(PHONE_REGEX)
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
-        self.fields['phone_number_2'].validators.append(PHONE_REGEX)
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
 
         if self._signup:
-            self.fields['drop_site'] = forms.ChoiceField(choices=settings.DROP_SITE_CHOICES, required=True,
-                                                         label="Drop Site Location",
-                                                         help_text="The location to pickup your weekly order.")
+            self.fields['drop_site'] = forms.ChoiceField(choices=settings.DROP_SITE_CHOICES, label="Drop Site Location")
+
+            self.fields['pickup_agreement'] = forms.BooleanField(
+                label="I agree to bring my own bags and coolers as needed to pick up my product as the containers the product arrives stay at the dropsite.")
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
                                                                 required=True)
@@ -184,9 +180,28 @@ class ProfileForm(accounts_forms.ProfileForm):
                                                           required=True, widget=forms.Textarea(attrs={'rows': 3}))
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
+            self.fields['payment_agreement'].required = True
         else:
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['product_agreement'].widget = forms.HiddenInput()
+
+    def sanitize_phone_number(self, num):
+        if not num or not num.strip():
+            return num
+        num = num.replace('(', '').replace(')', '').replace(' ', '').replace('-', '').strip()
+
+        if len(num) > 10 and num.startswith('1'):
+            return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
+
+        return num[:3] + '-' + num[3:6] + '-' + num[6:]
+
+    def clean_phone_number(self):
+        num = self.cleaned_data['phone_number']
+        return self.sanitize_phone_number(num)
+
+    def clean_phone_number_2(self):
+        num = self.cleaned_data['phone_number_2']
+        return self.sanitize_phone_number(num)
 
     def save(self, *args, **kwargs):
         user = super(ProfileForm, self).save(*args, **kwargs)

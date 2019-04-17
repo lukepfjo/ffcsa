@@ -29,7 +29,7 @@
 
         {% errors_for form %}
 
-        <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+        <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %} id="signup_form">
             {% csrf_token %}
             <fieldset>
                 {% render_field form.first_name %}
@@ -40,9 +40,10 @@
             </fieldset>
 
             <fieldset>
-                {% render_field form.drop_site %}
+                {% render_field form.drop_site show_required=False %}
+                {% render_field form.pickup_agreement show_required=False %}
                 {% render_field form.product_agreement %}
-                {% render_field form.payment_agreement %}
+                {% render_field form.payment_agreement show_required=False %}
             </fieldset>
 
             <fieldset>
@@ -53,9 +54,11 @@
                 {% render_field form.family_stats %}
                 {% render_field form.hear_about_us %}
 
-                <p>After signing up, our Dairy Manager will reach out to go over a few points regarding our Raw Dairy
-                    Program. After your conversation, your account will be approved and you can make your first
-                    order!</p>
+                <p>After signing up, you can set up your payments and our Dairy Manager will reach out to go over a few
+                    points regarding our Raw Dairy Program. After your conversation, your account will be approved and
+                    you can make your first order!</p>
+                <p>If you do not see a confirmation email after signing up, check your spam folder, as the link is sent
+                    from a different email address, it sometimes gets sent there.</p>
                 <div class="form-actions">
                     {% block account_form_actions %}
                         <input class="btn btn-primary btn-lg pull-right" type="submit" value="{{ title }}">
