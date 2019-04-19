@@ -121,7 +121,8 @@ def signup(request, template="accounts/account_signup.html",
         }
 
         c['csv_data'] = """
-        {last_name},{first_name}\t{date}\t{drop_site}\t{phone}\t{email}\t{method}\t\t\t\t{family_stats}\t{hear_about_us}""".format(
+        "{last_name},{first_name}","{date}","{drop_site}","{phone}","{email}","{method}",,,,"{family_stats}","{hear_about_us}"
+        """.format(
             last_name=new_user.last_name,
             first_name=new_user.first_name,
             date=datetime.date.today(),
