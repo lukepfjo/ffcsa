@@ -36,14 +36,19 @@
                                 </div>
                             </a>
                             {% if request.user.is_authenticated and request.user.profile.can_order %}
-                                <form method="post" class="product-quick-add-form form-group-sm">
-                                    {% csrf_token %}
-                                    <input type="number" class="form-control item-qty" placeholder="qty"
-                                           name="item_qty"/>
-                                    <input type="hidden" name="item_id" value="{{ product.id }}"/>
-                                    <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
-                                           value="{% trans "Add to Order" %}">
-                                </form>
+                                {% if product.variations.first.has_stock %}
+                                    <p class="price text-center">{{ product.price|currency }}</p>
+                                    <form method="post" class="product-quick-add-form form-group-sm">
+                                        {% csrf_token %}
+                                        <input type="number" class="form-control item-qty" placeholder="qty"
+                                               name="item_qty"/>
+                                        <input type="hidden" name="item_id" value="{{ product.id }}"/>
+                                        <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
+                                               value="{% trans "Add to Order" %}">
+                                    </form>
+                                {% else %}
+                                    <p class="text-danger text-center">Out of Stock</p>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </div>
