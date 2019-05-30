@@ -154,6 +154,7 @@ class Profile(models.Model):
         default=False)
     product_agreement = models.FileField("Liability Agreement Form",
                                          upload_to='uploads/member_docs/',
+                                         blank=True,
                                          help_text=mark_safe(
                                              "Please <a target='_blank' href='/static/docs/Product Liability Agreement.pdf'>download this form</a> and have all adult members in your household sign. Then upload here."))
     non_subscribing_member = models.BooleanField(default=False,

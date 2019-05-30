@@ -181,6 +181,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
             self.fields['payment_agreement'].required = True
+            self.fields['product_agreement'].required = True
         else:
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['product_agreement'].widget = forms.HiddenInput()

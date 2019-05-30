@@ -14,7 +14,7 @@ DROP_SITE_CHOICES = (
     ('Farm', 'Eugene - Deck Family Farm (Friday)'),
     ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
     ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
-    ('East Campus', 'East Campus/Laurel Hill Area private residence (Saturday 9am-2pm)'),
+    ('East Campus', 'Eugene - East Campus/Laurel Hill Area private residence (Saturday 9am-2pm)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),

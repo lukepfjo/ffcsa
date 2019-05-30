@@ -295,8 +295,7 @@ def export_price_list(modeladmin, request, queryset):
     return response
 
 
-accounts_base.ProfileInline.readonly_fields = ['stripe_customer_id', 'stripe_subscription_id', 'payment_method',
-                                               'ach_status']
+accounts_base.ProfileInline.readonly_fields = ['payment_method', 'ach_status']
 
 
 class UserProfileAdmin(accounts_base.UserProfileAdmin):

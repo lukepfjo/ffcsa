@@ -152,8 +152,8 @@
     {% if user.profile.non_subscribing_member or user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
         <br/>
         <!-- Payment modal trigger -->
-        <button type="button" class="btn btn-default" id="make-payment">
-            Make a Payment
+        <button type="button" class="btn btn-info" id="make-payment">
+            Add funds to account
         </button>
 
         <!-- Payment Modal -->
@@ -163,7 +163,7 @@
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
                                 aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Make a Payment</h4>
+                        <h4 class="modal-title">Add funds to account</h4>
                     </div>
                     <div class="modal-body">
                         {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFIED' %}
