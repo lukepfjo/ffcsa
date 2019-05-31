@@ -29,7 +29,8 @@ from mezzanine.utils.views import paginate
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email
+    SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email, \
+    update_stripe_subscription
 from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -310,6 +311,37 @@ def payments_update(request):
         body = e.json_body
         err = body.get('error', {})
         errors.append(err.get('message'))
+
+    url = reverse('payments')
+    isFirst = True
+    for error in errors:
+        if isFirst:
+            url += "?error={}".format(error)
+        else:
+            url += "&error={}".format(error)
+
+    return HttpResponseRedirect(url)
+
+
+@require_POST
+@login_required
+def payments_update_amount(request):
+    """
+    Update subscription amount
+    """
+    errors = []
+    amount = Decimal(request.POST.get('amount'))
+
+    user = request.user
+    if not user.profile.stripe_customer_id or not user.profile.stripe_subscription_id:
+        errors.append(
+            'Could not find your subscription id to update. Please contact the site administrator.')
+
+    if not errors and amount != user.profile.monthly_contribution:
+        user.profile.monthly_contribution = amount
+        update_stripe_subscription(user)
+        user.profile.save()
+        success(request, 'Your monthly contribution has been updated.')
 
     url = reverse('payments')
     isFirst = True

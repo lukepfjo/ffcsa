@@ -64,6 +64,7 @@ def update_stripe_subscription(user):
     subscription.save()
     stripe.Subscription.modify(subscription.id,
                                prorate=False,
+                               tax_percent=0,
                                items=[{
                                    'id': subscription['items']['data'][0].id,
                                    'plan': plan.id

@@ -48,6 +48,7 @@ urlpatterns += [
     url("^account/payments/subscribe$", ffcsa_core.payments_subscribe, name="payments_subscribe"),
     url("^account/payments/verify$", ffcsa_core.verify_ach, name="payments_verify"),
     url("^account/payments/update$", ffcsa_core.payments_update, name="payments_update"),
+    url("^account/payments/update/amount$", ffcsa_core.payments_update_amount, name="payments_update_amount"),
     url("^account/payments/new$", ffcsa_core.make_payment, name="make_payment"),
 
     # We don't want to presume how your homepage works, so here are a

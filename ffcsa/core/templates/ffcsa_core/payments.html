@@ -24,6 +24,89 @@
 {% block main %}
     {% if not user.profile.non_subscribing_member %}
         <h3>Manage Subscription</h3>
+
+        <!-- Onetime Payment -->
+        {% if user.profile.non_subscribing_member or user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
+            <!-- Payment modal trigger -->
+            <p>
+                <button type="button" class="btn btn-info" id="make-payment">
+                    Add funds to account
+                </button>
+            </p>
+            <br/>
+
+            <!-- Payment Modal -->
+            <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Add funds to account</h4>
+                        </div>
+                        <div class="modal-body">
+                            {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFIED' %}
+                                <div class="alert alert-warning">
+                                    <p>
+                                        Note: Because your default payment method is via ACH bank transfer, it will take
+                                        3-5
+                                        business days before the payment is reflected in your account.
+                                    </p>
+                                    <p>If you choose to pay with a credit card below your account will be updated the
+                                        same
+                                        day.</p>
+                                </div>
+                                <p>This is a one time payment that will be credited to your account.</p>
+                            {% endif %}
+                            <form action="{% url "make_payment" %}" method="POST" id="payment-form" class="form">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label for="amount" class="control-label">Payment Amount</label>
+                                    <input class="form-control" type="text" required name="amount"/>
+                                </div>
+                                {% if user.profile.payment_method == 'ACH' or user.profile.non_subscribing_member %}
+                                    <div class="form-group">
+                                        <label class="control-label">Payment Method</label>
+                                        {% if user.profile.ach_status == 'VERIFIED' %}
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" name="paymentType" id="paymentTypesDefault"
+                                                           value="DEFAULT" checked>
+                                                    Subscription default Bank Account
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="paymentType" id="paymentTypesCC" value="CC">
+                                                Credit Card
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {% with False as isSubscription %}
+                                        {% include "ffcsa_core/cc_payment_details.html" %}
+                                    {% endwith %}
+                                {% endif %}
+                                <div class="form-group checkbox">
+                                    <label>
+                                        <input required type="checkbox" name="chargeAcknowledgement" value="True"> I
+                                        acknowledge that the above amount will be debited from my Card or Bank Account
+                                    </label>
+                                </div>
+
+                                <div id="stripeErrors"></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-info" id="submit-payment">Pay</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
         <!-- ACH Bank Verification-->
         {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'NEW' or user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFYING' %}
             <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you receive
@@ -70,23 +153,7 @@
             <form action="{% url "payments_subscribe" %}" method="POST" id="subscribe-form" class="form">
                 {% csrf_token %}
 
-                <div class="form-group">
-                    <label for="amount" class="control-label">Monthly Contribution Amount</label>
-                    {% if user.profile.monthly_contribution != None %}
-                        <input class="form-control" type="text" required name="amount"
-                               value="{{ user.profile.monthly_contribution }}"/>
-                    {% else %}
-                        <input class="form-control" type="text" required name="amount"
-                               value="260"/>
-                    {% endif %}
-                    <span id="helpBlock" class="help-block">
-                    minimum $260. <br/>How much should I pay? This amount will be your monthly budget for each month throughout the year,
-                    which may include either 4 weeks or 5 weeks of ordering. Although we recommend multiplying your
-                    weekly ordering amount by 4.33 (the average number of weeks in a month), you may want to give
-                    yourself some extra buffer room for those longer, 5 week months, but you can also top up your
-                    account if needed periodically.
-                </span>
-                </div>
+                {% include "ffcsa_core/payment_amount.html" %}
 
                 {% include "ffcsa_core/payment_details.html" %}
 
@@ -108,123 +175,71 @@
                 <button class="btn btn-default btn-info" type="submit">Subscribe</button>
             </form>
         {% else %}
-            <p>Your monthly subscription is ${{ user.profile.monthly_contribution }} via
+            <p>Your monthly contribution is ${{ user.profile.monthly_contribution }} via
                 {% if user.profile.payment_method == 'CC' %}
                     Credit Card
                 {% else %}
                     ACH Bank Transfer
                 {% endif %}
                 .</p>
-            <p>You next payment is scheduled for <strong>{{ next_payment_date }}</strong></p>
+            <p>You next payment is scheduled for <strong>{{ next_payment_date }}</strong>.</p>
             {% if user.profile.payment_method == 'ACH' %}
                 <p>Note: It will take 3-5 business days before the payment is reflected in your account.</p>
             {% endif %}
-            <button class="btn btn-default" id="edit-payment-info">Change Payment Method</button>
+
+            <br/>
+
+            <button class="btn btn-default" id="edit-payment-info">Update Payment Method</button>
+            <button class="btn btn-default" id="edit-payment-amount-btn">Update Monthly Contribution</button>
+
+            <!-- update payment method -->
 
             {% if subscribe_errors and subscribe_errors.length > 0 %}
                 <div id="edit-payment">
             {% else %}
                 <div class="hidden" id="edit-payment">
             {% endif %}
-        <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
+            <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
+                {% csrf_token %}
+                <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
+
+                <br/>
+                {% include "ffcsa_core/payment_details.html" %}
+
+                <div id="stripeErrors"></div>
+                {% for error in subscribe_errors %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endfor %}
+
+                <button class="btn btn-info" type="submit">Save</button>
+                <br/>
+            </form>
+
+            <!-- update payment amount -->
+            {% if subscribe_errors and subscribe_errors.length > 0 %}
+                <div id="edit-payment-amount">
+            {% else %}
+                <div class="hidden" id="edit-payment-amount">
+            {% endif %}
+        <form action="{% url "payments_update_amount" %}" method="POST" id="edit-payment-amount-form" class="form">
             {% csrf_token %}
-            <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
-
             <br/>
-            <p>To change your monthly contribution, please <a href="mailto:{{ contact_email }}">contact us</a>.</p>
-            {% include "ffcsa_core/payment_details.html" %}
+            {% include "ffcsa_core/payment_amount.html" %}
 
-            <div id="stripeErrors"></div>
             {% for error in subscribe_errors %}
                 <div class="alert alert-danger">{{ error }}</div>
             {% endfor %}
 
-            <button class="btn btn-danger btn-info" id="edit-payment-cancel">Cancel</button>
             <button class="btn btn-info" type="submit">Save</button>
+            <br/>
         </form>
+        </div>
 
         </div>
         {% endif %}
     {% endif %}
 
     <div id="payment-container"></div>
-    <!-- Onetime Payment -->
-    {% if user.profile.non_subscribing_member or user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
-        <br/>
-        <!-- Payment modal trigger -->
-        <button type="button" class="btn btn-info" id="make-payment">
-            Add funds to account
-        </button>
-
-        <!-- Payment Modal -->
-        <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModal">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                aria-hidden="true">&times;</span></button>
-                        <h4 class="modal-title">Add funds to account</h4>
-                    </div>
-                    <div class="modal-body">
-                        {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFIED' %}
-                            <div class="alert alert-warning">
-                                <p>
-                                    Note: Because your default payment method is via ACH bank transfer, it will take 3-5
-                                    business days before the payment is reflected in your account.
-                                </p>
-                                <p>If you choose to pay with a credit card below your account will be updated the same
-                                    day.</p>
-                            </div>
-                            <p>This is a one time payment that will be credited to your account.</p>
-                        {% endif %}
-                        <form action="{% url "make_payment" %}" method="POST" id="payment-form" class="form">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <label for="amount" class="control-label">Payment Amount</label>
-                                <input class="form-control" type="text" required name="amount"/>
-                            </div>
-                            {% if user.profile.payment_method == 'ACH' or user.profile.non_subscribing_member %}
-                                <div class="form-group">
-                                    <label class="control-label">Payment Method</label>
-                                    {% if user.profile.ach_status == 'VERIFIED' %}
-                                        <div class="radio">
-                                            <label>
-                                                <input type="radio" name="paymentType" id="paymentTypesDefault"
-                                                       value="DEFAULT" checked>
-                                                Subscription default Bank Account
-                                            </label>
-                                        </div>
-                                    {% endif %}
-                                    <div class="radio">
-                                        <label>
-                                            <input type="radio" name="paymentType" id="paymentTypesCC" value="CC">
-                                            Credit Card
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {% with False as isSubscription %}
-                                    {% include "ffcsa_core/cc_payment_details.html" %}
-                                {% endwith %}
-                            {% endif %}
-                            <div class="form-group checkbox">
-                                <label>
-                                    <input required type="checkbox" name="chargeAcknowledgement" value="True"> I
-                                    acknowledge that the above amount will be debited from my Card or Bank Account
-                                </label>
-                            </div>
-
-                            <div id="stripeErrors"></div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-info" id="submit-payment">Pay</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 
     <h3>Payment History</h3>
     {% if user.profile.joined_before_dec_2017 %}
