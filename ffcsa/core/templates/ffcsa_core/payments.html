@@ -189,53 +189,44 @@
 
             <br/>
 
+            {% for error in subscribe_errors %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endfor %}
+
             <button class="btn btn-default" id="edit-payment-info">Update Payment Method</button>
             <button class="btn btn-default" id="edit-payment-amount-btn">Update Monthly Contribution</button>
 
             <!-- update payment method -->
 
-            {% if subscribe_errors and subscribe_errors.length > 0 %}
-                <div id="edit-payment">
-            {% else %}
-                <div class="hidden" id="edit-payment">
-            {% endif %}
-            <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
-                {% csrf_token %}
-                <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
+            <div class="hidden" id="edit-payment">
+                <form action="{% url "payments_update" %}" method="POST" id="edit-payment-form" class="form">
+                    {% csrf_token %}
+                    <input type="hidden" name="amount" value="{{ user.profile.monthly_contribution }}"/>
 
-                <br/>
-                {% include "ffcsa_core/payment_details.html" %}
+                    <br/>
+                    {% include "ffcsa_core/payment_details.html" %}
 
-                <div id="stripeErrors"></div>
-                {% for error in subscribe_errors %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                {% endfor %}
+                    <div id="stripeErrors"></div>
 
-                <button class="btn btn-info" type="submit">Save</button>
-                <br/>
-            </form>
+                    <button class="btn btn-info" type="submit">Save</button>
+                    <br/>
+                </form>
 
-            <!-- update payment amount -->
-            {% if subscribe_errors and subscribe_errors.length > 0 %}
-                <div id="edit-payment-amount">
-            {% else %}
+                <!-- update payment amount -->
                 <div class="hidden" id="edit-payment-amount">
-            {% endif %}
-        <form action="{% url "payments_update_amount" %}" method="POST" id="edit-payment-amount-form" class="form">
-            {% csrf_token %}
-            <br/>
-            {% include "ffcsa_core/payment_amount.html" %}
+                    <form action="{% url "payments_update_amount" %}" method="POST" id="edit-payment-amount-form"
+                          class="form">
+                        {% csrf_token %}
+                        <br/>
+                        {% include "ffcsa_core/payment_amount.html" %}
 
-            {% for error in subscribe_errors %}
-                <div class="alert alert-danger">{{ error }}</div>
-            {% endfor %}
 
-            <button class="btn btn-info" type="submit">Save</button>
-            <br/>
-        </form>
-        </div>
+                        <button class="btn btn-info" type="submit">Save</button>
+                        <br/>
+                    </form>
+                </div>
 
-        </div>
+            </div>
         {% endif %}
     {% endif %}
 

@@ -216,49 +216,54 @@ def payments_subscribe(request):
     if not stripeToken:
         errors.append('Invalid Request')
 
-    if not errors:
-        if paymentType == 'CC':
-            if not user.profile.stripe_customer_id:
-                customer = stripe.Customer.create(
-                    email=user.email,
-                    description=user.get_full_name(),
-                    source=stripeToken,
-                )
-                user.profile.stripe_customer_id = customer.id
-            else:
-                customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
-                customer.source = stripeToken
-                customer.save()
-            user.profile.payment_method = 'CC'
-            user.profile.monthly_contribution = amount
-            user.profile.save()
+    try:
+        if not errors:
+            if paymentType == 'CC':
+                if not user.profile.stripe_customer_id:
+                    customer = stripe.Customer.create(
+                        email=user.email,
+                        description=user.get_full_name(),
+                        source=stripeToken,
+                    )
+                    user.profile.stripe_customer_id = customer.id
+                else:
+                    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                    customer.source = stripeToken
+                    customer.save()
+                user.profile.payment_method = 'CC'
+                user.profile.monthly_contribution = amount
+                user.profile.save()
 
-            # we can create the subscription right now
-            create_stripe_subscription(user)
-            success(request,
-                    'Your subscription has been created and your first payment is pending. '
-                    'You should see the payment credited to your account within the next few minutes')
-        elif paymentType == 'ACH':
-            if not user.profile.stripe_customer_id:
-                customer = stripe.Customer.create(
-                    email=user.email,
-                    description=user.get_full_name(),
-                    source=stripeToken,
-                )
-                user.profile.stripe_customer_id = customer.id
+                # we can create the subscription right now
+                create_stripe_subscription(user)
+                success(request,
+                        'Your subscription has been created and your first payment is pending. '
+                        'You should see the payment credited to your account within the next few minutes')
+            elif paymentType == 'ACH':
+                if not user.profile.stripe_customer_id:
+                    customer = stripe.Customer.create(
+                        email=user.email,
+                        description=user.get_full_name(),
+                        source=stripeToken,
+                    )
+                    user.profile.stripe_customer_id = customer.id
+                else:
+                    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                    customer.source = stripeToken
+                    customer.save()
+                user.profile.payment_method = 'ACH'
+                user.profile.monthly_contribution = amount
+                user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
+                user.profile.save()
+                success(request,
+                        'Your subscription has been created. You will need to verify your bank account '
+                        'before your first payment is made.')
             else:
-                customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
-                customer.source = stripeToken
-                customer.save()
-            user.profile.payment_method = 'ACH'
-            user.profile.monthly_contribution = amount
-            user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
-            user.profile.save()
-            success(request,
-                    'Your subscription has been created. You will need to verify your bank account '
-                    'before your first payment is made.')
-        else:
-            errors.append('Unknown Payment Type')
+                errors.append('Unknown Payment Type')
+    except stripe.error.CardError as e:
+        body = e.json_body
+        err = body.get('error', {})
+        errors.append(err.get('message'))
 
     url = reverse('payments')
     isFirst = True
