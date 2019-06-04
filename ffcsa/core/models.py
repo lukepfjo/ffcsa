@@ -139,8 +139,8 @@ class Profile(models.Model):
     notes = models.TextField("Invoice Notes", blank=True,
                              help_text="Use &lt;br/&gt; to enter a newline, and &lt;strong&gt;My Text&lt;/strong&gt; to make something bold.")
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
-    stripe_customer_id = models.CharField(blank=False, null=True, max_length=255)
-    stripe_subscription_id = models.CharField(blank=False, null=True, max_length=255)
+    stripe_customer_id = models.CharField(blank=True, null=True, max_length=255)
+    stripe_subscription_id = models.CharField(blank=True, null=True, max_length=255)
     payment_method = models.CharField(blank=False, null=True,
                                       choices=[('CC', 'Credit Card'), ('ACH', 'Bank Account'), ('CRYPTO', 'Crypto')],
                                       max_length=255)
