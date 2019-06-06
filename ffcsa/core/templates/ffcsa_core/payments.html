@@ -26,7 +26,7 @@
         <h3>Manage Subscription</h3>
 
         <!-- Onetime Payment -->
-        {% if user.profile.non_subscribing_member or user.profile.paid_signup_fee and user.profile.stripe_customer_id %}
+        {% if user.profile.non_subscribing_member or user.profile.stripe_subscription_id and user.profile.stripe_customer_id %}
             <!-- Payment modal trigger -->
             <p>
                 <button type="button" class="btn btn-info" id="make-payment">
