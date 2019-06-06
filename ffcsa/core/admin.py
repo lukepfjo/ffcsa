@@ -89,7 +89,7 @@ def export_as_csv(modeladmin, request, queryset):
 
 export_as_csv.short_description = "Export As CSV"
 
-DEFAULT_GROUP_KEY = 100000000
+DEFAULT_GROUP_KEY = 0
 
 
 def keySort(categories):
@@ -97,11 +97,10 @@ def keySort(categories):
         try:
             cat = categories.get(titles=item.category)
 
-            # 0 is default, so don't sort
-            if not cat.parent and cat.order_on_invoice != 0:
-                return (cat.order_on_invoice, item.vendor, item.description)
+            if not cat.parent:
+                return (cat.order_on_invoice, item.description)
 
-            if cat.parent and cat.parent.category and cat.parent.category.order_on_invoice != 0:
+            if cat.parent and cat.parent.category:
                 parent_order = cat.parent.category.order_on_invoice
                 order = cat.order_on_invoice
                 if order == 0:
@@ -109,15 +108,14 @@ def keySort(categories):
 
                 return (
                     float("{}.{}".format(parent_order, order)),
-                    item.vendor,
                     item.description
                 )
 
         except Category.DoesNotExist:
             pass
 
-        # just return a really high number for category
-        return (DEFAULT_GROUP_KEY, item.vendor, item.description)
+        # just return a default number for category
+        return (DEFAULT_GROUP_KEY, item.description)
 
     return func
 
