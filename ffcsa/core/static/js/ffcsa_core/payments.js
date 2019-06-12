@@ -223,10 +223,10 @@ jQuery(function ($) {
 
         $('#submit-payment').click(function () {
           var form = document.getElementById('payment-form')
-          if ($('#paymentTypesDefault').is(':checked')) {
-            form.submit()
-          } else {
+          if ($('#paymentTypesCC').is(':checked')) {
             defaultSubmitHandler(form)
+          } else {
+            form.submit()
           }
         })
 
