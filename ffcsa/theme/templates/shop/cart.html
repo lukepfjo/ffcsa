@@ -83,15 +83,14 @@
                 </tbody>
             </table>
 
-{#            {% if dinner_week %}#}
-{#                <div class="form-group">#}
-{#                    {{ cart_dinner_form.attending_dinner.errors }}#}
-{#                    <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the#}
-{#                        Farm#}
-{#                        5:30pm (If coming to dinner, we will have your order waiting for you at the farm) </label>#}
-{#                    {{ cart_dinner_form.attending_dinner }}#}
-{#                </div>#}
-{#            {% endif %}#}
+            {% if dinner_week %}
+                <div class="form-group">
+                    {{ cart_dinner_form.attending_dinner.errors }}
+                    <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the
+                        Farm 5:30pm (If coming to dinner, we will have your order waiting for you at the farm) </label>
+                    {{ cart_dinner_form.attending_dinner }}
+                </div>
+            {% endif %}
 
             <div class="form-actions">
                 <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
@@ -147,13 +146,13 @@
 
 
     <script type="text/javascript">
-        (function () {
-            $('input[name="clear_cart"]').click(function () {
-                $(':checkbox[id$="-DELETE"]').each(function (i, el) {
-                    el.checked = true;
-                });
-                $('input[name="update_cart"]').click();
-            })
-        })();
+      (function () {
+        $('input[name="clear_cart"]').click(function () {
+          $(':checkbox[id$="-DELETE"]').each(function (i, el) {
+            el.checked = true
+          })
+          $('input[name="update_cart"]').click()
+        })
+      })()
     </script>
 {% endblock %}
