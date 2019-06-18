@@ -31,7 +31,8 @@ from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email, \
     update_stripe_subscription
-from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date
+from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date, next_weekday, \
+    get_order_week_start
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -679,6 +680,63 @@ def admin_member_budgets(request, template="admin/member_budgets.html"):
 
     context = {
         'budgets': budgets
+    }
+
+    return TemplateResponse(request, template, context)
+
+
+@staff_member_required
+def member_order_history(request, template="admin/member_order_history.html"):
+    users = User.objects.filter(is_active=True).order_by('last_name')
+
+    data = []
+
+    next_order_day = next_weekday(get_order_week_start(), ORDER_CUTOFF_DAY)  # get the order day
+
+    wk = next_order_day - datetime.timedelta(7)
+    weeks = [wk]
+
+    # go back 8 weeks
+    while wk > next_order_day - datetime.timedelta(8 * 7):
+        wk = wk - datetime.timedelta(7)
+        weeks.append(wk)
+
+    weeks.reverse()
+
+    for user in users:
+        orders = Order.objects.filter(user_id=user.id, time__gte=datetime.datetime(wk.year, wk.month, wk.day)).order_by('time')
+        sum = 0
+        num_orders = 0
+
+        order_totals = []
+
+        i = 0
+        for order in orders:
+            while weeks[i].date() < order.time.date():
+                order_totals.append(0)
+                i += 1
+
+            if weeks[i].date() == order.time.date():
+                order_totals.append(order.total.quantize(Decimal('.00')))
+                sum += order.total
+                num_orders += 1
+            else:
+                order_totals.append(0)
+
+            i += 1
+
+        while len(order_totals) < len(weeks):
+            order_totals.append(0)
+
+        data.append({
+            'user': user,
+            'orders': order_totals,
+            'avg': 0 if sum == 0 else Decimal(sum / num_orders).quantize(Decimal('.00'))
+        })
+
+    context = {
+        'data': data,
+        'weeks': weeks
     }
 
     return TemplateResponse(request, template, context)
