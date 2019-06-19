@@ -18,7 +18,7 @@ DROP_SITE_CHOICES = (
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
-    ('Corvallis', 'Corvallis - Member Drop Site (Tuesday)'),
+    ('Corvallis', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
 ##############################
