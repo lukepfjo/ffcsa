@@ -194,6 +194,14 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if self._signup:
             user.profile.drop_site = self.cleaned_data['drop_site']
+            user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
+                                 "<b>Preferred communication method:</b>  {}<br/>" \
+                                 "<b>Adults and children in family:</b>  {}<br/>" \
+                                 "<b>How did you hear about us:</b>  {}<br/>" \
+                .format(self.cleaned_data['best_time_to_reach'],
+                        self.cleaned_data['communication_method'],
+                        self.cleaned_data['family_stats'],
+                        self.cleaned_data['hear_about_us'])
             user.profile.save()
 
         return user

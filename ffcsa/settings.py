@@ -11,12 +11,13 @@ ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 DROP_SITE_CHOICES = (
-    ('Farm', 'Eugene - Deck Family Farm (Friday)'),
+    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
     ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
     ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
     ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
@@ -127,6 +128,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "ach_status",
     "paid_signup_fee",
     "notes",
+    "invoice_notes",
     "non_subscribing_member",
     "can_order"
 ]

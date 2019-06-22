@@ -122,20 +122,6 @@ def signup(request, template="accounts/account_signup.html",
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
-        c['csv_data'] = """
-        "{last_name},{first_name}","{date}","{drop_site}","{phone}","{email}","{method}",,,,"{family_stats}","{hear_about_us}"
-        """.format(
-            last_name=new_user.last_name,
-            first_name=new_user.first_name,
-            date=datetime.date.today(),
-            phone=c['phone_number'],
-            drop_site=c['drop_site'],
-            email=new_user.email,
-            method=c['communication_method'],
-            family_stats=c['family_stats'],
-            hear_about_us=c['hear_about_us']
-        )
-
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
             "ffcsa_core/send_admin_new_user_email",

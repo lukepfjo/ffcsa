@@ -4,6 +4,8 @@ You will need to contact them to discuss the Raw Dairy Program. Then you will ne
     visiting {{ user_url }} before they can place an order. Make sure to verify that they
     have signed the Product Liability Form.
 
+You will also need to add this member to google contacts and include the correct labels.
+
 Drop Site
 {{ drop_site }}
 

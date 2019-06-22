@@ -9,6 +9,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django import forms
 from django.utils.safestring import mark_safe
+from mezzanine.core.fields import RichTextField
 
 from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
@@ -136,8 +137,9 @@ class Profile(models.Model):
     phone_number = models.CharField("Contact Number", validators=[PHONE_REGEX], max_length=15)
     phone_number_2 = models.CharField("Alternate Contact Number", validators=[PHONE_REGEX], blank=True, max_length=15)
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
-    notes = models.TextField("Invoice Notes", blank=True,
-                             help_text="Use &lt;br/&gt; to enter a newline, and &lt;strong&gt;My Text&lt;/strong&gt; to make something bold.")
+    notes = RichTextField("Customer Notes", blank=True)
+    invoice_notes = models.TextField("Invoice Notes", blank=True,
+                             help_text="Use &lt;br/&gt; to enter a newline, and &lt;b&gt;My Text&lt;/b&gt; to make something bold.")
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
     stripe_customer_id = models.CharField(blank=True, null=True, max_length=255)
     stripe_subscription_id = models.CharField(blank=True, null=True, max_length=255)
