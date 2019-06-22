@@ -164,10 +164,12 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
+        self.fields['drop_site'] = forms.ChoiceField(choices=settings.DROP_SITE_CHOICES, label="Drop Site Location")
+
+        if self.instance.id is not None:
+            self.initial['drop_site'] = self.instance.profile.drop_site
 
         if self._signup:
-            self.fields['drop_site'] = forms.ChoiceField(choices=settings.DROP_SITE_CHOICES, label="Drop Site Location")
-
             self.fields['pickup_agreement'] = forms.BooleanField(
                 label="I agree to bring my own bags and coolers as needed to pick up my product as the containers the product arrives stay at the dropsite.")
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
@@ -192,8 +194,9 @@ class ProfileForm(accounts_forms.ProfileForm):
     def save(self, *args, **kwargs):
         user = super(ProfileForm, self).save(*args, **kwargs)
 
+        user.profile.drop_site = self.cleaned_data['drop_site']
+
         if self._signup:
-            user.profile.drop_site = self.cleaned_data['drop_site']
             user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
                                  "<b>Preferred communication method:</b>  {}<br/>" \
                                  "<b>Adults and children in family:</b>  {}<br/>" \
@@ -202,7 +205,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                         self.cleaned_data['communication_method'],
                         self.cleaned_data['family_stats'],
                         self.cleaned_data['hear_about_us'])
-            user.profile.save()
+
+        user.profile.save()
 
         return user
 

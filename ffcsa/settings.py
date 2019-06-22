@@ -120,7 +120,6 @@ ACCOUNTS_PROFILE_MODEL = 'ffcsa_core.Profile'
 ACCOUNTS_PROFILE_FORM_CLASS = 'ffcsa.core.forms.ProfileForm'
 ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "monthly_contribution",
-    "drop_site",
     "start_date",
     "stripe_customer_id",
     "stripe_subscription_id",

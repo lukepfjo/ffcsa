@@ -13,5 +13,8 @@
             be able to make your first order.
         </div>
     {% endif %}
+    <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
+        Dropsite:</b> {{ request.user.profile.drop_site }}  <a class="small" style="margin-left:5px" href="{% url "profile_update" %}">(Update)</a>
+    </div>
 {% endif %}
 
