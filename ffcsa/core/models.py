@@ -123,6 +123,22 @@ def product_get_category(self):
 Product.get_category = product_get_category
 
 ###################
+#  User
+###################
+
+User = get_user_model()
+
+
+def patched_str_(self):
+    if self.last_name and self.first_name:
+        return "{}, {}".format(self.last_name, self.first_name)
+
+    return self.get_username()
+
+
+User.__str__ = patched_str_
+
+###################
 #  Profile
 ###################
 
@@ -139,7 +155,7 @@ class Profile(models.Model):
     drop_site = models.CharField("Drop Site", blank=True, max_length=255)
     notes = RichTextField("Customer Notes", blank=True)
     invoice_notes = models.TextField("Invoice Notes", blank=True,
-                             help_text="Use &lt;br/&gt; to enter a newline, and &lt;b&gt;My Text&lt;/b&gt; to make something bold.")
+                                     help_text="Use &lt;br/&gt; to enter a newline, and &lt;b&gt;My Text&lt;/b&gt; to make something bold.")
     start_date = models.DateField("CSA Start Date", blank=True, null=True)
     stripe_customer_id = models.CharField(blank=True, null=True, max_length=255)
     stripe_subscription_id = models.CharField(blank=True, null=True, max_length=255)

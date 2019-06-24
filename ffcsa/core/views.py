@@ -747,7 +747,7 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         extra = 1 if len(ids) > 0 else 2
         can_delete = len(ids) > 0
 
-    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount'), can_delete=can_delete,
+    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes'), can_delete=can_delete,
                                           extra=extra)
 
     if request.method == 'POST':
