@@ -53,7 +53,7 @@ jQuery(function ($) {
       errorClass: 'help-block',
       rules: {
         amount: {
-          min: 260,
+          min: 172,
           required: function () {
             return $('input[name=amount]').length > 0
           },

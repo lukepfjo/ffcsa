@@ -5,9 +5,9 @@ from cartridge.shop.models import Cart, Product, ProductVariation, Priced
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
-from django import forms
 from django.utils.safestring import mark_safe
 from mezzanine.core.fields import RichTextField
 
@@ -126,8 +126,6 @@ Product.get_category = product_get_category
 #  User
 ###################
 
-User = get_user_model()
-
 
 def patched_str_(self):
     if self.last_name and self.first_name:
@@ -168,7 +166,7 @@ class Profile(models.Model):
     paid_signup_fee = models.BooleanField(default=False)
     can_order = models.BooleanField("Has had dairy conversation", default=False)
     payment_agreement = models.BooleanField(
-        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 12 months, with a minimium of $260 per month. If I need to change my monthly payment amount, I will notify the FFCSA admin and keep changes to a maximum of two times per year.",
+        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 12 months, with a minimium of $172 per month. If I need to change my monthly payment amount, I will notify the FFCSA admin and keep changes to a maximum of two times per year.",
         default=False)
     product_agreement = models.FileField("Liability Agreement Form",
                                          upload_to='uploads/member_docs/',
