@@ -1,15 +1,17 @@
 import datetime
 
 from cartridge.shop.fields import MoneyField
-from cartridge.shop.models import Cart, Product, ProductVariation, Priced
+from cartridge.shop.models import Cart, Product, ProductVariation, Priced, CartItem
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import F
 from django.utils.safestring import mark_safe
 from mezzanine.core.fields import RichTextField
+from mezzanine.conf import settings
 
 from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
@@ -122,6 +124,42 @@ def product_get_category(self):
 
 Product.get_category = product_get_category
 
+original_copy_default_variation = deepcopy(Product.copy_default_variation)
+
+
+def update_cart_items(product, orig_sku):
+    """
+    When an item has changed, update any items that are already in the cart
+    """
+    from ffcsa.core.budgets import set_recalculate_budget
+    cat = product.get_category()
+    update = {
+        'sku': product.sku,
+        'description': product.title,
+        'unit_price': product.price(),
+        'total_price': F('quantity') * product.price(),
+        'category': cat.title if cat else None,
+        'vendor': product.variations.first().vendor,
+        'vendor_price': product.vendor_price
+    }
+
+    items = CartItem.objects.filter(sku=orig_sku)
+    items.update(**update)
+    for item in items:
+        set_recalculate_budget(item.cart.user_id)
+
+
+def copy_default_variation(self):
+    orig_sku = self.sku
+    original_copy_default_variation(self)
+    if not settings.SHOP_USE_VARIATIONS:
+        update_cart_items(self, orig_sku)
+
+
+Product.copy_default_variation = copy_default_variation
+
+
+# def product_save(self):
 ###################
 #  User
 ###################

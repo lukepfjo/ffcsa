@@ -14,16 +14,18 @@ from copy import deepcopy
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib import messages
+from django.db.models import F
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode
+from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode, CartItem
 from django.contrib import admin
 
 from cartridge.shop import admin as base
 from mezzanine.accounts import admin as accounts_base
 
+from mezzanine.conf import settings
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.utils.static import static_lazy as static
 from weasyprint import HTML
@@ -31,7 +33,7 @@ from weasyprint import HTML
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
 from ffcsa.core.subscriptions import update_stripe_subscription
-from .models import Payment
+from .models import Payment, update_cart_items
 
 User = get_user_model()
 
@@ -338,9 +340,23 @@ class ProductAdmin(base.ProductAdmin):
         """
         Inform customers when a product in their cart has become unavailable
         """
+        updating = obj.id is not None
+        if updating:
+            orig = Product.objects.filter(id=obj.id).first()
+            orig_sku = orig.sku
         super(ProductAdmin, self).save_model(request, obj, form, change)
 
         # obj.variations.all()[0].live_num_in_stock()
+
+        # update any cart items if necessary
+        if updating and not settings.SHOP_USE_VARIATIONS and 'changelist' in request.resolver_match.url_name:
+            # This is called in both the product admin & product admin changelist view
+            # Since the product admin doesn't update the Product to include the default
+            # variation values until later, we only want to update_cart_items if we are
+            # in the changelist view. Otherwise update_cart_items needs to be called
+            # in a different method after the Product has been updated. We do this in
+            # Product.copy_default_variation
+            update_cart_items(obj, orig_sku)
 
         if "available" in form.changed_data and not obj.available:
             cart_url = request.build_absolute_uri(reverse("shop_cart"))
