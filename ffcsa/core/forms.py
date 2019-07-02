@@ -186,7 +186,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['product_agreement'].required = True
         else:
             self.fields['payment_agreement'].widget = forms.HiddenInput()
-            self.fields['product_agreement'].widget = forms.HiddenInput()
+            del self.fields['product_agreement']
 
     def get_profile_fields_form(self):
         return ProfileFieldsForm

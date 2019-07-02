@@ -612,3 +612,50 @@ import sys
 
 if 'test' in sys.argv or 'test_coverage' in sys.argv:  # Covers regular testing and django-coverage
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
+
+# This is here b/c fab file does string interpolationn & fails w/ the format string below
+if not DEBUG:
+    # https://lincolnloop.com/blog/django-logging-right-way/
+    import logging.config
+
+    LOGGING_CONFIG = None
+    logging.config.dictConfig({
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'console': {
+                # exact format is not important, this is the minimum information
+                'format': '%(asctime)-4s %(name)-12s %(levelname)-8s %(message)s',
+                'datefmt': '%Y-%m-%d %H:%M:%S'
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+            },
+        },
+        'loggers': {
+            '': {
+                'handlers': ['console'],
+                'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
+            },
+            'ffcsa_core': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                # required to avoid double logging with root logger
+                'propagate': False,
+            },
+            'invites': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'django.request': {
+                # don't send WARNING's to rollbar. These occur when 404s happen
+                'handlers': ['console'],
+                'level': 'WARNING',
+                'propagate': False,
+            }
+        }
+    })

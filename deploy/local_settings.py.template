@@ -1,6 +1,4 @@
 from __future__ import unicode_literals
-from copy import deepcopy
-from django.utils.log import DEFAULT_LOGGING
 
 EMAIL_HOST_USER = "%(email_host_user)s"
 EMAIL_USE_SSL = True
@@ -56,28 +54,3 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 GOOGLE_ANALYTICS_ID = "UA-96409336-1"
 
 ADMINS = [('RJ', '%(admin_email)s')]
-
-# enable console logging when not in debug mode
-logging_dict = deepcopy(DEFAULT_LOGGING)
-logging_dict['handlers']['console']['filters'] = []
-LOGGING = logging_dict
-
-#LOGGING = {
-#    'version': 1,
-#    'disable_existing_loggers': False,
-#    'handlers': {
-#        'file': {
-#            'level': 'INFO',
-#            'class': 'logging.FileHandler',
-#            'filename': '/home/%(user)s/logs/%(proj_name)s_django.log',
-#        }
-#    },
-#    'loggers': {
-#        #'django.db.backends': {
-#        '': {
-#            'level': 'INFO',
-#            'handlers': ['file'],
-#            'propagate': True,
-#        }
-#    }
-#}

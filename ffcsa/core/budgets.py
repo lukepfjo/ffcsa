@@ -1,3 +1,4 @@
+from django.utils.log import DEFAULT_LOGGING
 from django.core.cache import caches
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -29,10 +30,12 @@ def recalculate_budget_for_user(user):
 @receiver(post_save, sender=Payment)
 @receiver(post_delete, sender=Payment)
 def payment_handler(**kwargs):
+    print('running payment_handler %s' % kwargs)
     set_recalculate_budget(kwargs['instance'].user.id)
 
 
 @receiver(post_save, sender=Order)
 @receiver(post_delete, sender=Order)
 def order_handler(**kwargs):
+    print('running order_handler %s' % kwargs)
     set_recalculate_budget(kwargs['instance'].user_id)

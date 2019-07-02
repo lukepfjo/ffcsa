@@ -3,8 +3,12 @@ command=%(venv_path)s/bin/gunicorn -c gunicorn.conf.py -p gunicorn.pid %(proj_ap
 directory=%(proj_path)s
 user=%(user)s
 autostart=true
+stdout_logfile_maxbytes=1MB
+stdout_logfile_backups=10
 stdout_logfile = /home/%(user)s/logs/%(proj_name)s_supervisor
+stderr_logfile_maxbytes=1MB
+stderr_logfile_backups=10
 stderr_logfile = /home/%(user)s/logs/%(proj_name)s_supervisor_error
 autorestart=true
-redirect_stderr=true
+redirect_stderr=false
 environment=LANG="%(locale)s",LC_ALL="%(locale)s",LC_LANG="%(locale)s"
