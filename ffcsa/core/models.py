@@ -138,7 +138,7 @@ def update_cart_items(product, orig_sku):
         'description': product.title,
         'unit_price': product.price(),
         'total_price': F('quantity') * product.price(),
-        'category': cat,
+        'category': cat.__str__(),
         'vendor': product.variations.first().vendor,
         'vendor_price': product.vendor_price
     }
