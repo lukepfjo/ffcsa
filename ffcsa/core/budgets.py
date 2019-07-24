@@ -1,4 +1,3 @@
-from django.utils.log import DEFAULT_LOGGING
 from django.core.cache import caches
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
@@ -21,6 +20,7 @@ def recalculate_budget_for_user(user):
         return False
 
     if cache.get(user.id):
+        print('recalculating budget for user: %s' % user)
         cache.delete(user.id)
         return True
 

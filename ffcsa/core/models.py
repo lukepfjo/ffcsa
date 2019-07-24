@@ -112,12 +112,12 @@ ProductVariation._meta.get_field("unit_price").verbose_name = "Member Price"
 # monkey patch the get_category
 def product_get_category(self):
     """
-    Returns the single category this product is associated with, or None
+    Returns the single category this product is associated with, or the first
     if the number of categories is not exactly 1. We exclude the weekly
     example box category from this
     """
     categories = self.categories.exclude(slug='weekly-box')
-    if len(categories) == 1:
+    if len(categories) > 0:
         return categories[0]
     return None
 
@@ -138,7 +138,7 @@ def update_cart_items(product, orig_sku):
         'description': product.title,
         'unit_price': product.price(),
         'total_price': F('quantity') * product.price(),
-        'category': cat.title if cat else None,
+        'category': cat,
         'vendor': product.variations.first().vendor,
         'vendor_price': product.vendor_price
     }
