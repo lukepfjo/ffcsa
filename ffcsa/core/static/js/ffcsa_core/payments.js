@@ -221,13 +221,17 @@ jQuery(function ($) {
 
         var defaultSubmitHandler = validateOpts.submitHandler
 
+        var submitting = false
         $('#submit-payment').click(function () {
+          if (submitting) return
+          submitting = true
           var form = document.getElementById('payment-form')
           if ($('#paymentTypesCC').is(':checked')) {
             defaultSubmitHandler(form)
           } else {
             form.submit()
           }
+          submitting = false
         })
 
         var opts = _.assign({}, validateOpts)

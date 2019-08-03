@@ -241,6 +241,7 @@
             <thead>
                 <th class="left">ID</th>
                 <th class="left">{% trans "Date" %}</th>
+                <th class="left">{% trans "Description" %}</th>
                 <th class="right">{% trans "Amount" %}</th>
             </thead>
             <tbody>
@@ -248,6 +249,7 @@
                     <tr>
                         <td class="left">{{ payment.id }}</td>
                         <td class="left">{{ payment.date|date:"SHORT_DATE_FORMAT" }}</td>
+                        <td class="left">{{ payment.notes|default_if_none:"" }}</td>
                         <td class="right">
                             {% if payment.pending %}
                                 (pending)
