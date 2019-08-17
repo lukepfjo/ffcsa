@@ -6,7 +6,7 @@
             {% trans "Logged in as: " %}
             <a href="{% url "profile_update" %}">{{ request.user|username_or:"email" }}</a>
             <a href="{% url "profile_update" %}" class="btn btn-info btn-sm btn-block btn-account">
-                <span class="glyphicon glyphicon-edit"></span> {% trans "Update profile" %}</a>
+                <span class="glyphicon glyphicon-edit"></span> {% trans "Account Settings" %}</a>
         </p>
         <a href="{% url "logout" %}?next={{ request.get_full_path }}"
            class="btn btn-sm btn-block btn-danger btn-account">

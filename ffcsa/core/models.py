@@ -213,6 +213,10 @@ class Profile(models.Model):
                                              "Please <a target='_blank' href='/static/docs/Product Liability Agreement.pdf'>download this form</a> and have all adult members in your household sign. Then upload here."))
     non_subscribing_member = models.BooleanField(default=False,
                                                  help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
+    no_plastic_bags = models.BooleanField(default=False,
+                                          help_text="Do not pack my items in a plastic bag when possible.")
+    allow_substitutions = models.BooleanField(default=True,
+                                              help_text="I am okay with substitutions when an item I ordered is no longer available. We do our best to pack what you have ordered, however on occasion crops will not be ready to harvest, etc. We can provide a substitution, or we can credit your account.")
 
     @property
     def joined_before_dec_2017(self):

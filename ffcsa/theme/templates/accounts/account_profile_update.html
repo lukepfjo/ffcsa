@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load i18n mezzanine_tags ffcsa_core_tags %}
+
+{% block meta_title %}{{ title }}{% endblock %}
+{% block title %}{{ title }}{% endblock %}
+{% block body_id %}account{% endblock %}
+
+{% block breadcrumb_menu %}
+    {{ block.super }}
+    <li>{{ title }}</li>
+{% endblock %}
+
+{% block main %}
+
+    {% errors_for form %}
+
+    <form class="update-profile-form" method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+        {% csrf_token %}
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <fieldset>
+                    <legend>Account Settings</legend>
+                    {% render_field form.drop_site %}
+                    {% render_field form.no_plastic_bags %}
+                    {% render_field form.allow_substitutions %}
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <fieldset>
+                    <legend>Contact Information</legend>
+                    {% render_field form.first_name %}
+                    {% render_field form.last_name %}
+                    {% render_field form.email %}
+                    {% render_field form.phone_number %}
+                    {% render_field form.phone_number_2 %}
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <fieldset>
+                    <legend>Change Password</legend>
+                    {% render_field form.password1 %}
+                    {% render_field form.password2 %}
+                </fieldset>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            {% block account_form_actions %}
+                <input class="btn btn-primary btn-lg pull-right" type="submit" value="Save">
+            {% endblock %}
+        </div>
+    </form>
+{% endblock %}
+

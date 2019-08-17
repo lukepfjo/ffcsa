@@ -554,6 +554,24 @@ fieldset {
     margin-left: 0;
 }
 
+.control-label .required {
+    font-weight: normal;
+    color: #737373ad;
+}
+
+input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #c7c7c7;
+}
+input::-moz-placeholder { /* Firefox 19+ */
+    color: #eee;
+}
+input:-ms-input-placeholder { /* IE 10+ */
+    color: #c7c7c7;
+}
+input:-moz-placeholder { /* Firefox 18- */
+    color: #c7c7c7;
+}
+
 /* --- contact form  ---- */
 form#contactform input[type="text"], input[type="url"], input[type="email"] {
     width: 100%;
@@ -652,6 +670,14 @@ form#commentform textarea {
     display: none;
 }
 
+/* --- update profile form --- */
+.update-profile-form {
+ margin-top: 16px;
+}
+.update-profile-form legend {
+    margin-bottom: 0;
+    padding-bottom: 8px;
+}
 /* ===============================
 12. Portfolio
 ================================ */

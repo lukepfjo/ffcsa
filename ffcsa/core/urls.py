@@ -4,6 +4,7 @@ from django.conf.urls import url
 from django.conf.urls.i18n import i18n_patterns
 from mezzanine.conf import settings
 from mezzanine.core.views import page_not_found
+from mezzanine.accounts.views import profile_update
 
 from ffcsa.core import views
 
@@ -23,4 +24,5 @@ urlpatterns = i18n_patterns(
     url("^checkout/complete%s$" % _slash, page_not_found, name="shop_complete"),
     url("^wishlist%s$" % _slash, page_not_found, name="shop_wishlist"),
     url("^stripe%s$" % _slash, views.stripe_webhooks),
+    url("^accounts/update%s$" % _slash, profile_update, kwargs={"extra_context": {"title": "Account Settings"}}),
 )

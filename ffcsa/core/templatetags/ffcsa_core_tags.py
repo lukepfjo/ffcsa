@@ -58,6 +58,11 @@ def is_checkbox(boundfield):
     """Return True if this field's widget is a CheckboxInput."""
     return isinstance(boundfield.field.widget, forms.CheckboxInput)
 
+@register.filter
+def is_select(boundfield):
+    """Return True if this field's widget is a CheckboxInput."""
+    return isinstance(boundfield.field.widget, forms.Select)
+
 
 @register.simple_tag(takes_context=True)
 def fields_for(context, form, *exclude_fields, template="includes/form_fields_exclude.html"):
