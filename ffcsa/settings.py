@@ -239,6 +239,20 @@ EXTRA_MODEL_FIELDS = (
         {"verbose_name": "Alt. Phone", "blank": True, "max_length": 255},
     ),
     (
+        "cartridge.shop.models.Order.no_plastic_bags",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"verbose_name": "No Plastic Bags", "default": False},
+    ),
+    (
+        "cartridge.shop.models.Order.allow_substitutions",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"verbose_name": "Allow product substitutions", "default": True},
+    ),
+    (
         "cartridge.shop.models.CartItem.vendor",
         "CharField",
         (),

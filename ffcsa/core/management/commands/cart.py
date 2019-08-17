@@ -35,7 +35,9 @@ class Command(BaseCommand):
                     'total': cart.total_price(),
                     'attending_dinner': cart.attending_dinner,
                     'drop_site': user.profile.drop_site,
-                    'additional_instructions': user.profile.invoice_notes
+                    'additional_instructions': user.profile.invoice_notes,
+                    'no_plastic_bags': user.profile.no_plastic_bags,
+                    'allow_substitutions': user.profile.allow_substitutions,
                 }
 
                 order = Order.objects.create(**order_dict)

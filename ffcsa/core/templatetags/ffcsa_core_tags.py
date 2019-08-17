@@ -45,6 +45,11 @@ def get_item(dictionary, key):
 
 
 @register.filter
+def get_attr(value, arg):
+    return getattr(value, arg)
+
+
+@register.filter
 def get_billing_detail_field(billing_detail_list, key):
     for (k, value) in billing_detail_list:
         if k == key:
@@ -57,6 +62,7 @@ def get_billing_detail_field(billing_detail_list, key):
 def is_checkbox(boundfield):
     """Return True if this field's widget is a CheckboxInput."""
     return isinstance(boundfield.field.widget, forms.CheckboxInput)
+
 
 @register.filter
 def is_select(boundfield):
