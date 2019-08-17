@@ -15,7 +15,9 @@
     {% errors_for form %}
 
     <form class="update-profile-form" method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
-        {% csrf_token %}
+        {% nevercache %}
+            {% csrf_token %}
+        {% endnevercache %}
 
         <div class="panel panel-default">
             <div class="panel-body">

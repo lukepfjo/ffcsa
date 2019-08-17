@@ -2,38 +2,41 @@
 {% if request.user.is_authenticated %}
     {% spaceless %}
         <div class="shop-panel">
-            <table class="table table-condensed table-striped">
-                <thead>
-                    <tr>
-                        <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Weekly Order</a></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if not request.cart.items.exists %}
+            {% nevercache %}
+                <table class="table table-condensed table-striped">
+                    <thead>
                         <tr>
-                            <td class="text-center" colspan="2">no items</td>
+                            <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Weekly Order</a>
+                            </th>
                         </tr>
-                    {% endif %}
-                    {% for item in request.cart.items.all %}
-                        <tr>
-                            <td>{{ item.quantity }}x</td>
-                            <td>{{ item.description }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <table class="table table-condensed">
-                <tbody>
-                    {% with budget=request.session.remaining_budget order_total=request.cart.total_price %}
-                        <tr>
-                            <td><strong>Order Value:</strong> ${{ order_total }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Remaining Budget:</strong> ${{ budget }}</td>
-                        </tr>
-                    {% endwith %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% if not request.cart.items.exists %}
+                            <tr>
+                                <td class="text-center" colspan="2">no items</td>
+                            </tr>
+                        {% endif %}
+                        {% for item in request.cart.items.all %}
+                            <tr>
+                                <td>{{ item.quantity }}x</td>
+                                <td>{{ item.description }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <table class="table table-condensed">
+                    <tbody>
+                        {% with budget=request.session.remaining_budget order_total=request.cart.total_price %}
+                            <tr>
+                                <td><strong>Order Value:</strong> ${{ order_total }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Remaining Budget:</strong> ${{ budget }}</td>
+                            </tr>
+                        {% endwith %}
+                    </tbody>
+                </table>
+            {% endnevercache %}
 
             <a href="{% url "shop_order_history" %}" class="btn btn-sm btn-block btn-info btn-account">
                 <span class="glyphicon glyphicon-folder-open"></span> {% trans "View Order History" %}</a>
@@ -67,7 +70,8 @@
                         <p>If you have extra budget in you account this month, you can consider donating to the
                             Feed-A-Friend FFCSA fund, which makes it possible for families in need to be able to afford
                             membership in the FFCSA.</p>
-                        <form action="{% url "donate" %}?next={{ request.path }}" method="POST" id="donate-form" class="form">
+                        <form action="{% url "donate" %}?next={{ request.path }}" method="POST" id="donate-form"
+                              class="form">
                             {% csrf_token %}
                             <div class="form-group">
                                 <label for="amount" class="control-label">Donation Amount</label>
