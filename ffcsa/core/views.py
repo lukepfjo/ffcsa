@@ -27,6 +27,7 @@ from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
+from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email, \
@@ -121,6 +122,8 @@ def signup(request, template="accounts/account_signup.html",
             'hear_about_us': form.cleaned_data['hear_about_us'],
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
+
+        add_contact(new_user)
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,

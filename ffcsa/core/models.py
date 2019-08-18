@@ -217,6 +217,9 @@ class Profile(models.Model):
                                           help_text="Do not pack my items in a plastic bag when possible.")
     allow_substitutions = models.BooleanField(default=True,
                                               help_text="I am okay with substitutions when an item I ordered is no longer available. We do our best to pack what you have ordered, however on occasion crops will not be ready to harvest, etc. We can provide a substitution, or we can credit your account.")
+    weekly_emails = models.BooleanField(default=True, verbose_name="Receive Weekly Emails",
+                                        help_text="Receive weekly newsletter and reminder emails.")
+    google_person_id = models.TextField(null=True, help_text="Google Person resource id", blank=True)
 
     @property
     def joined_before_dec_2017(self):

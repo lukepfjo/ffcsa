@@ -21,6 +21,12 @@ DROP_SITE_CHOICES = (
     ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
+GOOGLE_GROUP_IDS = {
+    "MEMBERS": "contactGroups/71b7ef9a09789cab",
+    "NEWSLETTER": "contactGroups/3095ba340cae4e15",
+    "MANAGED": "contactGroups/41aaae0b0f3d9da7",
+}
+
 ##############################
 # FFCSA-INVITES SETTINGS #
 ##############################
@@ -129,7 +135,8 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "notes",
     "invoice_notes",
     "non_subscribing_member",
-    "can_order"
+    "can_order",
+    "google_person_id"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 

@@ -10,6 +10,8 @@ from mezzanine.conf import settings
 from mezzanine.pages.admin import PageAdminForm
 from mezzanine.accounts import forms as accounts_forms
 
+from ffcsa.core.google import update_contact
+
 User = get_user_model()
 
 
@@ -157,6 +159,7 @@ CartItemFormSet.clean = cart_item_formset_clean
 
 
 class ProfileForm(accounts_forms.ProfileForm):
+    # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
     username = None
 
     def __init__(self, *args, **kwargs):
@@ -205,8 +208,15 @@ class ProfileForm(accounts_forms.ProfileForm):
                         self.cleaned_data['communication_method'],
                         self.cleaned_data['family_stats'],
                         self.cleaned_data['hear_about_us'])
+            # defaults
+            user.profile.allow_substitutions = True
+            user.profile.weekly_emails = True
+            user.profile.no_plastic_bags = False
 
         user.profile.save()
+
+        if not self._signup:
+            update_contact(user)
 
         return user
 
