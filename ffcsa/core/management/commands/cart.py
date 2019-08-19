@@ -22,6 +22,9 @@ class Command(BaseCommand):
                 print("cart has items")
                 user = get_user_model().objects.get(id=cart.user_id)
 
+                if not user.profile.start_date:
+                    user.profile.start_date = now()
+
                 order_dict = {
                     'user_id': user.id,
                     # add 1 day since all billing is based off of Friday ordering, but orders close on Thursday
