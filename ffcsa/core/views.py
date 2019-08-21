@@ -547,12 +547,12 @@ def stripe_webhooks(request):
             if user and charge.source.object == 'bank_account':
                 amount = charge.amount / 100  # amount is in cents
                 date = datetime.datetime.fromtimestamp(charge.created)
-                existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
+                existing_payments = Payment.objects.filter(charge_id=charge.id)
                 if existing_payments.exists():
                     raise AssertionError(
                         "Pending Payment Error: That payment already exists: {}".format(existing_payments.first()))
                 else:
-                    payment = Payment.objects.create(user=user, amount=amount, date=date, pending=True)
+                    payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id, pending=True)
                     payment.save()
                     payments_url = request.build_absolute_uri(reverse("payments"))
                     send_pending_payment_email(user, payments_url)
@@ -566,7 +566,7 @@ def stripe_webhooks(request):
                 else:
                     amount = charge.amount / 100  # amount is in cents
                     date = datetime.datetime.fromtimestamp(charge.created)
-                    existing_payments = Payment.objects.filter(user=user, amount=amount, date=date)
+                    existing_payments = Payment.objects.filter(charge_id=charge.id)
                     if existing_payments.filter(pending=False).exists():
                         raise AssertionError(
                             "That payment already exists: {}".format(existing_payments.filter(pending=False).first()))
@@ -574,7 +574,7 @@ def stripe_webhooks(request):
                         sendFirstPaymentEmail = not Payment.objects.filter(user=user).exists()
                         payment = existing_payments.filter(pending=True).first()
                         if payment is None:
-                            payment = Payment.objects.create(user=user, amount=amount, date=date)
+                            payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id)
                         else:
                             payment.pending = False
                         payment.save()
