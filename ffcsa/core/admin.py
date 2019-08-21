@@ -11,10 +11,11 @@ from decimal import Decimal
 
 from copy import deepcopy
 
+from cartridge.shop.forms import ImageWidget
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib import messages
-from django.db.models import F
+from django.db.models import F, ImageField
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -26,14 +27,16 @@ from cartridge.shop import admin as base
 from mezzanine.accounts import admin as accounts_base
 
 from mezzanine.conf import settings
+from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.generic.models import ThreadedComment
+from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
 from ffcsa.core.subscriptions import update_stripe_subscription
-from .models import Payment, update_cart_items
+from .models import Payment, update_cart_items, Recipe
 
 User = get_user_model()
 
@@ -386,6 +389,31 @@ class PaymentAdmin(admin.ModelAdmin):
         return super(PaymentAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+recipe_fieldsets = deepcopy(PageAdmin.fieldsets)
+recipe_fieldsets[0][1]["fields"][3:3] = ["content"]  # , "products"]
+# for some reason the trailing , in the classes tuple causes django to throw the error: (admin.E012) There are duplicate field(s) in 'fieldsets[0][1]'.
+# so we remove it here
+recipe_fieldsets[1][1]['classes'] = ('collapse', 'collapse-closed')
+if settings.SHOP_CATEGORY_USE_FEATURED_IMAGE:
+    recipe_fieldsets[0][1]["fields"].insert(3, "featured_image")
+
+
+class RecipeProductInlineAdmin(admin.TabularInline):
+    model = Recipe.products.through
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "product":
+            kwargs["queryset"] = Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)
+        return super(RecipeProductInlineAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class RecipeAdmin(PageAdmin):
+    form = CategoryAdminForm
+    fieldsets = recipe_fieldsets
+    formfield_overrides = {ImageField: {"widget": ImageWidget}}
+    inlines = (RecipeProductInlineAdmin,)
+
+
 admin.site.unregister(Order)
 admin.site.register(Order, MyOrderAdmin)
 admin.site.unregister(Category)
@@ -396,6 +424,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserProfileAdmin)
 
 admin.site.register(Payment, PaymentAdmin)
+admin.site.register(Recipe, RecipeAdmin)
 
 # TODO remove all unnecessary admin menus
 admin.site.unregister(ThreadedComment)

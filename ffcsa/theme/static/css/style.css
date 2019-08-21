@@ -2126,6 +2126,7 @@ article img.pull-right, article .align-right {
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
 
+.add-recipe-form .form-actions,
 .add-weekly-box-form .form-actions {
     border-top: none;
     padding: 0;

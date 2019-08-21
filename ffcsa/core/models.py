@@ -10,8 +10,11 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 from django.utils.safestring import mark_safe
-from mezzanine.core.fields import RichTextField
+from mezzanine.core.fields import RichTextField, FileField
 from mezzanine.conf import settings
+from mezzanine.core.models import RichText
+from mezzanine.pages.models import Page
+from mezzanine.utils.models import upload_to
 
 from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
@@ -242,3 +245,25 @@ class Payment(models.Model):
 
     def __str__(self):
         return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.amount)
+
+
+class Recipe(Page, RichText):
+    """
+    A recipe with list of products on the website.
+    """
+    featured_image = FileField(verbose_name="Featured Image",
+                               upload_to=upload_to("shop.Recipe.featured_image", "shop"),
+                               format="Image", max_length=255, null=True, blank=True)
+    products = models.ManyToManyField("shop.Product", blank=True,
+                                      verbose_name="Products",
+                                      through="RecipeProduct")
+
+    class Meta:
+        verbose_name = "Recipe"
+        verbose_name_plural = "Recipes"
+
+
+class RecipeProduct(models.Model):
+    recipe = models.ForeignKey(Recipe, verbose_name="Recipe", on_delete=models.CASCADE)
+    product = models.ForeignKey("shop.Product", verbose_name="Product", on_delete=models.CASCADE)
+    quantity = models.IntegerField("Quantity", default=1)
