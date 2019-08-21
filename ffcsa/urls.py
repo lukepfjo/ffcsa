@@ -26,13 +26,6 @@ if settings.USE_MODELTRANSLATION:
         url('^i18n/$', set_language, name='set_language'),
     ]
 
-if settings.DEBUG:
-    import debug_toolbar
-
-    urlpatterns += [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ]
-
 urlpatterns += [
 
     # ffcsa-core
