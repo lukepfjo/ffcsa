@@ -28,12 +28,14 @@ class DiscountMiddleware(object):
 
     def process_response(self, request, response):
         if request.session.get("discount_code", None):
-            if not request.user.is_authenticated() or not request.user.profile.discount_code:
+            if not hasattr(request, 'user') \
+                    or not request.user.is_authenticated() or not request.user.profile.discount_code:
                 request.session["discount_code"] = None
                 request.session["discount_total"] = None
-                set_recalculate_budget(request.user.id)
+                if hasattr(request, 'user'):
+                    set_recalculate_budget(request.user.id)
 
-        elif request.user.is_authenticated() and request.user.profile.discount_code:
+        elif hasattr(request, 'user') and request.user.is_authenticated() and request.user.profile.discount_code:
             request.session["discount_code"] = request.user.profile.discount_code.code
             total = request.cart.calculate_discount(request.user.profile.discount_code)
             request.session["discount_total"] = str(total)

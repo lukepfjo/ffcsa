@@ -701,9 +701,12 @@ def member_order_history(request, template="admin/member_order_history.html"):
 
         i = 0
         for order in orders:
-            while weeks[i].date() < order.time.date():
+            while i < len(weeks) and weeks[i].date() < order.time.date():
                 order_totals.append(0)
                 i += 1
+
+            if i >= len(weeks):
+                break
 
             if weeks[i].date() == order.time.date():
                 order_totals.append(order.total.quantize(Decimal('.00')))
