@@ -27,6 +27,7 @@ from cartridge.shop import admin as base
 from mezzanine.accounts import admin as accounts_base
 
 from mezzanine.conf import settings
+from mezzanine.core.admin import SitePermissionInline
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
@@ -301,10 +302,25 @@ def export_price_list(modeladmin, request, queryset):
     return response
 
 
-accounts_base.ProfileInline.readonly_fields = ['payment_method', 'ach_status']
+accounts_base.ProfileInline.readonly_fields = ['payment_method', 'ach_status', 'google_person_id']
+accounts_base.ProfileInline.fieldsets = (
+    (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'invoice_notes')}),
+    ('Payments', {'fields': (
+        'monthly_contribution', 'paid_signup_fee', 'payment_agreement', 'payment_method', 'ach_status',
+        'stripe_subscription_id', 'stripe_customer_id')}),
+    ('Preferences', {'fields': ('drop_site', 'no_plastic_bags', 'allow_substitutions', 'weekly_emails')}),
+    ('Other', {'fields': ('start_date', 'can_order', 'product_agreement', 'non_subscribing_member')}),
+
+)
+
+user_fieldsets = deepcopy(accounts_base.UserProfileAdmin.fieldsets)
+user_fieldsets[2][1]['classes'] = ('collapse', 'collapse-closed')
+SitePermissionInline.classes = ('collapse', 'collapse-closed')
 
 
 class UserProfileAdmin(accounts_base.UserProfileAdmin):
+    fieldsets = user_fieldsets
+
     def save_model(self, request, obj, form, change):
         """
         Update stripe subscription if needed
@@ -390,7 +406,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 
 recipe_fieldsets = deepcopy(PageAdmin.fieldsets)
-recipe_fieldsets[0][1]["fields"][3:3] = ["content"]  # , "products"]
+recipe_fieldsets[0][1]["fields"][3:3] = ["content"]
 # for some reason the trailing , in the classes tuple causes django to throw the error: (admin.E012) There are duplicate field(s) in 'fieldsets[0][1]'.
 # so we remove it here
 recipe_fieldsets[1][1]['classes'] = ('collapse', 'collapse-closed')
