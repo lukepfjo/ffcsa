@@ -25,10 +25,15 @@
             </table>
             <table class="table table-condensed">
                 <tbody>
-                    {% with budget=request.session.remaining_budget order_total=request.cart.total_price %}
+                    {% with budget=request.session.remaining_budget order_total=request.cart.total_price discount=request.cart.discount %}
                         <tr>
                             <td><strong>Order Value:</strong> ${{ order_total }}</td>
                         </tr>
+                        {% if discount %}
+                            <tr>
+                                <td><strong>Discount:</strong> ${{ discount|floatformat:2 }}</td>
+                            </tr>
+                        {% endif %}
                         <tr>
                             <td><strong>Remaining Budget:</strong> ${{ budget }}</td>
                         </tr>

@@ -82,7 +82,19 @@ class CartExtend:
         ytd_order_total = get_order_total(user)
         ytd_payment_total = get_payment_total(user)
 
-        return ytd_payment_total - (ytd_order_total + self.total_price())
+        return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
+
+    def discount(self):
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        if not user or not user.profile.discount_code:
+            return 0
+
+        return self.calculate_discount(user.profile.discount_code)
+
+    def total_price_after_discount(self):
+        return self.total_price() - self.discount()
 
 
 Cart.__bases__ += (CartExtend,)
@@ -223,11 +235,18 @@ class Profile(models.Model):
     weekly_emails = models.BooleanField(default=True, verbose_name="Receive Weekly Emails",
                                         help_text="Receive weekly newsletter and reminder emails.")
     google_person_id = models.TextField(null=True, help_text="Google Person resource id", blank=True)
+    discount_code = models.ForeignKey('shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
 
     @property
     def joined_before_dec_2017(self):
         # use early nov b/c dec payments are received in nov
         return self.user.date_joined.date() <= datetime.date(2017, 11, 5)
+
+    def __str__(self):
+        if self.user.last_name and self.user.first_name:
+            return "{}, {}".format(self.user.last_name, self.user.first_name)
+
+        return self.user.get_username()
 
 
 ###################

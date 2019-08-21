@@ -567,6 +567,7 @@ MIDDLEWARE_CLASSES = (
     # "mezzanine.pages.middleware.PageMiddleware",
     "cartridge.shop.middleware.MultiurlPageMiddleware",
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
+    "ffcsa.core.middleware.DiscountMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
 )
 

@@ -100,12 +100,12 @@
             </div>
         </form>
 
-        {% if discount_form %}
-            <form method="post" class="discount-form col-md-12 text-right">
-                {% fields_for discount_form %}
-                <input type="submit" class="btn btn-default" value="{% trans "Apply" %}">
-            </form>
-        {% endif %}
+{#        {% if discount_form %}#}
+{#            <form method="post" class="discount-form col-md-12 text-right">#}
+{#                {% fields_for discount_form %}#}
+{#                <input type="submit" class="btn btn-default" value="{% trans "Apply" %}">#}
+{#            </form>#}
+{#        {% endif %}#}
 
         {% if settings.SHOP_USE_UPSELL_PRODUCTS %}
             {% with request.cart.upsell_products as upsell_products %}

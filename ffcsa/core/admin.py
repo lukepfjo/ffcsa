@@ -306,7 +306,7 @@ accounts_base.ProfileInline.readonly_fields = ['payment_method', 'ach_status', '
 accounts_base.ProfileInline.fieldsets = (
     (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'invoice_notes')}),
     ('Payments', {'fields': (
-        'monthly_contribution', 'paid_signup_fee', 'payment_agreement', 'payment_method', 'ach_status',
+        'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_agreement', 'payment_method', 'ach_status',
         'stripe_subscription_id', 'stripe_customer_id')}),
     ('Preferences', {'fields': ('drop_site', 'no_plastic_bags', 'allow_substitutions', 'weekly_emails')}),
     ('Other', {'fields': ('start_date', 'can_order', 'product_agreement', 'non_subscribing_member')}),
@@ -445,4 +445,3 @@ admin.site.register(Recipe, RecipeAdmin)
 # TODO remove all unnecessary admin menus
 admin.site.unregister(ThreadedComment)
 admin.site.unregister(Sale)
-admin.site.unregister(DiscountCode)

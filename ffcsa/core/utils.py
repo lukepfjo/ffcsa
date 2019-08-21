@@ -46,7 +46,7 @@ def next_weekday(d, weekday):
 def get_orders(user):
     return Order.objects \
         .filter(user_id=user.id) \
-        .filter(time__gte=datetime.date(2017, 12, 1)) # started calculating payments 12/1/2017
+        .filter(time__gte=datetime.date(2017, 12, 1))  # started calculating payments 12/1/2017
 
 
 def get_order_total(user):
@@ -72,7 +72,7 @@ def get_payment_total(user):
 
 def recalculate_remaining_budget(request):
     """
-    utitlity function to attach the remaining budget as an attribute on the request.user
+    utility function to attach the remaining budget as an attribute on the request.user
 
     This should be called after any cart modifications, as we take into account the request.cart.total_price()
     in the calculated remaining_budget
@@ -88,7 +88,8 @@ def recalculate_remaining_budget(request):
         ytd_contrib = Decimal(0)
 
     # update remaining_budget
-    request.session["remaining_budget"] = float("{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price()))
+    request.session["remaining_budget"] = float(
+        "{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price_after_discount()))
 
 
 # monkey patch the recalculate_cart function to update the User.remaining_budget so we don't
