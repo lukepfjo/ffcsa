@@ -52,7 +52,7 @@ def export_as_csv(modeladmin, request, queryset):
     writer.writerow(
         ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Price',
          'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price', 'Parent Category Order On Invoice',
-         'Child Category Order On Invoice'])
+         'Child Category Order On Invoice', 'Allow Substitutions'])
 
     for order in queryset:
         last_name = order.billing_detail_last_name
@@ -88,6 +88,7 @@ def export_as_csv(modeladmin, request, queryset):
                 if add_blank:
                     row.append('')
 
+            row.append('yes' if order.allow_substitutions else 'no')
             writer.writerow(row)
 
     return response
