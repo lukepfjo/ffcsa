@@ -21,6 +21,17 @@ DROP_SITE_CHOICES = (
     ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
+DROP_SITE_COLORS = {
+    'Farm': 'pink',
+    'Corner Market': 'white',
+    'LCFM': 'blue',
+    'Hollywood': 'yellow',
+    'PSU': 'green',
+    'St Johns': 'purple',
+    'Woodstock': 'yellow',
+    'Banzhaf': 'orange',
+}
+
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",

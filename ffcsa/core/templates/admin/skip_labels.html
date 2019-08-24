@@ -1,0 +1,43 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n mezzanine_tags staticfiles %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static settings.MEZZANINE_ADMIN_PREFIX|add:"css/dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "mezzanine/css/admin/dashboard.css" %}">
+    <!--[if IE 7]><style>.dashboard #content {padding-top: 80px;}</style><![endif]-->
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">{% trans "Home" %}</div>{% endblock %}
+
+{% block content_title %}<h1>{% trans "Generate Order Labels" %}</h1>{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+
+        <p>
+            Enter the number of labels that need to be skipped (if any) on the first sheet to print.
+        </p>
+        <br/>
+
+        <form method="post" action="{{ path }}">
+            {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+            </table>
+
+            <p class="submit-row">
+                <input type="hidden" name="action" value="create_labels"/>
+                <input type="submit" name="cancel" value="Cancel"/>
+                <input type="submit" class="default" name="create" value="Create"/>
+            </p>
+        </form>
+
+
+    </div>{% endblock %}
+

@@ -4,6 +4,8 @@ import csv
 import tempfile
 import zipfile
 import collections
+
+import labels
 import stripe
 from itertools import groupby
 
@@ -12,12 +14,15 @@ from decimal import Decimal
 from copy import deepcopy
 
 from cartridge.shop.forms import ImageWidget
+from django.contrib.messages import info
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.db.models import F, ImageField
+from django import forms
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
+from django.template.response import TemplateResponse
 from django.urls import reverse
 
 from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode, CartItem
@@ -32,6 +37,9 @@ from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
+from reportlab.graphics import shapes
+from reportlab.lib.colors import HexColor
+from reportlab.pdfbase.pdfmetrics import stringWidth
 from weasyprint import HTML
 
 from ffcsa.core.availability import inform_user_product_unavailable
@@ -42,6 +50,95 @@ from .models import Payment, update_cart_items, Recipe
 User = get_user_model()
 
 TWOPLACES = Decimal(10) ** -2
+
+
+def draw_label(label, width, height, order):
+    last_name = order.billing_detail_last_name
+    first_name = order.billing_detail_first_name
+    drop_site = order.drop_site
+
+    color = settings.DROP_SITE_COLORS[drop_site] if drop_site in settings.DROP_SITE_COLORS else 'grey'
+    strokeColor = color if color is not 'white' else 'black'
+    label.add(shapes.Circle(17, 17, 12, fillColor=color, strokeColor=strokeColor))
+
+    # Write the dropsite.
+    label.add(shapes.String(width - 8, 10, drop_site, fontSize=16, textAnchor='end'))
+
+    # Measure the width of the name and shrink the font size until it fits.
+    font_size = 20
+    text_width = width - 16
+    name = "{}, {}".format(last_name, first_name)
+    name_width = stringWidth(name, "Helvetica", font_size)
+    while name_width > text_width:
+        font_size *= 0.8
+        name_width = stringWidth(name, "Helvetica", font_size)
+
+    # Write out the name in the centre of the label with a random colour.
+    # s = shapes.String(width / 2.0, height - 30, name, textAnchor="middle")
+    s = shapes.String(8, height - 30, name)
+    s.fontName = "Helvetica"
+    s.fontSize = font_size
+    # s.fillColor = random.choice((colors.black, colors.blue, colors.red, colors.green))
+    label.add(s)
+
+
+class SkipLabelsForm(forms.Form):
+    _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    skip = forms.IntegerField(max_value=30)
+
+
+def create_labels(modeladmin, request, queryset):
+    if 'cancel' in request.POST:
+        info(request, 'Canceled label creation.')
+        return
+    if 'create' in request.POST:
+        form = SkipLabelsForm(request.POST)
+
+        if form.is_valid():
+            # Create an A4 portrait (210mm x 297mm) sheets with 2 columns and 8 rows of
+            # labels. Each label is 90mm x 25mm with a 2mm rounded corner. The margins are
+            # automatically calculated.
+            # These settings are configured for Avery 5160 Address Labels
+            specs = labels.Specification(217, 279, 3.25, 10, 70, 26.6, corner_radius=2, row_gap=0, column_gap=3, top_margin=8.25, left_margin=.8)
+
+            sheet = labels.Sheet(specs, draw_label)
+
+            to_skip = form.cleaned_data['skip']
+            if to_skip > 0:
+                used = []
+                row = 1
+                col = 1
+                for i in range(1, to_skip + 1):
+                    used.append((row, col))
+                    # label sheet has 3 columns
+                    if i % 3 == 0:
+                        row += 1
+                        col = 1
+                    else:
+                        col += 1
+
+                sheet.partial_page(1, used)
+
+            for order in queryset.order_by('drop_site', 'billing_detail_last_name'):
+                sheet.add_label(order)
+
+            with tempfile.NamedTemporaryFile() as tmp:
+                sheet.save(tmp)
+
+                # Reset file pointer
+                tmp.seek(0)
+
+                # Write file data to response
+                response = HttpResponse(tmp.read(), content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="ffcsa_order_labels.pdf"'
+                return response
+    else:
+        form = SkipLabelsForm(initial={'skip': 0, '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+
+    return TemplateResponse(request, 'admin/skip_labels.html', {'form': form})
+
+
+create_labels.short_description = "Create Box Labels"
 
 
 def export_as_csv(modeladmin, request, queryset):
@@ -131,7 +228,7 @@ def download_invoices(self, request, queryset):
     invoices = {}
     categories = Category.objects.exclude(slug='weekly-box')
 
-    for order in queryset.order_by('drop_site'):
+    for order in queryset.order_by('drop_site', 'billing_detail_last_name'):
         context = {"order": order}
         context.update(order.details_as_dict())
 
@@ -157,7 +254,7 @@ def download_invoices(self, request, queryset):
         html = get_template("shop/order_packlist_pdf.html").render(context)
         invoice = tempfile.SpooledTemporaryFile()
         HTML(string=html).write_pdf(invoice)
-        invoices["{}_{}".format(order.drop_site, order.id)] = invoice
+        invoices["{}_{}_{}".format(order.drop_site, order.billing_detail_last_name, order.id)] = invoice
         # Reset file pointer
         invoice.seek(0)
 
@@ -190,9 +287,12 @@ order_admin_fieldsets[2][1]["fields"] = tuple(order_admin_fieldsets_fields_list)
 
 
 class MyOrderAdmin(base.OrderAdmin):
-    actions = [export_as_csv, download_invoices]
+    actions = [export_as_csv, download_invoices, create_labels]
     fieldsets = order_admin_fieldsets
     form = OrderAdminForm
+
+    # class Media:
+    #     js = (static("js/admin/orders.js"),)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(MyOrderAdmin, self).get_form(request, obj, **kwargs)
