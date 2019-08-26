@@ -76,6 +76,9 @@ class CartExtend:
         return self.remaining_budget() < additional_total
 
     def remaining_budget(self):
+        if not self.user_id:
+            return 0
+
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
@@ -85,6 +88,9 @@ class CartExtend:
         return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
 
     def discount(self):
+        if not self.user_id:
+            return 0
+
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
