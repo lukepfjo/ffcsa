@@ -23,12 +23,13 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings
+from mezzanine.pages.models import Page
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
 from ffcsa.core.google import add_contact
-from ffcsa.core.models import Payment
+from ffcsa.core.models import Payment, Recipe
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
     SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email, \
     update_stripe_subscription
@@ -40,9 +41,11 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def shop_home(request, template="shop_home.html"):
     root_categories = Category.objects.published().filter(parent__isnull=True)
+    recipes = Recipe.objects.published().filter(slug='recipes').first()
 
     context = {
         'categories': root_categories,
+        'recipes': recipes,
         'settings': settings,
     }
 
