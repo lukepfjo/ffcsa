@@ -4,9 +4,10 @@ from copy import deepcopy
 
 from cartridge.shop import views as s_views
 from cartridge.shop.forms import CartItemFormSet, DiscountForm
-from cartridge.shop.models import Category, Order
+from cartridge.shop.models import Category, Order, Product
 from decimal import Decimal
 
+from dal import autocomplete
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model, login as auth_login
 from django.contrib.messages import error, success, info
@@ -23,6 +24,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings
+from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.pages.models import Page
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
@@ -555,7 +557,8 @@ def stripe_webhooks(request):
                     raise AssertionError(
                         "Pending Payment Error: That payment already exists: {}".format(existing_payments.first()))
                 else:
-                    payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id, pending=True)
+                    payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id,
+                                                     pending=True)
                     payment.save()
                     payments_url = request.build_absolute_uri(reverse("payments"))
                     send_pending_payment_email(user, payments_url)
@@ -696,7 +699,8 @@ def member_order_history(request, template="admin/member_order_history.html"):
     weeks.reverse()
 
     for user in users:
-        orders = Order.objects.filter(user_id=user.id, time__gte=datetime.datetime(wk.year, wk.month, wk.day)).order_by('time')
+        orders = Order.objects.filter(user_id=user.id, time__gte=datetime.datetime(wk.year, wk.month, wk.day)).order_by(
+            'time')
         sum = 0
         num_orders = 0
 
@@ -799,3 +803,13 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         'add': False
     }
     return TemplateResponse(request, template, context)
+
+
+class ProductAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)
+
+        if self.q:
+            qs = qs.filter(title__icontains=self.q)
+
+        return qs

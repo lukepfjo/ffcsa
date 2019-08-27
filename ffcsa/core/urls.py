@@ -25,4 +25,5 @@ urlpatterns = i18n_patterns(
     url("^wishlist%s$" % _slash, page_not_found, name="shop_wishlist"),
     url("^stripe%s$" % _slash, views.stripe_webhooks),
     url("^accounts/update%s$" % _slash, profile_update, kwargs={"extra_context": {"title": "Account Settings"}}),
+    url(r'^country-autocomplete/$', views.ProductAutocomplete.as_view(), name='product-autocomplete')
 )

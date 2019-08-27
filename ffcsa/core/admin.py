@@ -14,6 +14,7 @@ from decimal import Decimal
 from copy import deepcopy
 
 from cartridge.shop.forms import ImageWidget
+from dal import autocomplete
 from django.contrib.messages import info
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
@@ -45,7 +46,7 @@ from weasyprint import HTML
 from ffcsa.core.availability import inform_user_product_unavailable
 from ffcsa.core.forms import CategoryAdminForm, OrderAdminForm
 from ffcsa.core.subscriptions import update_stripe_subscription
-from .models import Payment, update_cart_items, Recipe
+from .models import Payment, update_cart_items, Recipe, RecipeProduct
 
 User = get_user_model()
 
@@ -525,13 +526,18 @@ if settings.SHOP_CATEGORY_USE_FEATURED_IMAGE:
     recipe_fieldsets[0][1]["fields"].insert(3, "featured_image")
 
 
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = RecipeProduct
+        fields = ('__all__')
+        widgets = {
+            'product': autocomplete.ModelSelect2(url='product-autocomplete')
+        }
+
+
 class RecipeProductInlineAdmin(admin.TabularInline):
     model = Recipe.products.through
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "product":
-            kwargs["queryset"] = Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)
-        return super(RecipeProductInlineAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+    form = ProductForm
 
 
 class RecipeAdmin(PageAdmin):
