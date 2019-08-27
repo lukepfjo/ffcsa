@@ -302,6 +302,15 @@ EXTRA_MODEL_FIELDS = (
          "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
     ),
     (
+        "cartridge.shop.models.Product.order_on_invoice",
+        "FloatField",
+        (),
+        # Keyword args for field class.
+        {"null": True, "blank": True,
+         "help_text": "Order this product will be printed on invoices. If set, this will override the product's category order_on_invoice setting. This is a float number for more fine grained control. (ex. '2.1' will be sorted the same as if the product's parent category order_on_invoice was 2 & the product's category order_on_invoice was 1)."
+         }
+    ),
+    (
         "cartridge.shop.models.Product.weekly_inventory",
         "BooleanField",
         (),

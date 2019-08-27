@@ -99,7 +99,8 @@ def create_labels(modeladmin, request, queryset):
             # labels. Each label is 90mm x 25mm with a 2mm rounded corner. The margins are
             # automatically calculated.
             # These settings are configured for Avery 5160 Address Labels
-            specs = labels.Specification(217, 279, 3.25, 10, 70, 26.6, corner_radius=2, row_gap=0, column_gap=3, top_margin=8.25, left_margin=.8)
+            specs = labels.Specification(217, 279, 3.25, 10, 70, 26.6, corner_radius=2, row_gap=0, column_gap=3,
+                                         top_margin=8.25, left_margin=.8)
 
             sheet = labels.Sheet(specs, draw_label)
 
@@ -198,6 +199,13 @@ DEFAULT_GROUP_KEY = 0
 
 def keySort(categories):
     def func(item):
+        try:
+            product = Product.objects.get(title=item.description, sku=item.sku)
+            if product and product.order_on_invoice:
+                return (product.order_on_invoice, item.description)
+        except Product.DoesNotExist:
+            pass
+
         try:
             cat = categories.get(titles=item.category)
 
@@ -348,6 +356,8 @@ productvariation_fields.insert(3, "vendor_price")
 class ProductVariationAdmin(base.ProductVariationAdmin):
     fields = productvariation_fields
 
+
+base.ProductAdmin.fieldsets[0][1]['fields'].append('order_on_invoice')
 
 product_list_display = base.ProductAdmin.list_display
 # remove sku, sale_price
