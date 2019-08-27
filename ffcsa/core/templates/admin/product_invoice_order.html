@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n mezzanine_tags staticfiles %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static settings.MEZZANINE_ADMIN_PREFIX|add:"css/dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "mezzanine/css/admin/dashboard.css" %}">
+    <!--[if IE 7]><style>.dashboard #content {padding-top: 80px;}</style><![endif]-->
+{% endblock %}
+
+{% block coltype %}{% endblock %}
+{% block bodyclass %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">{% trans "Home" %}</div>{% endblock %}
+
+{% block content_title %}<h1>{% trans "Product Invoice Order" %}</h1>{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <table>
+            <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>product.order_on_invoice?</th>
+            </tr>
+
+            {% for p in products %}
+                <tr>
+                    <td><a href="{% url 'admin:shop_product_change' p.id %}">{{ p.title }}</a></td>
+                    <td>{{p.get_category}}</td>
+                    <td>
+                        {% if p.order_on_invoice %}{{ p.order_on_invoice }}{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+{% endblock %}
+

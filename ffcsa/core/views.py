@@ -29,6 +29,7 @@ from mezzanine.pages.models import Page
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
+from ffcsa.core.admin import DEFAULT_GROUP_KEY
 from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
 from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment, Recipe
@@ -802,6 +803,42 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         'has_change_permission': True,
         'add': False
     }
+    return TemplateResponse(request, template, context)
+
+
+def product_keySort(product):
+    if product.order_on_invoice:
+        return (product.order_on_invoice, product.title)
+
+    cat = product.get_category()
+
+    if not cat.parent:
+        return (cat.order_on_invoice, product.title)
+
+    if cat.parent and cat.parent.category:
+        parent_order = cat.parent.category.order_on_invoice
+        order = cat.order_on_invoice
+        if order == 0:
+            order = DEFAULT_GROUP_KEY
+
+        return (
+            float("{}.{}".format(parent_order, order)),
+            product.title
+        )
+    # just return a default number for category
+    return (DEFAULT_GROUP_KEY, product.title)
+
+
+@csrf_protect
+@staff_member_required
+def admin_product_invoice_order(request, template="admin/product_invoice_order.html"):
+    products = [p for p in Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)]
+    products.sort(key=product_keySort)
+
+    context = {
+        'products': products,
+    }
+
     return TemplateResponse(request, template, context)
 
 
