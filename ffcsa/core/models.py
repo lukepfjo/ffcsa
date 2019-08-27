@@ -47,7 +47,7 @@ def cart_add_item(self, *args, **kwargs):
 
     if not item.category:
         p = Product.objects.filter(sku=item.sku).first()
-        item.category = p.get_category()
+        item.category = str(p.get_category())
         should_save = True
     if not item.vendor:
         item.vendor = args[0].vendor
