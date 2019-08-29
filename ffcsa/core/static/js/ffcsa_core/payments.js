@@ -127,10 +127,11 @@ jQuery(function ($) {
           // clear any existing errors
           $('#stripeErrors').text('').removeClass('alert alert-danger')
 
-          promise.then(function (result) {
+          return promise.then(function (result) {
             if (result.error) {
               // Inform the customer that there was an error.
               $('#stripeErrors').text(result.error.message).addClass('alert alert-danger')
+              return false
             } else {
               // Send the token to your server.
               var hiddenInput = document.createElement('input')
@@ -143,10 +144,12 @@ jQuery(function ($) {
               disableSensitiveInputs()
               // Submit the form
               form.submit()
+              return true
             }
           })
         } else {
           // TODO handle crypto
+          return Promise.resolve(true)
         }
       },
     }
@@ -221,17 +224,21 @@ jQuery(function ($) {
 
         var defaultSubmitHandler = validateOpts.submitHandler
 
-        var submitting = false
         $('#submit-payment').click(function () {
-          if (submitting) return
-          submitting = true
+          var btn = $(this);
+          btn.attr('disabled', 'disabled')
+          btn.html('Submitting...')
           var form = document.getElementById('payment-form')
           if ($('#paymentTypesCC').is(':checked')) {
-            defaultSubmitHandler(form)
+            defaultSubmitHandler(form).then(function (success) {
+              if (!success) {
+                btn.html('Add Funds')
+                btn.removeAttr('disabled')
+              }
+            })
           } else {
             form.submit()
           }
-          submitting = false
         })
 
         var opts = _.assign({}, validateOpts)
