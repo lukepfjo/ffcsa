@@ -130,6 +130,12 @@ ProductVariation._meta.get_field("unit_price").verbose_name = "Member Price"
 #  Product
 ###################
 
+class ProductExtend:
+    @property
+    def vendor(self):
+        return self.variations.first().vendor
+
+
 # monkey patch the get_category
 def product_get_category(self):
     """
@@ -144,6 +150,7 @@ def product_get_category(self):
 
 
 Product.get_category = product_get_category
+Product.__bases__ += (ProductExtend,)
 
 original_copy_default_variation = deepcopy(Product.copy_default_variation)
 

@@ -26,7 +26,7 @@ from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, Sale, DiscountCode, CartItem
+from cartridge.shop.models import Category, Product, Order, Sale
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -34,12 +34,10 @@ from mezzanine.accounts import admin as accounts_base
 
 from mezzanine.conf import settings
 from mezzanine.core.admin import SitePermissionInline
-from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 from reportlab.graphics import shapes
-from reportlab.lib.colors import HexColor
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from weasyprint import HTML
 
@@ -153,14 +151,34 @@ def export_as_csv(modeladmin, request, queryset):
          'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price', 'Parent Category Order On Invoice',
          'Child Category Order On Invoice', 'Allow Substitutions'])
 
+    products = Product.objects.all()
+    product_cache = {}
     for order in queryset:
         last_name = order.billing_detail_last_name
         drop_site = order.drop_site
         row_base = [order.time.date(), last_name, drop_site]
 
         for item in order.items.all():
+            product = None
+            if not (item.vendor and item.category and item.vendor_price):
+                product = product_cache[item.sku] if item.sku in product_cache else products.filter(
+                    sku=item.sku).first()
+                if not product:
+                    product = products.filter(title=item.description).first()
+                if product:
+                    if not product.sku in product_cache:
+                        product_cache[product.sku] = product
+                    if not item.vendor:
+                        item.vendor = product.vendor
+                    if not item.category:
+                        item.category = str(product.get_category())
+                    if not item.vendor_price:
+                        item.vendor_price = product.vendor_price
             row = row_base.copy()
-            row.append(item.vendor)
+            vendor = item.vendor
+            if not vendor and product:
+                vendor = product.vendor
+            row.append(vendor)
             row.append(item.category[0] if isinstance(item.category, (list, tuple)) else item.category)
             row.append(item.description)
             row.append(item.sku)
@@ -176,16 +194,22 @@ def export_as_csv(modeladmin, request, queryset):
             else:
                 row.append((item.total_price * Decimal(.7)).quantize(TWOPLACES) if item.total_price else '')
 
-            category = Category.objects.filter(description__contains=item.category).first()
-            if category:
-                add_blank = True
-                if category.parent:
-                    row.append(category.parent.category.order_on_invoice)
-                    add_blank = False
+            if product and product.order_on_invoice:
+                parts = str(product.order_on_invoice).split('.')
+                row.append(parts[0])
+                row.append(parts[1] if len(parts) == 2 else '')
+            else:
+                category = product.get_category() if product else Category.objects.filter(
+                    description__contains=item.category).first()
+                if category:
+                    add_blank = True
+                    if category.parent:
+                        row.append(category.parent.category.order_on_invoice)
+                        add_blank = False
 
-                row.append(category.order_on_invoice)
-                if add_blank:
-                    row.append('')
+                    row.append(category.order_on_invoice)
+                    if add_blank:
+                        row.append('')
 
             row.append('yes' if order.allow_substitutions else 'no')
             writer.writerow(row)
@@ -195,7 +219,7 @@ def export_as_csv(modeladmin, request, queryset):
 
 export_as_csv.short_description = "Export As CSV"
 
-DEFAULT_GROUP_KEY = 0
+DEFAULT_GROUP_KEY = 5
 
 
 def keySort(categories):
