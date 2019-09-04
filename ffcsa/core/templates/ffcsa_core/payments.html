@@ -27,7 +27,7 @@
             <h3>Manage Subscription</h3>
 
             <!-- Onetime Payment -->
-            {% if user.profile.non_subscribing_member or user.profile.stripe_subscription_id and user.profile.stripe_customer_id %}
+            {% if user.profile.non_subscribing_member or user.profile.stripe_subscription_id or user.profile.stripe_customer_id and user.profile.can_order and user.profile.ach_status in 'NEW,VERIFYING' %}
                 <!-- Payment modal trigger -->
                 <p>
                     <button type="button" class="btn btn-info" id="make-payment">
