@@ -32,6 +32,8 @@ DROP_SITE_COLORS = {
     'Banzhaf': 'orange',
 }
 
+DROP_SITE_ORDER = ['Farm', 'Woodstock', 'St Johns', 'PSU', 'Hollywood', 'LCFM', 'Banzhaf', 'Corner Market']
+
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",

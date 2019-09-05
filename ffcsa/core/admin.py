@@ -86,6 +86,12 @@ class SkipLabelsForm(forms.Form):
     skip = forms.IntegerField(max_value=30)
 
 
+def order_sort(order):
+    if order.drop_site in settings.DROP_SITE_ORDER:
+        return (settings.DROP_SITE_ORDER.index(order.drop_site), order.billing_detail_last_name)
+    return (len(settings.DROP_SITE_ORDER), order.billing_detail_last_name)
+
+
 def create_labels(modeladmin, request, queryset):
     if 'cancel' in request.POST:
         info(request, 'Canceled label creation.')
@@ -119,7 +125,9 @@ def create_labels(modeladmin, request, queryset):
 
                 sheet.partial_page(1, used)
 
-            for order in queryset.order_by('drop_site', 'billing_detail_last_name'):
+            orders = [o for o in queryset]
+            orders.sort(key=order_sort)
+            for order in orders:
                 sheet.add_label(order)
 
             with tempfile.NamedTemporaryFile() as tmp:
@@ -261,7 +269,9 @@ def download_invoices(self, request, queryset):
     invoices = {}
     categories = Category.objects.exclude(slug='weekly-box')
 
-    for order in queryset.order_by('drop_site', 'billing_detail_last_name'):
+    orders = [o for o in queryset]
+    orders.sort(key=order_sort)
+    for order in orders:
         context = {"order": order}
         context.update(order.details_as_dict())
 
@@ -287,7 +297,9 @@ def download_invoices(self, request, queryset):
         html = get_template("shop/order_packlist_pdf.html").render(context)
         invoice = tempfile.SpooledTemporaryFile()
         HTML(string=html).write_pdf(invoice)
-        invoices["{}_{}_{}".format(order.drop_site, order.billing_detail_last_name, order.id)] = invoice
+        prefix = settings.DROP_SITE_ORDER.index(
+            order.drop_site) if order.drop_site in settings.DROP_SITE_ORDER else len(settings.DROP_SITE_ORDER)
+        invoices["{}_{}_{}_{}".format(prefix, order.drop_site, order.billing_detail_last_name, order.id)] = invoice
         # Reset file pointer
         invoice.seek(0)
 
