@@ -40,7 +40,7 @@ class Command(BaseCommand):
                     'discount_total': cart.discount(),
                     'total': cart.total_price_after_discount(),
                     'attending_dinner': cart.attending_dinner,
-                    'drop_site': user.profile.drop_site,
+                    'drop_site': 'Farm' if cart.attending_dinner else user.profile.drop_site,
                     'additional_instructions': user.profile.invoice_notes,
                     'no_plastic_bags': user.profile.no_plastic_bags,
                     'allow_substitutions': user.profile.allow_substitutions,
