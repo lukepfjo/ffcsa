@@ -167,21 +167,19 @@ def export_as_csv(modeladmin, request, queryset):
         row_base = [order.time.date(), last_name, drop_site]
 
         for item in order.items.all():
-            product = None
-            if not (item.vendor and item.category and item.vendor_price):
-                product = product_cache[item.sku] if item.sku in product_cache else products.filter(
-                    sku=item.sku).first()
-                if not product:
-                    product = products.filter(title=item.description).first()
-                if product:
-                    if not product.sku in product_cache:
-                        product_cache[product.sku] = product
-                    if not item.vendor:
-                        item.vendor = product.vendor
-                    if not item.category:
-                        item.category = str(product.get_category())
-                    if not item.vendor_price:
-                        item.vendor_price = product.vendor_price
+            product = product_cache[item.sku] if item.sku in product_cache else products.filter(
+                sku=item.sku).first()
+            if not product:
+                product = products.filter(title=item.description).first()
+            if product:
+                if not product.sku in product_cache:
+                    product_cache[product.sku] = product
+                if not item.vendor:
+                    item.vendor = product.vendor
+                if not item.category:
+                    item.category = str(product.get_category())
+                if not item.vendor_price:
+                    item.vendor_price = product.vendor_price
             row = row_base.copy()
             vendor = item.vendor
             if not vendor and product:
