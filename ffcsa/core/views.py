@@ -522,11 +522,11 @@ def verify_ach(request):
 
     url = reverse('payments')
     isFirst = True
-    for error in errors:
+    for e in errors:
         if isFirst:
-            url += "?error={}".format(error)
+            url += "?error={}".format(e)
         else:
-            url += "&error={}".format(error)
+            url += "&error={}".format(e)
 
     return HttpResponseRedirect(url)
 

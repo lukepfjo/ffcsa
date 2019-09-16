@@ -101,7 +101,8 @@ jQuery(function ($) {
       success: function (element) {
         $(element).closest('.form-group').removeClass('has-error')
       },
-      submitHandler: function (form) {
+      submitHandler: function (form, event) {
+        event.preventDefault();
         var promise
         var isStripe = false
 
