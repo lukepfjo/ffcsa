@@ -102,7 +102,7 @@ jQuery(function ($) {
         $(element).closest('.form-group').removeClass('has-error')
       },
       submitHandler: function (form, event) {
-        event.preventDefault();
+        if (event) event.preventDefault();
         var promise
         var isStripe = false
 

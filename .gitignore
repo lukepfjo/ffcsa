@@ -2,6 +2,7 @@ original_t
 static/*
 .idea
 *.iml
+*.ipynb
 
 credentials.json
 token.pickle
