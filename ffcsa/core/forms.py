@@ -5,10 +5,12 @@ from cartridge.shop.models import ProductVariation, Order
 from copy import deepcopy
 from django import forms
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.conf import settings
 from mezzanine.pages.admin import PageAdminForm
 from mezzanine.accounts import forms as accounts_forms
+from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact
 
@@ -239,3 +241,34 @@ class ProfileFieldsForm(accounts_forms.ProfileFieldsForm):
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
         return self.sanitize_phone_number(num)
+
+
+class BasePaymentFormSet(forms.BaseModelFormSet):
+    def __init__(self, *args, **kwargs):
+        if 'request' in kwargs:
+            self.request = kwargs.pop('request')
+
+        super(BasePaymentFormSet, self).__init__(*args, **kwargs)
+
+    def add_fields(self, form, index):
+        super(BasePaymentFormSet, self).add_fields(form, index)
+        form.fields['notify'] = forms.BooleanField(label="Notify User", initial=True)
+
+    def save(self, commit=True):
+        super(BasePaymentFormSet, self).save(commit)
+
+        for d in self.cleaned_data:
+            if d and d['notify']:
+                send_mail_template(
+                    "FFCSA Credit",
+                    "ffcsa_core/applied_credit_email",
+                    settings.DEFAULT_FROM_EMAIL,
+                    d['user'].email,
+                    fail_silently=True,
+                    context={
+                        'first_name': d['user'].first_name,
+                        'amount': d['amount'],
+                        'notes': d['notes'],
+                        'payments_url': self.request.build_absolute_uri(reverse("payments")) if self.request else None
+                    }
+                )

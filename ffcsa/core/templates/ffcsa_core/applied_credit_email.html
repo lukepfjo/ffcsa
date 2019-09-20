@@ -1,0 +1,9 @@
+<p>Hello {{ first_name }},</p>
+
+<p>A credit of ${{ amount }} has been applied to your account{% if not notes %}.</p>{% else %} for the following:</p>
+    <p>{{ notes }}</p>{% endif %}
+
+{% if payments_url %}
+    <p>You can view this credit by visiting <a href="{{ payments_url }}">{{ payments_url }}</a></p>
+{% endif %}
+

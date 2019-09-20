@@ -1,0 +1,6 @@
+Hello {{ first_name }},
+
+A credit of ${{ amount }} has been applied to your account for the following:
+
+{{ notes }}
+

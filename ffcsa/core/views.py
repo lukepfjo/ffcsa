@@ -25,12 +25,11 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
-from mezzanine.pages.models import Page
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
 from ffcsa.core.admin import DEFAULT_GROUP_KEY
-from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm
+from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm, BasePaymentFormSet
 from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment, Recipe
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
@@ -762,10 +761,10 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
         can_delete = len(ids) > 0
 
     PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes'), can_delete=can_delete,
-                                          extra=extra)
+                                          extra=extra, formset=BasePaymentFormSet)
 
     if request.method == 'POST':
-        formset = PaymentFormSet(request.POST)
+        formset = PaymentFormSet(request.POST, request=request)
         if formset.is_valid():
             formset.save()
             return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
