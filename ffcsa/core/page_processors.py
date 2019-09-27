@@ -13,8 +13,14 @@ from ffcsa.core.models import Recipe
 
 @processor_for('recipes', exact_page=True)
 def recipies_processor(request, page):
+    recipies = []
+    for recipe in Recipe.objects.published(for_user=request.user).exclude(slug='recipes'):
+        total_products = recipe.products.count()
+        available_products = recipe.products.filter(available=True).count()
+        if available_products / total_products > .75:
+            recipies.append(recipe)
     return {
-        'recipes': Recipe.objects.published(for_user=request.user).exclude(slug='recipes')
+        'recipes': recipies
     }
 
 
