@@ -137,19 +137,19 @@ class ProductExtend:
 
 
 # monkey patch the get_category
-def product_get_category(self):
-    """
-    Returns the single category this product is associated with, or the first
-    if the number of categories is not exactly 1. We exclude the weekly
-    example box category from this
-    """
-    categories = self.categories.exclude(slug='weekly-box')
-    if len(categories) > 0:
-        return categories[0]
-    return None
+# def product_get_category(self):
+#     """
+#     Returns the single category this product is associated with, or the first
+#     if the number of categories is not exactly 1. We exclude the weekly
+#     example box category from this
+#     """
+#     categories = self.categories.exclude(slug='weekly-box')
+#     if len(categories) > 0:
+#         return categories[0]
+#     return None
 
 
-Product.get_category = product_get_category
+# Product.get_category = product_get_category
 Product.__bases__ += (ProductExtend,)
 
 original_copy_default_variation = deepcopy(Product.copy_default_variation)

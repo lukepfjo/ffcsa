@@ -26,7 +26,11 @@ def authenticate():
             # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except Exception as e:
+                logger.error('Failed to authenticate with Google. Google API access will not work - ', e)
+                return False
         else:
             return False
 

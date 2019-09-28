@@ -1,9 +1,13 @@
 import sys
+
+import logging
 from django.apps import AppConfig
 from django.core.mail import send_mail
 from mezzanine.conf import settings
 
 from ffcsa.core.google import authenticate
+
+logger = logging.getLogger(__name__)
 
 
 class CoreConfig(AppConfig):
@@ -24,6 +28,6 @@ class CoreConfig(AppConfig):
                 "Failed to authenticate FFCSA google account. App most likely failed to start.",
                 settings.DEFAULT_FROM_EMAIL,
                 [settings.ACCOUNTS_APPROVAL_EMAILS],
-                fail_silently=False,
+                fail_silently=True,
             )
-            raise Exception('Failed to authenticate with google. Google api access will not work.')
+            logger.error('Failed to authenticate with Google. Google API access will not work.')

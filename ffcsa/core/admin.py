@@ -4,6 +4,7 @@ import csv
 import tempfile
 import zipfile
 import collections
+from functools import partial
 
 import labels
 import stripe
@@ -13,6 +14,7 @@ from decimal import Decimal
 
 from copy import deepcopy
 
+from cachetools import cached
 from cartridge.shop.forms import ImageWidget
 from dal import autocomplete
 from django.contrib.messages import info
@@ -21,12 +23,13 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.db.models import F, ImageField
 from django import forms
+from django.forms import modelformset_factory, inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, Sale
+from cartridge.shop.models import Category, Product, Order, Sale, ProductVariation
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -394,17 +397,25 @@ class ProductVariationAdmin(base.ProductVariationAdmin):
 
 base.ProductAdmin.fieldsets[0][1]['fields'].append('order_on_invoice')
 
-product_list_display = base.ProductAdmin.list_display
+product_list_display = deepcopy(base.ProductAdmin.list_display)
 # remove sku, sale_price
+product_list_display.pop(2)
+product_list_display.pop(3)
 product_list_display.pop(4)
-product_list_display.pop(5)
-product_list_display.insert(4, "vendor_price")
+product_list_display.insert(3, "vendor_price")
+product_list_display.insert(5, 'weekly_inventory')
+product_list_display.insert(7, 'vendor')
+product_list_display.insert(8, 'order_on_invoice')
+# product_list_display.insert(9, 'cat')
 
 product_list_editable = base.ProductAdmin.list_editable
-# remove sku, sale_price
+# remove status, sku, sale_price
+product_list_editable.pop(0)
+product_list_editable.pop(1)
 product_list_editable.pop(2)
-product_list_editable.pop(3)
-product_list_editable.insert(2, "vendor_price")
+product_list_editable.append("vendor_price")
+product_list_editable.append("weekly_inventory")
+product_list_editable.append("order_on_invoice")
 
 product_list_filter = list(base.ProductAdmin.list_filter)
 product_list_filter.append("variations__vendor")
@@ -446,6 +457,80 @@ def export_price_list(modeladmin, request, queryset):
         writer.writerow(row)
 
     return response
+
+
+def get_variation_field(obj, field):
+    if obj.variations.count() > 1:
+        return None
+
+    return str(getattr(obj.variations.first(), field, ''))
+
+
+class ProductChangelistForm(forms.ModelForm):
+    vendor = forms.CharField()
+
+    class Meta:
+        model = Product
+        fields = ('vendor',)
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance:
+            initial = kwargs.get('initial', {})
+            initial['vendor'] = getattr(instance, 'vendor')
+            kwargs['initial'] = initial
+        super(ProductChangelistForm, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        obj = super(ProductChangelistForm, self).save(*args, **kwargs)
+        if obj.variations.count() == 1:
+            variation = obj.variations.first()
+            variation.vendor = self.cleaned_data['vendor']
+            variation.save()
+
+        return obj
+
+
+class ProductAdmin(base.ProductAdmin):
+    actions = [export_price_list]
+    inlines = (base.ProductImageAdmin, ProductVariationAdmin)
+    list_display = product_list_display
+    list_editable = product_list_editable
+    list_filter = product_list_filter
+
+    def get_changelist_form(self, request, **kwargs):
+        return ProductChangelistForm
+
+    def cat(self, obj):
+        return 'Multiple' if obj.categories.count() > 1 else obj.get_category()
+
+    cat.short_description = 'Category'
+
+    def save_model(self, request, obj, form, change):
+        """
+        Inform customers when a product in their cart has become unavailable
+        """
+        updating = obj.id is not None
+        if updating:
+            orig = Product.objects.filter(id=obj.id).first()
+            orig_sku = orig.sku
+        super(ProductAdmin, self).save_model(request, obj, form, change)
+
+        # obj.variations.all()[0].live_num_in_stock()
+
+        # update any cart items if necessary
+        if updating and not settings.SHOP_USE_VARIATIONS and 'changelist' in request.resolver_match.url_name:
+            # This is called in both the product admin & product admin changelist view
+            # Since the product admin doesn't update the Product to include the default
+            # variation values until later, we only want to update_cart_items if we are
+            # in the changelist view. Otherwise update_cart_items needs to be called
+            # in a different method after the Product has been updated. We do this in
+            # Product.copy_default_variation
+            update_cart_items(obj, orig_sku)
+
+        if "available" in form.changed_data and not obj.available:
+            cart_url = request.build_absolute_uri(reverse("shop_cart"))
+            inform_user_product_unavailable(obj.sku, obj.title, cart_url)
 
 
 accounts_base.ProfileInline.readonly_fields = ['payment_method', 'ach_status', 'google_person_id']
@@ -495,40 +580,6 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
             obj.profile.ach_status = None
 
         super(UserProfileAdmin, self).save_model(request, obj, form, change)
-
-
-class ProductAdmin(base.ProductAdmin):
-    actions = [export_price_list]
-    inlines = (base.ProductImageAdmin, ProductVariationAdmin)
-    list_display = product_list_display
-    list_editable = product_list_editable
-    list_filter = product_list_filter
-
-    def save_model(self, request, obj, form, change):
-        """
-        Inform customers when a product in their cart has become unavailable
-        """
-        updating = obj.id is not None
-        if updating:
-            orig = Product.objects.filter(id=obj.id).first()
-            orig_sku = orig.sku
-        super(ProductAdmin, self).save_model(request, obj, form, change)
-
-        # obj.variations.all()[0].live_num_in_stock()
-
-        # update any cart items if necessary
-        if updating and not settings.SHOP_USE_VARIATIONS and 'changelist' in request.resolver_match.url_name:
-            # This is called in both the product admin & product admin changelist view
-            # Since the product admin doesn't update the Product to include the default
-            # variation values until later, we only want to update_cart_items if we are
-            # in the changelist view. Otherwise update_cart_items needs to be called
-            # in a different method after the Product has been updated. We do this in
-            # Product.copy_default_variation
-            update_cart_items(obj, orig_sku)
-
-        if "available" in form.changed_data and not obj.available:
-            cart_url = request.build_absolute_uri(reverse("shop_cart"))
-            inform_user_product_unavailable(obj.sku, obj.title, cart_url)
 
 
 class PaymentAdmin(admin.ModelAdmin):
