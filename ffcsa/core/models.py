@@ -1,23 +1,24 @@
 import datetime
+from copy import deepcopy
 
 from cartridge.shop.fields import MoneyField
 from cartridge.shop.models import Cart, Product, ProductVariation, Priced, CartItem
-from copy import deepcopy
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.contrib.sessions.base_session import AbstractBaseSession
+from django.contrib.sessions.models import Session
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import F
 from django.utils.safestring import mark_safe
-from mezzanine.core.fields import RichTextField, FileField
 from mezzanine.conf import settings
+from mezzanine.core.fields import RichTextField, FileField
 from mezzanine.core.models import RichText
 from mezzanine.pages.models import Page
 from mezzanine.utils.models import upload_to
 
-from .utils import get_order_total, get_payment_total
 from ffcsa.core import managers
+from .utils import get_order_total, get_payment_total
 
 ###################
 #  CART
@@ -159,7 +160,7 @@ def update_cart_items(product, orig_sku):
     """
     When an item has changed, update any items that are already in the cart
     """
-    from ffcsa.core.budgets import set_recalculate_budget
+    from ffcsa.core.budgets import clear_cached_budget_for_user_id
     cat = product.get_category()
     update = {
         'sku': product.sku,
@@ -174,7 +175,8 @@ def update_cart_items(product, orig_sku):
     items = CartItem.objects.filter(sku=orig_sku)
     items.update(**update)
     for item in items:
-        set_recalculate_budget(item.cart.user_id)
+        clear_cached_budget_for_user_id(item.cart.user_id)
+        return
 
 
 def copy_default_variation(self):

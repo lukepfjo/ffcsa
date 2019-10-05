@@ -49,7 +49,6 @@ CACHES = {
     }
 }
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 GOOGLE_ANALYTICS_ID = "UA-96409336-1"
 
