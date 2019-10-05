@@ -29,7 +29,7 @@ from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.urls import reverse
 
-from cartridge.shop.models import Category, Product, Order, Sale, ProductVariation
+from cartridge.shop.models import Category, Product, Order, Sale, ProductVariation, DiscountCode
 from django.contrib import admin
 
 from cartridge.shop import admin as base
@@ -363,7 +363,17 @@ class MyOrderAdmin(base.OrderAdmin):
                 item['total_price'] = item['unit_price'] * item['quantity']
                 total += item['total_price']
 
-        form.instance.total = total
+        form.instance.item_total = total
+
+        if form.instance.discount_code:
+            try:
+                dc = DiscountCode.objects.get(code=form.instance.discount_code)
+                form.instance.discount_total = dc.calculate(total)
+                form.instance.total = total - form.instance.discount_total
+            except DiscountCode.DoesNotExist:
+                form.instance.total = total - form.instance.discount_total
+        else:
+            form.instance.total = total
 
         formset.save()
         form.instance.save()
