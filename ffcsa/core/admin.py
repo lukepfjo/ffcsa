@@ -346,14 +346,14 @@ class MyOrderAdmin(base.OrderAdmin):
         for name, field in form.base_fields.items():
             field.required = False
 
-            if obj and name == 'user':
-                field.disabled = True
-                field.initial = obj.user_id
+            if name == 'user':
+                field.disabled = bool(obj)
+                field.initial = obj.user_id if obj else None
             if name == 'order_date':
-                field.disabled = False
+                field.disabled = bool(obj)
                 if obj:
                     field.initial = obj.time.date()
-                    field.disabled = True
+
         return form
 
     def save_formset(self, request, form, formset, change):
@@ -375,14 +375,6 @@ class MyOrderAdmin(base.OrderAdmin):
                 order.total = total - order.discount_total
         else:
             order.total = total
-
-        if 'user' in form.changed_data:
-            user = form.cleaned_data['user']
-            order.billing_detail_last_name = user.last_name
-            order.billing_detail_first_name = user.first_name
-            order.billing_detail_email = user.email
-            order.billing_detail_phone = user.profile.phone_number
-            order.billing_detail_phone_2 = user.profile.phone_number_2
 
         formset.save()
         order.save()
