@@ -363,20 +363,29 @@ class MyOrderAdmin(base.OrderAdmin):
                 item['total_price'] = item['unit_price'] * item['quantity']
                 total += item['total_price']
 
-        form.instance.item_total = total
+        order = form.instance
+        order.item_total = total
 
-        if form.instance.discount_code:
+        if order.discount_code:
             try:
-                dc = DiscountCode.objects.get(code=form.instance.discount_code)
-                form.instance.discount_total = dc.calculate(total)
-                form.instance.total = total - form.instance.discount_total
+                dc = DiscountCode.objects.get(code=order.discount_code)
+                order.discount_total = dc.calculate(total)
+                order.total = total - order.discount_total
             except DiscountCode.DoesNotExist:
-                form.instance.total = total - form.instance.discount_total
+                order.total = total - order.discount_total
         else:
-            form.instance.total = total
+            order.total = total
+
+        if 'user' in form.changed_data:
+            user = form.cleaned_data['user']
+            order.billing_detail_last_name = user.last_name
+            order.billing_detail_first_name = user.first_name
+            order.billing_detail_email = user.email
+            order.billing_detail_phone = user.profile.phone_number
+            order.billing_detail_phone_2 = user.profile.phone_number_2
 
         formset.save()
-        form.instance.save()
+        order.save()
 
 
 category_fields = base.CategoryAdmin.fields
