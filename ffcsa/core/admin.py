@@ -14,16 +14,14 @@ from decimal import Decimal
 
 from copy import deepcopy
 
-from cachetools import cached
 from cartridge.shop.forms import ImageWidget
 from dal import autocomplete
 from django.contrib.messages import info
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from django.contrib import messages
-from django.db.models import F, ImageField
+from django.db.models import ImageField
 from django import forms
-from django.forms import modelformset_factory, inlineformset_factory
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
@@ -41,6 +39,7 @@ from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 from reportlab.graphics import shapes
+from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from weasyprint import HTML
 
@@ -53,34 +52,40 @@ User = get_user_model()
 
 TWOPLACES = Decimal(10) ** -2
 
+FONT_NAME = "Helvetica"
+
 
 def draw_label(label, width, height, order):
     last_name = order.billing_detail_last_name
     first_name = order.billing_detail_first_name
     drop_site = order.drop_site
 
+    # Write the dropsite & color.
+    font_size = 16
+    name_width = stringWidth(drop_site, FONT_NAME, font_size)
+
     color = settings.DROP_SITE_COLORS[drop_site] if drop_site in settings.DROP_SITE_COLORS else 'grey'
     strokeColor = color if color is not 'white' else 'black'
-    label.add(shapes.Circle(17, 17, 12, fillColor=color, strokeColor=strokeColor))
+    # label.add(shapes.Circle(((height - 8) / 2) + 4, (height - 8) / 2, (height - 8) / 2, fillColor=color, strokeColor=strokeColor))
+    rect_w = max(width / 2 + 4, name_width + 16)
+    label.add(shapes.Rect(width - rect_w - 4, 4, rect_w, 32, rx=2, ry=2, fillColor=color, strokeColor=strokeColor))
 
-    # Write the dropsite.
-    label.add(shapes.String(width - 8, 10, drop_site, fontSize=16, textAnchor='end'))
+    label.add(shapes.String(width - 12, 12, drop_site, fontSize=16, textAnchor='end', fontName=FONT_NAME))
 
     # Measure the width of the name and shrink the font size until it fits.
     font_size = 20
     text_width = width - 16
     name = "{}, {}".format(last_name, first_name)
-    name_width = stringWidth(name, "Helvetica", font_size)
+    name_width = stringWidth(name, FONT_NAME, font_size)
     while name_width > text_width:
         font_size *= 0.8
-        name_width = stringWidth(name, "Helvetica", font_size)
+        name_width = stringWidth(name, FONT_NAME, font_size)
 
     # Write out the name in the centre of the label with a random colour.
     # s = shapes.String(width / 2.0, height - 30, name, textAnchor="middle")
     s = shapes.String(8, height - 30, name)
-    s.fontName = "Helvetica"
+    s.fontName = FONT_NAME
     s.fontSize = font_size
-    # s.fillColor = random.choice((colors.black, colors.blue, colors.red, colors.green))
     label.add(s)
 
 
