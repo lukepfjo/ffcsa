@@ -60,6 +60,7 @@ class Command(BaseCommand):
                     item_dict['category'] = item.category
                     item_dict['vendor'] = item.vendor
                     item_dict['vendor_price'] = item.vendor_price
+                    item_dict['in_inventory'] = item.in_inventory
 
                     try:
                         variation = ProductVariation.objects.get(sku=item.sku)

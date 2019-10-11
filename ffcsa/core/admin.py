@@ -4,7 +4,6 @@ import csv
 import tempfile
 import zipfile
 import collections
-from functools import partial
 
 import labels
 import stripe
@@ -39,7 +38,6 @@ from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 from reportlab.graphics import shapes
-from reportlab.lib import colors
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from weasyprint import HTML
 
@@ -165,7 +163,7 @@ def export_as_csv(modeladmin, request, queryset):
     writer.writerow(
         ['Order Date', 'Last Name', 'Drop Site', 'Vendor', 'Category', 'Item', 'SKU', 'Member Price',
          'Vendor Price', 'Quantity', 'Member Total Price', 'Vendor Total Price', 'Parent Category Order On Invoice',
-         'Child Category Order On Invoice', 'Allow Substitutions'])
+         'Child Category Order On Invoice', 'In Inventory', 'Allow Substitutions'])
 
     products = Product.objects.all()
     product_cache = {}
@@ -225,6 +223,7 @@ def export_as_csv(modeladmin, request, queryset):
                     if add_blank:
                         row.append('')
 
+            row.append(item.in_inventory)
             row.append('yes' if order.allow_substitutions else 'no')
             writer.writerow(row)
 
@@ -403,8 +402,9 @@ productvariation_fields.insert(4, "vendor")
 productvariation_fields.pop(3)
 productvariation_fields.pop(4)
 productvariation_fields.pop(4)
-productvariation_fields.insert(2, "weekly_inventory")
-productvariation_fields.insert(3, "vendor_price")
+productvariation_fields.insert(2, "in_inventory")
+productvariation_fields.insert(3, "weekly_inventory")
+productvariation_fields.insert(4, "vendor_price")
 
 
 class ProductVariationAdmin(base.ProductVariationAdmin):
@@ -419,9 +419,10 @@ product_list_display.pop(2)
 product_list_display.pop(3)
 product_list_display.pop(4)
 product_list_display.insert(3, "vendor_price")
-product_list_display.insert(5, 'weekly_inventory')
-product_list_display.insert(7, 'vendor')
-product_list_display.insert(8, 'order_on_invoice')
+product_list_display.insert(5, 'in_inventory')
+product_list_display.insert(6, 'weekly_inventory')
+product_list_display.insert(8, 'vendor')
+product_list_display.insert(9, 'order_on_invoice')
 # product_list_display.insert(9, 'cat')
 
 product_list_editable = base.ProductAdmin.list_editable
@@ -430,6 +431,7 @@ product_list_editable.pop(0)
 product_list_editable.pop(1)
 product_list_editable.pop(2)
 product_list_editable.append("vendor_price")
+product_list_editable.append("in_inventory")
 product_list_editable.append("weekly_inventory")
 product_list_editable.append("order_on_invoice")
 
@@ -513,6 +515,7 @@ class ProductAdmin(base.ProductAdmin):
     list_display = product_list_display
     list_editable = product_list_editable
     list_filter = product_list_filter
+    ordering = ('-available',)
 
     def get_changelist_form(self, request, **kwargs):
         return ProductChangelistForm

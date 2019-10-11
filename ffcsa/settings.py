@@ -362,6 +362,35 @@ EXTRA_MODEL_FIELDS = (
         # Keyword args for field class.
         {"blank": True, "null": True, "verbose_name": "Vendor Price"},
     ),
+    # add FFCSA Inventory to product
+    (
+        "cartridge.shop.models.Product.in_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
+    ),
+    (
+        "cartridge.shop.models.ProductVariation.in_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
+    ),
+    (
+        "cartridge.shop.models.CartItem.in_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
+    ),
+    (
+        "cartridge.shop.models.OrderItem.in_inventory",
+        "BooleanField",
+        (),
+        # Keyword args for field class.
+        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
+    ),
 )
 
 MIGRATION_MODULES = {
