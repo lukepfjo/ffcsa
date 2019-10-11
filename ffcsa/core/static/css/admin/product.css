@@ -23,6 +23,7 @@ td {
 .column-order_on_invoice a,
 .column-num_in_stock a,
 .column-weekly_inventory a,
+.column-in_inventory a,
 .column-available a {
     white-space: normal;
     text-align: center;
@@ -42,11 +43,6 @@ td {
 }
 
 /* Copied from grapelli forms.css */
-
-input[type=number] {
-    padding: 5px 3px 4px;
-    height: 14px;
-}
 
 .change-list form table input[type=number] {
     position: relative;
