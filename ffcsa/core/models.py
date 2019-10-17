@@ -56,6 +56,9 @@ def cart_add_item(self, *args, **kwargs):
     if not item.vendor_price:
         item.vendor_price = args[0].vendor_price
         should_save = True
+    if item.in_inventory != args[0].in_inventory:
+        item.in_inventory = args[0].in_inventory
+        should_save = True
     if args[0].weekly_inventory != item.weekly_inventory:
         item.weekly_inventory = args[0].weekly_inventory
         should_save = True
@@ -169,7 +172,9 @@ def update_cart_items(product, orig_sku):
         'total_price': F('quantity') * product.price(),
         'category': cat.__str__(),
         'vendor': product.variations.first().vendor,
-        'vendor_price': product.vendor_price
+        'vendor_price': product.vendor_price,
+        'in_inventory': product.in_inventory,
+        'weekly_inventory': product.weekly_inventory
     }
 
     items = CartItem.objects.filter(sku=orig_sku)
@@ -181,6 +186,9 @@ def update_cart_items(product, orig_sku):
 
 def copy_default_variation(self):
     orig_sku = self.sku
+    default = self.variations.get(default=True)
+    setattr(self, "weekly_inventory", getattr(default, "weekly_inventory"))
+    setattr(self, "in_inventory", getattr(default, "in_inventory"))
     original_copy_default_variation(self)
     if not settings.SHOP_USE_VARIATIONS:
         update_cart_items(self, orig_sku)
