@@ -62,8 +62,12 @@ def draw_label(label, width, height, order):
     font_size = 16
     name_width = stringWidth(drop_site, FONT_NAME, font_size)
 
-    color = settings.DROP_SITE_COLORS[drop_site] if drop_site in settings.DROP_SITE_COLORS else 'grey'
-    strokeColor = color if color is not 'white' else 'black'
+    if drop_site in settings.DROP_SITE_COLORS:
+        color = settings.DROP_SITE_COLORS[drop_site]
+        strokeColor = color if color is not 'white' else 'black'
+    else:
+        color = 'white'
+        strokeColor = 'white'
     # label.add(shapes.Circle(((height - 8) / 2) + 4, (height - 8) / 2, (height - 8) / 2, fillColor=color, strokeColor=strokeColor))
     rect_w = max(width / 2 + 4, name_width + 16)
     label.add(shapes.Rect(width - rect_w - 4, 4, rect_w, 32, rx=2, ry=2, fillColor=color, strokeColor=strokeColor))

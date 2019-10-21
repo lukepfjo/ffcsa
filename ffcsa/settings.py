@@ -22,7 +22,7 @@ DROP_SITE_CHOICES = (
 )
 
 DROP_SITE_COLORS = {
-    'Farm': 'pink',
+    # 'Farm': 'white', purposefully leave off Farm as we don't need a color for those labels
     'Corner Market': 'white',
     'LCFM': 'blue',
     'Hollywood': 'yellow',
