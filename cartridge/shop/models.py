@@ -48,6 +48,12 @@ class Priced(models.Model):
     num_in_stock = models.IntegerField(_("Number in stock"), blank=True,
                                        null=True)
 
+    weekly_inventory = models.BooleanField(
+        _("Weekly Inventory"), blank=False, default=True)
+    in_inventory = models.BooleanField(
+        _("FFCSA Inventory"), default=False, blank=False, null=False)
+    vendor_price = fields.MoneyField(_("Vendor price"), blank=True, null=True)
+
     class Meta:
         abstract = True
 
@@ -116,10 +122,13 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
     date_added = models.DateTimeField(_("Date added"), auto_now_add=True,
                                       null=True)
     related_products = models.ManyToManyField("self",
-                             verbose_name=_("Related products"), blank=True)
+                                              verbose_name=_("Related products"), blank=True)
     upsell_products = models.ManyToManyField("self",
-                             verbose_name=_("Upsell products"), blank=True)
+                                             verbose_name=_("Upsell products"), blank=True)
     rating = RatingField(verbose_name=_("Rating"))
+
+    order_on_invoice = models.FloatField(default=0, null=True, blank=True,
+                                         help_text="Order this product will be printed on invoices. If set, this will override the product's category order_on_invoice setting. This is a float number for more fine grained control. (ex. '2.1' will be sorted the same as if the product's parent category order_on_invoice was 2 & the product's category order_on_invoice was 1).")
 
     admin_thumb_field = "image"
 
@@ -190,7 +199,7 @@ class ProductImage(Orderable):
     """
 
     file = FileField(_("Image"), max_length=255, format="Image",
-        upload_to=upload_to("shop.ProductImage.file", "product"))
+                     upload_to=upload_to("shop.ProductImage.file", "product"))
     description = CharField(_("Description"), blank=True, max_length=100)
     product = models.ForeignKey("Product", related_name="images",
                                 on_delete=models.CASCADE)
@@ -234,6 +243,7 @@ class ProductVariationMetaclass(ModelBase):
     assigns an ``fields.OptionField`` for each option in the
     ``SHOP_PRODUCT_OPTIONS`` setting.
     """
+
     def __new__(cls, name, bases, attrs):
         # Only assign new attrs if not a proxy model.
         if not ("Meta" in attrs and getattr(attrs["Meta"], "proxy", False)):
@@ -255,6 +265,8 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     default = models.BooleanField(_("Default"), default=False)
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
+
+    vendor = models.CharField(blank=True, max_length=255)
 
     objects = managers.ProductVariationManager()
 
@@ -366,11 +378,12 @@ class Category(Page, RichText):
     """
 
     featured_image = FileField(verbose_name=_("Featured Image"),
-        upload_to=upload_to("shop.Category.featured_image", "shop"),
-        format="Image", max_length=255, null=True, blank=True)
+                               upload_to=upload_to(
+                                   "shop.Category.featured_image", "shop"),
+                               format="Image", max_length=255, null=True, blank=True)
     products = models.ManyToManyField("Product", blank=True,
-                                     verbose_name=_("Products"),
-                                     through=Product.categories.through)
+                                      verbose_name=_("Products"),
+                                      through=Product.categories.through)
     options = models.ManyToManyField("ProductOption", blank=True,
                                      verbose_name=_("Product options"),
                                      related_name="product_options")
@@ -379,9 +392,11 @@ class Category(Page, RichText):
     price_min = fields.MoneyField(_("Minimum price"), blank=True, null=True)
     price_max = fields.MoneyField(_("Maximum price"), blank=True, null=True)
     combined = models.BooleanField(_("Combined"), default=True,
-        help_text=_("If checked, "
-        "products must match all specified filters, otherwise products "
-        "can match any specified filter."))
+                                   help_text=_("If checked, "
+                                               "products must match all specified filters, otherwise products "
+                                               "can match any specified filter."))
+    order_on_invoice = models.IntegerField(default=0,
+                                           help_text="Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set")
 
     class Meta:
         verbose_name = _("Product category")
@@ -439,6 +454,7 @@ class Category(Page, RichText):
         """
         Returns this object's slug stripped of its parent's slug.
         """
+
         def get_non_category_slug(parent):
             if not parent or not parent.slug:
                 return None
@@ -456,7 +472,6 @@ class Category(Page, RichText):
 
 @python_2_unicode_compatible
 class Order(SiteRelated):
-
     billing_detail_first_name = CharField(_("First name"), max_length=100)
     billing_detail_last_name = CharField(_("Last name"), max_length=100)
     billing_detail_street = CharField(_("Street"), max_length=100)
@@ -465,6 +480,8 @@ class Order(SiteRelated):
     billing_detail_postcode = CharField(_("Zip/Postcode"), max_length=10)
     billing_detail_country = CharField(_("Country"), max_length=100)
     billing_detail_phone = CharField(_("Phone"), max_length=20)
+    billing_detail_phone_2 = CharField(
+        _("Alt. Phone"), blank=True, max_length=20)
     billing_detail_email = models.EmailField(_("Email"), max_length=254)
     shipping_detail_first_name = CharField(_("First name"), max_length=100)
     shipping_detail_last_name = CharField(_("Last name"), max_length=100)
@@ -491,8 +508,16 @@ class Order(SiteRelated):
                                blank=True)
 
     status = models.IntegerField(_("Status"),
-                            choices=settings.SHOP_ORDER_STATUS_CHOICES,
-                            default=settings.SHOP_ORDER_STATUS_CHOICES[0][0])
+                                 choices=settings.SHOP_ORDER_STATUS_CHOICES,
+                                 default=settings.SHOP_ORDER_STATUS_CHOICES[0][0])
+
+    attending_dinner = models.IntegerField(blank=False, null=False, default=0)
+    drop_site = models.CharField(blank=True, max_length=255)
+
+    # TODO just fetch these prefrence from the user?
+    no_plastic_bags = models.BooleanField(_("No Plastic Bags"), default=False)
+    allow_substitutions = models.BooleanField(
+        _("Allow product substitutions"), default=False)
 
     objects = managers.OrderManager()
 
@@ -573,7 +598,7 @@ class Order(SiteRelated):
         context = {}
         for fieldset in ("billing_detail", "shipping_detail"):
             fields = [(f.verbose_name, getattr(self, f.name)) for f in
-                self._meta.fields if f.name.startswith(fieldset)]
+                      self._meta.fields if f.name.startswith(fieldset)]
             context["order_%s_fields" % fieldset] = fields
         return context
 
@@ -585,13 +610,17 @@ class Order(SiteRelated):
         url = reverse("shop_invoice", args=(self.id,))
         text = ugettext("Download PDF invoice")
         return "<a href='%s?format=pdf'>%s</a>" % (url, text)
+
     invoice.allow_tags = True
     invoice.short_description = ""
 
 
 class Cart(models.Model):
-
     last_updated = models.DateTimeField(_("Last updated"), null=True)
+
+    # TODO change to fk?
+    user_id = models.IntegerField(blank=False, null=False, unique=True)
+    attending_dinner = models.IntegerField(blank=False, null=False, default=0)
 
     objects = managers.CartManager()
 
@@ -694,6 +723,12 @@ class SelectedProduct(models.Model):
     unit_price = fields.MoneyField(_("Unit price"), default=Decimal("0"))
     total_price = fields.MoneyField(_("Total price"), default=Decimal("0"))
 
+    category = models.TextField(blank=True)
+    vendor = models.CharField(blank=True, max_length=255)
+    vendor_price = fields.MoneyField(_("Vendor price"), blank=True, null=True)
+    in_inventory = models.BooleanField(
+        _("FFCSA Inventory"), default=False, blank=False, null=False)
+
     class Meta:
         abstract = True
 
@@ -714,11 +749,13 @@ class SelectedProduct(models.Model):
 
 
 class CartItem(SelectedProduct):
-
     cart = models.ForeignKey("Cart", related_name="items",
                              on_delete=models.CASCADE)
     url = CharField(max_length=2000)
     image = CharField(max_length=200, null=True)
+    # TODO is this needed?
+    weekly_inventory = models.BooleanField(
+        _("Weekly Inventory"), blank=False, default=True)
 
     def get_absolute_url(self):
         return self.url
@@ -777,8 +814,8 @@ class Discount(models.Model):
                                         verbose_name=_("Categories"))
     discount_deduct = fields.MoneyField(_("Reduce by amount"))
     discount_percent = fields.PercentageField(_("Reduce by percent"),
-                                           max_digits=5, decimal_places=2,
-                                           blank=True, null=True)
+                                              max_digits=5, decimal_places=2,
+                                              blank=True, null=True)
     discount_exact = fields.MoneyField(_("Reduce to amount"))
     valid_from = models.DateTimeField(_("Valid from"), blank=True, null=True)
     valid_to = models.DateTimeField(_("Valid to"), blank=True, null=True)
@@ -905,9 +942,9 @@ class DiscountCode(Discount):
     min_purchase = fields.MoneyField(_("Minimum total purchase"))
     free_shipping = models.BooleanField(_("Free shipping"), default=False)
     uses_remaining = models.IntegerField(_("Uses remaining"), blank=True,
-        null=True, help_text=_("If you wish to limit the number of times a "
-            "code may be used, set this value. It will be decremented upon "
-            "each use."))
+                                         null=True, help_text=_("If you wish to limit the number of times a "
+                                                                "code may be used, set this value. It will be decremented upon "
+                                                                "each use."))
 
     objects = managers.DiscountCodeManager()
 

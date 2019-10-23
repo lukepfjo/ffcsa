@@ -32,7 +32,8 @@ DROP_SITE_COLORS = {
     'Banzhaf': 'orange',
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Corner Market', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Corner Market',
+                   'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
 
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
@@ -123,7 +124,8 @@ SHOP_PAYMENT_STEP_ENABLED = False
 SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
-SHOP_PRODUCT_SORT_OPTIONS = (('Title', 'title'), ('Recently added', '-date_added'),)
+SHOP_PRODUCT_SORT_OPTIONS = (
+    ('Title', 'title'), ('Recently added', '-date_added'),)
 SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
 SHOP_PER_PAGE_CATEGORY = 20
 SHOP_HIDE_UNAVAILABLE = True
@@ -151,7 +153,8 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "can_order",
     "google_person_id"
 ]
-ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
+# used to send notifications of new user accounts
+ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'
 
 ACCOUNTS_NO_USERNAME = True
 
@@ -208,189 +211,6 @@ PAGE_MENU_TEMPLATES_DEFAULT = ()
 # ``django.models.db.`` can be omitted for regular Django model fields.
 #
 EXTRA_MODEL_FIELDS = (
-    (
-        "cartridge.shop.models.Cart.user_id",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "unique": True},
-    ),
-    (
-        "cartridge.shop.models.Cart.attending_dinner",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": 0},
-    ),
-    # can't perform field injection on abstract classes, so we need to do it for both CartItem and OrderItem
-    (
-        "cartridge.shop.models.CartItem.category",
-        "TextField",
-        (),
-        # Keyword args for field class.
-        {"blank": True},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.category",
-        "TextField",
-        (),
-        # Keyword args for field class.
-        {"blank": True},
-    ),
-    (
-        "cartridge.shop.models.Order.attending_dinner",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": 0},
-    ),
-    (
-        "cartridge.shop.models.Order.drop_site",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.Order.billing_detail_phone_2",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "Alt. Phone", "blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.Order.no_plastic_bags",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "No Plastic Bags", "default": False},
-    ),
-    (
-        "cartridge.shop.models.Order.allow_substitutions",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "Allow product substitutions", "default": True},
-    ),
-    (
-        "cartridge.shop.models.CartItem.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    # add Vendor Price to ProductVariation & OrderItem
-    # change Unit Price to Member Price
-    (
-        "cartridge.shop.models.Category.order_on_invoice",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"default": 0,
-         "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
-    ),
-    (
-        "cartridge.shop.models.Product.order_on_invoice",
-        "FloatField",
-        (),
-        # Keyword args for field class.
-        {"null": True, "blank": True,
-         "help_text": "Order this product will be printed on invoices. If set, this will override the product's category order_on_invoice setting. This is a float number for more fine grained control. (ex. '2.1' will be sorted the same as if the product's parent category order_on_invoice was 2 & the product's category order_on_invoice was 1)."
-         }
-    ),
-    (
-        "cartridge.shop.models.Product.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    # can't inject in abstract Priced model, so need to do both Product and ProductVariation
-    (
-        "cartridge.shop.models.Product.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    # add FFCSA Inventory to product
-    (
-        "cartridge.shop.models.Product.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
 )
 
 MIGRATION_MODULES = {
