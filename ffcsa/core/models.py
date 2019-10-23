@@ -119,17 +119,10 @@ original_copy_price_fields_to = deepcopy(Priced.copy_price_fields_to)
 
 def copy_price_fields_to(self, obj_to):
     original_copy_price_fields_to(self, obj_to)
-    setattr(obj_to, "vendor_price", getattr(self, "vendor_price"))
-    setattr(obj_to, "weekly_inventory", getattr(self, "weekly_inventory"))
-    setattr(obj_to, "in_inventory", getattr(self, "in_inventory"))
     obj_to.save()
 
 
 Priced.copy_price_fields_to = copy_price_fields_to
-
-# rename unit price to member price
-Product._meta.get_field("unit_price").verbose_name = "Member Price"
-ProductVariation._meta.get_field("unit_price").verbose_name = "Member Price"
 
 
 ###################

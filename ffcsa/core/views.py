@@ -3,7 +3,7 @@ import stripe
 from copy import deepcopy
 
 from cartridge.shop import views as s_views
-from cartridge.shop.forms import CartItemFormSet, DiscountForm
+from cartridge.shop.forms import CartItemFormSet, DiscountForm, AddProductForm
 from cartridge.shop.models import Category, Order, Product
 from decimal import Decimal
 
@@ -29,7 +29,7 @@ from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
 from ffcsa.core.admin import DEFAULT_GROUP_KEY
-from ffcsa.core.forms import CartDinnerForm, wrap_AddProductForm, ProfileForm, BasePaymentFormSet
+from ffcsa.core.forms import CartDinnerForm, ProfileForm, BasePaymentFormSet
 from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment, Recipe
 from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
@@ -88,7 +88,6 @@ def product(request, slug, template="shop/product.html", extra_context=None, **k
         elif request.cart.user_id != request.user.id:
             raise Exception("Server Error")
 
-    form_class = wrap_AddProductForm(request.cart)
     response = original_product_view(request, slug, template=template, form_class=form_class,
                                      extra_context=extra_context)
 

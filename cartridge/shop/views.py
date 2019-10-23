@@ -34,7 +34,9 @@ HAS_PDF = pisa is not None
 
 
 # Set up checkout handlers.
-handler = lambda s: import_dotted_path(s) if s else lambda *args: None
+def handler(s): return import_dotted_path(s) if s else lambda *args: None
+
+
 billship_handler = handler(settings.SHOP_HANDLER_BILLING_SHIPPING)
 tax_handler = handler(settings.SHOP_HANDLER_TAX)
 payment_handler = handler(settings.SHOP_HANDLER_PAYMENT)
@@ -53,7 +55,7 @@ def product(request, slug, template="shop/product.html",
     fields = [f.name for f in ProductVariation.option_fields()]
     variations = product.variations.all()
     variations_json = dumps([dict([(f, getattr(v, f))
-        for f in fields + ["sku", "image_id"]]) for v in variations])
+                                   for f in fields + ["sku", "image_id"]]) for v in variations])
     to_cart = (request.method == "POST" and
                request.POST.get("add_wishlist") is None)
     initial_data = {}
@@ -61,7 +63,7 @@ def product(request, slug, template="shop/product.html",
         initial_data = dict([(f, getattr(variations[0], f)) for f in fields])
     initial_data["quantity"] = 1
     add_product_form = form_class(request.POST or None, product=product,
-                                  initial=initial_data, to_cart=to_cart)
+                                  initial=initial_data, to_cart=to_cart, cart=request.cart)
     if request.method == "POST":
         if add_product_form.is_valid():
             if to_cart:
@@ -101,6 +103,7 @@ def product(request, slug, template="shop/product.html",
 
     return TemplateResponse(request, templates, context)
 
+
 def category_product(request, category_slug, slug,
                      template="shop/product.html"):
     """
@@ -120,6 +123,7 @@ def category_product(request, category_slug, slug,
         return redirect(product_obj.get_absolute_url(), permanent=True)
 
     return product(request, slug, template=template, product=product_obj)
+
 
 @never_cache
 def wishlist(request, template="shop/wishlist.html",
@@ -358,7 +362,7 @@ def checkout_steps(request, form_class=OrderForm, extra_context=None):
     context = {"CHECKOUT_STEP_FIRST": step == checkout.CHECKOUT_STEP_FIRST,
                "CHECKOUT_STEP_LAST": step == checkout.CHECKOUT_STEP_LAST,
                "CHECKOUT_STEP_PAYMENT": (settings.SHOP_PAYMENT_STEP_ENABLED and
-                   step == checkout.CHECKOUT_STEP_PAYMENT),
+                                         step == checkout.CHECKOUT_STEP_PAYMENT),
                "step_title": step_vars["title"], "step_url": step_vars["url"],
                "steps": checkout.CHECKOUT_STEPS, "step": step, "form": form}
     context.update(extra_context or {})

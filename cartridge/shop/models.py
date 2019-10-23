@@ -39,7 +39,7 @@ class Priced(models.Model):
     ``Product`` and ``ProductVariation`` models.
     """
 
-    unit_price = fields.MoneyField(_("Unit price"))
+    unit_price = fields.MoneyField(_("Member Price"))
     sale_id = models.IntegerField(null=True)
     sale_price = fields.MoneyField(_("Sale price"))
     sale_from = models.DateTimeField(_("Sale start"), blank=True, null=True)
@@ -89,6 +89,7 @@ class Priced(models.Model):
         instance to another. Used for synchronising the denormalised
         fields on ``Product`` instances with their default variation.
         """
+        # TODO verify this copies vendor_price
         for field in Priced._meta.fields:
             if not isinstance(field, models.AutoField):
                 setattr(obj_to, field.name, getattr(self, field.name))

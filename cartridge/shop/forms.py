@@ -1,7 +1,5 @@
 
 from __future__ import absolute_import, unicode_literals
-from future.builtins import filter, int, range, str, super, zip
-from future.utils import with_metaclass
 
 from collections import OrderedDict
 from copy import copy
@@ -11,21 +9,26 @@ from locale import localeconv
 from re import match
 
 from django import forms
-from django.forms.models import BaseInlineFormSet, ModelFormMetaclass
-from django.forms.models import inlineformset_factory
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
+from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
+                                 inlineformset_factory)
 from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-
+from future.builtins import filter, int, range, str, super, zip
+from future.utils import with_metaclass
 from mezzanine.conf import settings
 from mezzanine.core.templatetags.mezzanine_tags import thumbnail
+from mezzanine.pages.admin import PageAdminForm
 
 from cartridge.shop import checkout
-from cartridge.shop.models import Product, ProductOption, ProductVariation
-from cartridge.shop.models import Cart, CartItem, Order, DiscountCode
-from cartridge.shop.utils import (make_choices, set_locale, set_shipping,
-                                  clear_session)
+from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
+                                   Product, ProductOption, ProductVariation)
+from cartridge.shop.utils import (clear_session, make_choices, set_locale,
+                                  set_shipping)
 
+User = get_user_model()
 
 ADD_PRODUCT_ERRORS = {
     "invalid_options": _("The selected options are currently unavailable."),
@@ -64,6 +67,11 @@ class AddProductForm(forms.Form):
         """
         self._product = kwargs.pop("product", None)
         self._to_cart = kwargs.pop("to_cart")
+        self._cart = kwargs.pop("cart")
+
+        if self._to_cart and not self._cart:
+            raise ImproperlyConfigured(
+                "You must provide the cart if to_cart=True")
         super(AddProductForm, self).__init__(*args, **kwargs)
         # Adding from the wishlist with a sku, bail out.
         if args[0] is not None and args[0].get("sku", None):
@@ -75,7 +83,7 @@ class AddProductForm(forms.Form):
         if not option_fields:
             return
         option_names, option_labels = list(zip(*[(f.name, f.verbose_name)
-            for f in option_fields]))
+                                                 for f in option_fields]))
         option_values = list(zip(*self._product.variations.filter(
             unit_price__isnull=False).values_list(*option_names)))
         if option_values:
@@ -147,6 +155,38 @@ class CartItemForm(forms.ModelForm):
             error = ADD_PRODUCT_ERRORS["no_stock_quantity"].rstrip(".")
             raise forms.ValidationError("%s: %s" % (error, quantity))
         return quantity
+
+    # TODO does this need to be put on the CartItemFormSet instead? This is where it was previously monkey patched to
+    def clean(self):
+        """
+        Validate that the user hasn't gone overbudget
+        """
+        new_cart_total = 0
+
+        if hasattr(self, 'cleaned_data'):
+            for form in self.cleaned_data:
+                if not form['DELETE']:
+                    new_quantity = form['quantity']
+                    unit_price = form['id'].unit_price
+
+                    new_cart_total += unit_price * new_quantity
+
+            # Cart.over_budget takes into account the Cart.total_price() + additional_total
+            # b/c we are updating the items in the cart, we need calculate
+            # the new cart total. If new_cart_total is less then Cart.total_price()
+            # additional_total will be neg number, and over_budget should calculate correctly
+            additional_total = new_cart_total - self.instance.total_price()
+
+            # if we get into a state where the cart is over_budget, allow user to only remove items
+            if self.instance.over_budget(additional_total) and additional_total > 0:
+                error = _(
+                    "Updating your cart put you over budget. Try removing some items first.")
+                # hack b/c shop/views.py.cart doesn't transfer _non_form_errors attr
+                self._errors.append(error)
+                raise forms.ValidationError(error)
+
+        return super(CartItemForm, self).clean()
+
 
 CartItemFormSet = inlineformset_factory(Cart, CartItem, form=CartItemForm,
                                         can_delete=True, extra=0)
@@ -248,7 +288,7 @@ class DiscountForm(forms.ModelForm):
         which is required to validate the discount code when entered.
         """
         super(DiscountForm, self).__init__(
-                data=data, initial=initial, **kwargs)
+            data=data, initial=initial, **kwargs)
         self._request = request
 
     def clean_discount_code(self):
@@ -302,27 +342,27 @@ class OrderForm(FormsetForm, DiscountForm):
 
     step = forms.IntegerField(widget=forms.HiddenInput())
     same_billing_shipping = forms.BooleanField(required=False, initial=True,
-        label=_("My delivery details are the same as my billing details"))
+                                               label=_("My delivery details are the same as my billing details"))
     remember = forms.BooleanField(required=False, initial=True,
-        label=_("Remember my address for next time"))
+                                  label=_("Remember my address for next time"))
     card_name = forms.CharField(label=_("Cardholder name"))
     card_type = forms.ChoiceField(label=_("Card type"),
-        widget=forms.RadioSelect,
-        choices=make_choices(settings.SHOP_CARD_TYPES))
+                                  widget=forms.RadioSelect,
+                                  choices=make_choices(settings.SHOP_CARD_TYPES))
     card_number = forms.CharField(label=_("Card number"))
     card_expiry_month = forms.ChoiceField(label=_("Card expiry month"),
-        initial="%02d" % date.today().month,
-        choices=make_choices(["%02d" % i for i in range(1, 13)]))
+                                          initial="%02d" % date.today().month,
+                                          choices=make_choices(["%02d" % i for i in range(1, 13)]))
     card_expiry_year = forms.ChoiceField(label=_("Card expiry year"))
     card_ccv = forms.CharField(label=_("CCV"), help_text=_("A security code, "
-        "usually the last 3 digits found on the back of your card."))
+                                                           "usually the last 3 digits found on the back of your card."))
 
     class Meta:
         model = Order
         fields = ([f.name for f in Order._meta.fields if
                    f.name.startswith("billing_detail") or
                    f.name.startswith("shipping_detail")] +
-                   ["additional_instructions", "discount_code"])
+                  ["additional_instructions", "discount_code"])
 
     def __init__(
             self, request, step, data=None, initial=None, errors=None,
@@ -352,7 +392,7 @@ class OrderForm(FormsetForm, DiscountForm):
             initial["step"] = step
 
         super(OrderForm, self).__init__(
-                request, data=data, initial=initial, **kwargs)
+            request, data=data, initial=initial, **kwargs)
         self._checkout_errors = errors
 
         # Hide discount code field if it shouldn't appear in checkout,
@@ -368,20 +408,21 @@ class OrderForm(FormsetForm, DiscountForm):
         is_first_step = step == checkout.CHECKOUT_STEP_FIRST
         is_last_step = step == checkout.CHECKOUT_STEP_LAST
         is_payment_step = step == checkout.CHECKOUT_STEP_PAYMENT
-        hidden_filter = lambda f: False
+
+        def hidden_filter(f): return False
         if settings.SHOP_CHECKOUT_STEPS_SPLIT:
             if is_first_step:
                 # Hide cc fields for billing/shipping if steps are split.
-                hidden_filter = lambda f: f.startswith("card_")
+                def hidden_filter(f): return f.startswith("card_")
             elif is_payment_step:
                 # Hide non-cc fields for payment if steps are split.
-                hidden_filter = lambda f: not f.startswith("card_")
+                def hidden_filter(f): return not f.startswith("card_")
         elif not settings.SHOP_PAYMENT_STEP_ENABLED:
             # Hide all cc fields if payment step is not enabled.
-            hidden_filter = lambda f: f.startswith("card_")
+            def hidden_filter(f): return f.startswith("card_")
         if settings.SHOP_CHECKOUT_STEPS_CONFIRMATION and is_last_step:
             # Hide all fields for the confirmation step.
-            hidden_filter = lambda f: True
+            def hidden_filter(f): return True
         for field in filter(hidden_filter, self.fields):
             self.fields[field].widget = forms.HiddenInput()
             self.fields[field].required = False
@@ -438,6 +479,7 @@ class ImageWidget(forms.FileInput):
     """
     Render a visible thumbnail for image fields.
     """
+
     def render(self, name, value, attrs):
         rendered = super(ImageWidget, self).render(name, value, attrs)
         if value:
@@ -453,6 +495,7 @@ class MoneyWidget(forms.TextInput):
     """
     Render missing decimal places for money fields.
     """
+
     def render(self, name, value, attrs):
         try:
             value = float(value)
@@ -474,7 +517,7 @@ class ProductAdminFormMetaclass(ModelFormMetaclass):
     def __new__(cls, name, bases, attrs):
         for option in settings.SHOP_OPTION_TYPE_CHOICES:
             field = forms.MultipleChoiceField(label=option[1],
-                required=False, widget=forms.CheckboxSelectMultiple)
+                                              required=False, widget=forms.CheckboxSelectMultiple)
             attrs["option%s" % option[0]] = field
         args = (cls, name, bases, attrs)
         return super(ProductAdminFormMetaclass, cls).__new__(*args)
@@ -513,6 +556,7 @@ class ProductVariationAdminForm(forms.ModelForm):
     Ensure the list of images for the variation are specific to the
     variation's product.
     """
+
     def __init__(self, *args, **kwargs):
         super(ProductVariationAdminForm, self).__init__(*args, **kwargs)
         if "instance" in kwargs:
@@ -525,10 +569,11 @@ class ProductVariationAdminFormset(BaseInlineFormSet):
     """
     Ensure no more than one variation is checked as default.
     """
+
     def clean(self):
         super(ProductVariationAdminFormset, self).clean()
         if len([f for f in self.forms if hasattr(f, "cleaned_data") and
-            f.cleaned_data.get("default", False)]) > 1:
+                f.cleaned_data.get("default", False)]) > 1:
             error = _("Only one variation can be checked as the default.")
             raise forms.ValidationError(error)
 
@@ -538,6 +583,7 @@ class DiscountAdminForm(forms.ModelForm):
     Ensure only one discount field is given a value and if not, assign
     the error to the first discount field so that it displays correctly.
     """
+
     def clean(self):
         fields = [f for f in self.fields if f.startswith("discount_")]
         reductions = [self.cleaned_data.get(f) for f in fields
@@ -546,3 +592,76 @@ class DiscountAdminForm(forms.ModelForm):
             error = _("Please enter a value for only one type of reduction.")
             self._errors[fields[0]] = self.error_class([error])
         return super(DiscountAdminForm, self).clean()
+
+
+class CategoryAdminForm(PageAdminForm):
+    def clean_content(form):
+        # make the content field not required for Category Pages
+        return form.cleaned_data.get("content")
+
+
+class OrderAdminForm(forms.ModelForm):
+    order_date = forms.DateTimeField(label="Order Date",
+                                     initial=date.today, required=True, disabled=False,
+                                     widget=forms.DateInput(attrs={'type': 'date'}))
+    user = forms.ModelChoiceField(queryset=User.objects.filter(
+        is_active=True).order_by('last_name'))
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def save(self, commit=True):
+        order_date = self.cleaned_data.get('order_date', None)
+        if not self.instance.id and order_date:
+            self.instance.time = order_date
+            # disable auto_now_add so we can add orders in the past
+            self.instance._meta.get_field("time").auto_now_add = False
+
+        user = self.cleaned_data.get('user', None)
+        if not self.instance.id and user:
+            self.instance.billing_detail_first_name = user.first_name
+            self.instance.billing_detail_last_name = user.last_name
+            self.instance.billing_detail_email = user.email
+            self.instance.drop_site = user.profile.drop_site
+            self.instance.billing_detail_phone = user.profile.phone_number
+            self.instance.billing_detail_phone_2 = user.profile.phone_number_2
+            self.instance.user_id = user.id
+        return super(OrderAdminForm, self).save(commit=commit)
+
+    def clean(self):
+        cleaned_data = super(OrderAdminForm, self).clean()
+        if cleaned_data['order_date'] and self.instance.time:
+            del cleaned_data['order_date']
+
+        if not cleaned_data['user'] and (
+                not cleaned_data['billing_detail_first_name'] or not cleaned_data['billing_detail_last_name']):
+            raise forms.ValidationError(
+                _("Either choose a user, or enter billing_detail_first_name and billing_detail_last_name."))
+
+        return cleaned_data
+
+
+class ProductChangelistForm(forms.ModelForm):
+    vendor = forms.CharField()
+
+    class Meta:
+        model = Product
+        fields = ('vendor',)
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get('instance')
+        if instance:
+            initial = kwargs.get('initial', {})
+            initial['vendor'] = getattr(instance, 'vendor')
+            kwargs['initial'] = initial
+        super(ProductChangelistForm, self).__init__(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        obj = super(ProductChangelistForm, self).save(*args, **kwargs)
+        if obj.variations.count() == 1:
+            variation = obj.variations.first()
+            variation.vendor = self.cleaned_data['vendor']
+            variation.save()
+
+        return obj

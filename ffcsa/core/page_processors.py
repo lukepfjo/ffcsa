@@ -1,4 +1,5 @@
 from cartridge.shop.models import Product, Category, ProductVariation
+from cartridge.shop.forms import AddProductForm
 from cartridge.shop.utils import recalculate_cart
 from django.contrib.messages import info, error
 from django.shortcuts import redirect
@@ -7,7 +8,6 @@ from mezzanine.pages.page_processors import processor_for
 from mezzanine.utils.urls import slugify
 from mezzanine.utils.views import paginate
 
-from ffcsa.core.forms import wrap_AddProductForm
 from ffcsa.core.models import Recipe
 
 
@@ -34,7 +34,8 @@ def recipe_processor(request, page):
         return {}
 
     settings.clear_cache()
-    products = page.recipe.recipeproduct_set.filter(product__in=page.recipe.products.published())
+    products = page.recipe.recipeproduct_set.filter(
+        product__in=page.recipe.products.published())
 
     def prefix_product(field):
         return '-product__' + field[1:] if field.startswith('-') else 'product__' + field
@@ -50,7 +51,8 @@ def recipe_processor(request, page):
     products.sort_by = sort_by
 
     if request.method == "POST" and request.POST.get('add_box_items'):
-        products = page.recipe.recipeproduct_set.filter(product__in=page.recipe.products.published())
+        products = page.recipe.recipeproduct_set.filter(
+            product__in=page.recipe.products.published())
 
         add_box_items([(p.product, p.quantity) for p in products], request)
         return redirect("shop_cart")
@@ -101,11 +103,13 @@ def category_processor(request, page):
         item_qty = request.POST.get("item_qty")
 
         if item_id and item_qty:
-            item = Product.objects.published(for_user=request.user).filter(id=item_id).first()
+            item = Product.objects.published(
+                for_user=request.user).filter(id=item_id).first()
 
             if item:
                 # use AddProductForm b/c it does some validation w/ inventories, etc
-                form = wrap_AddProductForm(request.cart)({'quantity': item_qty}, product=item, to_cart=True)
+                form = AddProductForm(
+                    {'quantity': item_qty}, product=item, to_cart=True, cart=request.cart)
                 if form.is_valid():
                     request.cart.add_item(form.variation, int(item_qty))
                     recalculate_cart(request)
