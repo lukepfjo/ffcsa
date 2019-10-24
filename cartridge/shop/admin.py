@@ -13,6 +13,7 @@ from mezzanine.core.admin import (BaseTranslationModelAdmin, ContentTypedAdmin,
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 
+from cartridge.shop.actions import order_actions, product_actions
 from cartridge.shop.fields import MoneyField
 from cartridge.shop.forms import (CategoryAdminForm, DiscountAdminForm,
                                   ImageWidget, MoneyWidget, OrderAdminForm,
@@ -24,7 +25,7 @@ from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    ProductVariation, Sale)
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
-from ffcsa.core.models import update_cart_items
+from cartridge.shop.models import update_cart_items
 
 """
 Admin classes for all the shop models.
@@ -177,6 +178,8 @@ class ProductAdmin(ContentTypedAdmin, DisplayableAdmin):
         css = {"all": (static("cartridge/css/admin/product.css"),
                        static('css/admin/product.css'))}
 
+    actions = [product_actions.export_price_list]
+
     list_display = product_list_display
     list_display_links = ("admin_thumb", "title")
     list_editable = product_list_editable
@@ -188,6 +191,10 @@ class ProductAdmin(ContentTypedAdmin, DisplayableAdmin):
     form = ProductAdminForm
     fieldsets = product_fieldsets
     ordering = ('-available',)
+
+    # TODO get thie prefetch_related to work. Doesn't appear to be reducing the query count
+    # def get_queryset(self, request):
+    #     return super(ProductAdmin, self).get_queryset(request).prefetch_related('variations')
 
     def save_model(self, request, obj, form, change):
         """
@@ -330,7 +337,8 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
     formfield_overrides = {MoneyField: {"widget": MoneyWidget}}
-    fields = ('category', 'vendor', 'vendor_price', 'sku', 'description', 'quantity', 'unit_price', 'total_price')
+    fields = ('category', 'vendor', 'vendor_price', 'sku',
+              'description', 'quantity', 'unit_price', 'total_price')
 
 
 def address_pairs(fields):
@@ -350,11 +358,20 @@ if HAS_PDF:
     order_list_display += ("invoice",)
 
 
+# order_admin_fieldsets_fields_list = list(order_admin_fieldsets[2][1]["fields"])
+# order_admin_fieldsets_fields_list.insert(1, 'attending_dinner')
+# order_admin_fieldsets_fields_list.insert(2, 'drop_site')
+# order_admin_fieldsets[2][1]["fields"] = tuple(
+#     order_admin_fieldsets_fields_list)
+
+
 class OrderAdmin(admin.ModelAdmin):
 
     class Media:
         css = {"all": (static("cartridge/css/admin/order.css"),)}
 
+    actions = [order_actions.export_as_csv,
+               order_actions.download_invoices, order_actions.create_labels]
     ordering = ("status", "-id")
     list_display = order_list_display
     list_editable = ("status",)
@@ -368,10 +385,11 @@ class OrderAdmin(admin.ModelAdmin):
     form = OrderAdminForm
     formfield_overrides = {MoneyField: {"widget": MoneyWidget}}
     fieldsets = (
-        (_("Billing details"), {"fields": address_pairs(billing_fields)}),
+        (_("Billing details"), {"fields": [
+         'order_date', 'user'] + address_pairs(billing_fields)}),
         (_("Shipping details"), {"fields": address_pairs(shipping_fields)}),
-        (None, {"fields": ("additional_instructions", ("shipping_total",
-                                                       "shipping_type"), ('tax_total', 'tax_type'),
+        (None, {"fields": ("additional_instructions", 'attending_dinner', 'drop_site', ("shipping_total",
+                                                                                        "shipping_type"), ('tax_total', 'tax_type'),
                            ("discount_total", "discount_code"), "item_total",
                            ("total", "status"), "transaction_id")}),
     )

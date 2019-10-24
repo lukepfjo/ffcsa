@@ -1,36 +1,36 @@
 from __future__ import division, unicode_literals
-from future.builtins import str, super
-from future.utils import with_metaclass
 
 from decimal import Decimal
 from functools import reduce
 from operator import iand, ior
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.urls import reverse
-from django.db import models, connection
-from django.db.models.signals import m2m_changed
-from django.db.models import CharField, Q, F
+from django.db import connection, models
+from django.db.models import CharField, F, Q
 from django.db.models.base import ModelBase
+from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
+from django.urls import reverse
+from django.utils.encoding import force_text, python_2_unicode_compatible
 from django.utils.timezone import now
-from django.utils.translation import (ugettext, ugettext_lazy as _,
-                                      pgettext_lazy as __)
-
-from django.utils.encoding import force_text
-from django.utils.encoding import python_2_unicode_compatible
-
+from django.utils.translation import pgettext_lazy as __
+from django.utils.translation import ugettext
+from django.utils.translation import ugettext_lazy as _
+from future.builtins import str, super
+from future.utils import with_metaclass
 from mezzanine.conf import settings
 from mezzanine.core.fields import FileField
 from mezzanine.core.managers import DisplayableManager
-from mezzanine.core.models import (
-    ContentTyped, Displayable, Orderable, RichText, SiteRelated)
+from mezzanine.core.models import (ContentTyped, Displayable, Orderable,
+                                   RichText, SiteRelated)
 from mezzanine.generic.fields import RatingField
 from mezzanine.pages.models import Page
 from mezzanine.utils.models import AdminThumbMixin, upload_to
 
 from cartridge.shop import fields, managers
 from cartridge.shop.utils import clear_session
+from ffcsa.core.models import Payment
 
 
 class Priced(models.Model):
@@ -109,6 +109,31 @@ class BaseProduct(Displayable):
         abstract = True
 
 
+def update_cart_items(product, orig_sku):
+    """
+    When an item has changed, update any items that are already in the cart
+    """
+    from ffcsa.core.budgets import clear_cached_budget_for_user_id
+    cat = product.get_category()
+    update = {
+        'sku': product.sku,
+        'description': product.title,
+        'unit_price': product.price(),
+        'total_price': F('quantity') * product.price(),
+        'category': cat.__str__(),
+        'vendor': product.variations.first().vendor,
+        'vendor_price': product.vendor_price,
+        'in_inventory': product.in_inventory,
+        'weekly_inventory': product.weekly_inventory
+    }
+
+    items = CartItem.objects.filter(sku=orig_sku)
+    items.update(**update)
+    for item in items:
+        clear_cached_budget_for_user_id(item.cart.user_id)
+        return
+
+
 class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
     """
     Container model for a product that stores information common to
@@ -139,6 +164,10 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         verbose_name = _("Product")
         verbose_name_plural = _("Products")
         unique_together = ("sku", "site")
+
+    @property
+    def vendor(self):
+        return self.variations.first().vendor
 
     def save(self, *args, **kwargs):
         """
@@ -172,9 +201,15 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         when the product is updated via the change view.
         """
         default = self.variations.get(default=True)
+        orig_sku = self.sku
         default.copy_price_fields_to(self)
+        # TODO I don't think we need this anymore
+        # setattr(self, "weekly_inventory", getattr(default, "weekly_inventory"))
+        # setattr(self, "in_inventory", getattr(default, "in_inventory"))
         if default.image:
             self.image = default.image.file.name
+        if not settings.SHOP_USE_VARIATIONS:
+            update_cart_items(self, orig_sku)
         self.save()
 
     def get_category(self):
@@ -184,6 +219,7 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         example box category from this
         """
         categories = self.categories.all()
+        # categories = self.categories.exclude(slug='weekly-box')
         if len(categories) == 1:
             return categories[0]
         return None
@@ -623,7 +659,7 @@ class Cart(models.Model):
     user_id = models.IntegerField(blank=False, null=False, unique=True)
     attending_dinner = models.IntegerField(blank=False, null=False, default=0)
 
-    objects = managers.CartManager()
+    objects = managers.PersistentCartManager()
 
     def __iter__(self):
         """
@@ -639,6 +675,9 @@ class Cart(models.Model):
         Increase quantity of existing item if SKU matches, otherwise create
         new.
         """
+        if not self.user_id:
+            raise Exception(
+                "You must be logged in to add products to your cart")
         if not self.pk:
             self.save()
         kwargs = {"sku": variation.sku, "unit_price": variation.price()}
@@ -652,7 +691,55 @@ class Cart(models.Model):
                 item.image = force_text(image.file)
             variation.product.actions.added_to_cart()
         item.quantity += quantity
+
+# TODO is there a better way to do this now?
+        if not item.category:
+            p = Product.objects.filter(sku=item.sku).first()
+            item.category = str(p.get_category())
+        if not item.vendor:
+            item.vendor = variation.vendor
+        if not item.vendor_price:
+            item.vendor_price = variation.vendor_price
+        if item.in_inventory != variation.in_inventory:
+            item.in_inventory = variation.in_inventory
+        if variation.weekly_inventory != item.weekly_inventory:
+            item.weekly_inventory = variation.weekly_inventory
+
         item.save()
+
+    def clear(self):
+        self.attending_dinner = 0
+        self.items.all().delete()
+
+    def over_budget(self, additional_total=0):
+        return self.remaining_budget() < additional_total
+
+    def remaining_budget(self):
+        if not self.user_id:
+            return 0
+
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        ytd_order_total = self.objects.total_for_user(user)
+        ytd_payment_total = Payment.objects.total_for_user(user)
+
+        return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
+
+    def discount(self):
+        if not self.user_id:
+            return 0
+
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        if not user or not user.profile.discount_code:
+            return 0
+
+        return self.calculate_discount(user.profile.discount_code)
+
+    def total_price_after_discount(self):
+        return self.total_price() - self.discount()
 
     def has_items(self):
         """

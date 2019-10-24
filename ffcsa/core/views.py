@@ -1,42 +1,47 @@
 import datetime
-import stripe
 from copy import deepcopy
-
-from cartridge.shop import views as s_views
-from cartridge.shop.forms import CartItemFormSet, DiscountForm, AddProductForm
-from cartridge.shop.models import Category, Order, Product
 from decimal import Decimal
 
+import stripe
 from dal import autocomplete
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth import get_user_model, login as auth_login
-from django.contrib.messages import error, success, info
-from django.contrib.sites.models import Site
+from django.contrib.auth import get_user_model
+from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
-from django.forms import modelformset_factory
+from django.contrib.messages import error, info, success
+from django.contrib.sites.models import Site
 from django.db.models import Q
+from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
-from django.template.response import TemplateResponse, HttpResponse
+from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
 from django.utils import formats
 from django.utils.http import is_safe_url
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
-from ffcsa.core.admin import DEFAULT_GROUP_KEY
-from ffcsa.core.forms import CartDinnerForm, ProfileForm, BasePaymentFormSet
+from cartridge.shop import views as s_views
+from cartridge.shop.actions.order_actions import DEFAULT_GROUP_KEY
+from cartridge.shop.models import Category, Order, Product
+from ffcsa.core.forms import BasePaymentFormSet, ProfileForm
 from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment, Recipe
-from ffcsa.core.subscriptions import create_stripe_subscription, send_failed_payment_email, send_first_payment_email, \
-    SIGNUP_DESCRIPTION, clear_ach_payment_source, send_subscription_canceled_email, send_pending_payment_email, \
-    update_stripe_subscription
-from .utils import ORDER_CUTOFF_DAY, get_order_total, get_payment_total, get_friday_pickup_date, next_weekday, \
-    get_order_week_start
+from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
+                                      clear_ach_payment_source,
+                                      create_stripe_subscription,
+                                      send_failed_payment_email,
+                                      send_first_payment_email,
+                                      send_pending_payment_email,
+                                      send_subscription_canceled_email,
+                                      update_stripe_subscription)
+
+from .utils import (ORDER_CUTOFF_DAY,
+                    get_order_week_start, next_weekday)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -54,23 +59,6 @@ def shop_home(request, template="shop_home.html"):
     return TemplateResponse(request, template, context)
 
 
-@never_cache
-def cart(request, template="shop/cart.html",
-         cart_formset_class=CartItemFormSet,
-         discount_form_class=DiscountForm,
-         extra_context={}):
-    cart_dinner_form = CartDinnerForm(request, request.POST or None)
-
-    if request.method == "POST":
-        if cart_dinner_form.is_valid():
-            cart_dinner_form.save()
-
-    extra_context['cart_dinner_form'] = cart_dinner_form
-    extra_context['dinner_week'] = get_friday_pickup_date().day <= 7
-
-    return s_views.cart(request, template=template, cart_formset_class=cart_formset_class,
-                        discount_form_class=discount_form_class, extra_context=extra_context)
-
 
 # monkey patch the product view
 original_product_view = deepcopy(s_views.product)
@@ -82,7 +70,8 @@ def product(request, slug, template="shop/product.html", extra_context=None, **k
     """
     if request.method == 'POST':
         if not request.user.is_authenticated():
-            raise Exception("You must be authenticated in order to add products to your cart")
+            raise Exception(
+                "You must be authenticated in order to add products to your cart")
         if not request.cart.user_id:
             request.cart.user_id = request.user.id
         elif request.cart.user_id != request.user.id:
@@ -154,28 +143,16 @@ def signup(request, template="accounts/account_signup.html",
 
 
 @login_required
-def order_history(request, template="shop/order_history.html"):
-    ytd_order_total = get_order_total(request.user)
-    ytd_payment_total = get_payment_total(request.user)
-
-    extra_context = {
-        'ytd_contrib': '{0:.2f}'.format(ytd_payment_total),
-        'ytd_ordered': ytd_order_total,
-        'budget': '{0:.2f}'.format(ytd_payment_total - ytd_order_total)
-    }
-
-    return s_views.order_history(request, template=template, extra_context=extra_context)
-
-
-@login_required
 def payments(request, template="ffcsa_core/payments.html", extra_context={}):
     """
     Display a list of the currently logged-in user's past orders.
     """
     next_payment_date = None
     if request.user.profile.stripe_subscription_id:
-        subscription = stripe.Subscription.retrieve(request.user.profile.stripe_subscription_id)
-        next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
+        subscription = stripe.Subscription.retrieve(
+            request.user.profile.stripe_subscription_id)
+        next_payment_date = datetime.date.fromtimestamp(
+            subscription.current_period_end + 1)
         next_payment_date = formats.date_format(next_payment_date, "D, F d")
 
     all_payments = Payment.objects.filter(user__id=request.user.id)
@@ -221,7 +198,8 @@ def payments_subscribe(request):
                     )
                     user.profile.stripe_customer_id = customer.id
                 else:
-                    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                    customer = stripe.Customer.retrieve(
+                        user.profile.stripe_customer_id)
                     customer.source = stripeToken
                     customer.save()
                 user.profile.payment_method = 'CC'
@@ -242,12 +220,14 @@ def payments_subscribe(request):
                     )
                     user.profile.stripe_customer_id = customer.id
                 else:
-                    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                    customer = stripe.Customer.retrieve(
+                        user.profile.stripe_customer_id)
                     customer.source = stripeToken
                     customer.save()
                 user.profile.payment_method = 'ACH'
                 user.profile.monthly_contribution = amount
-                user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
+                user.profile.ach_status = 'VERIFIED' if customer.sources.data[
+                    0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request,
                         'Your subscription has been created. You will need to verify your bank account '
@@ -291,17 +271,21 @@ def payments_update(request):
     try:
         if not errors:
             if paymentType == 'CC':
-                customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                customer = stripe.Customer.retrieve(
+                    user.profile.stripe_customer_id)
                 customer.source = stripeToken
                 customer.save()
-                user.profile.ach_status = None  # reset this so they don't receive error msg for failed ach verification
+                # reset this so they don't receive error msg for failed ach verification
+                user.profile.ach_status = None
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             elif paymentType == 'ACH':
-                customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                customer = stripe.Customer.retrieve(
+                    user.profile.stripe_customer_id)
                 customer.source = stripeToken
                 customer.save()
-                user.profile.ach_status = 'VERIFIED' if customer.sources.data[0].status == 'verified' else 'NEW'
+                user.profile.ach_status = 'VERIFIED' if customer.sources.data[
+                    0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             else:
@@ -384,7 +368,8 @@ def make_payment(request):
             stripeToken = request.POST.get('stripeToken')
             card = None
             if stripeToken:
-                customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
+                customer = stripe.Customer.retrieve(
+                    user.profile.stripe_customer_id)
                 card = customer.sources.create(source=stripeToken)
 
             stripe.Charge.create(
@@ -424,7 +409,8 @@ def donate(request):
         error(request, 'You can not donate more then your remaining budget.')
 
     if not hasError:
-        feed_a_friend, created = User.objects.get_or_create(username=settings.FEED_A_FRIEND_USER)
+        feed_a_friend, created = User.objects.get_or_create(
+            username=settings.FEED_A_FRIEND_USER)
 
         order_dict = {
             'user_id': user.id,
@@ -452,7 +438,8 @@ def donate(request):
         }
 
         order.items.create(**item_dict)
-        Payment.objects.create(amount=amount, user=feed_a_friend, notes="Donation from {}".format(user.get_full_name()))
+        Payment.objects.create(amount=amount, user=feed_a_friend,
+                               notes="Donation from {}".format(user.get_full_name()))
         success(request, 'Thank you for your donation to the Feed-A-Friend fund!')
 
     next = request.GET.get('next', '/')
@@ -477,7 +464,8 @@ def verify_ach(request):
         errors.append('both amounts are required')
 
     if not user.profile.stripe_customer_id:
-        errors.append('You are missing a customerId. Please contact the site administrator')
+        errors.append(
+            'You are missing a customerId. Please contact the site administrator')
 
     if not errors:
         customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
@@ -502,9 +490,12 @@ def verify_ach(request):
                             'you know when your first ordering and pickup dates are. If you do not '
                             'see this email in the next 5 - 7 business days, please check your spam')
                 else:
-                    subscription = stripe.Subscription.retrieve(user.profile.stripe_subscription_id)
-                    next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
-                    next_payment_date = formats.date_format(next_payment_date, "D, F d")
+                    subscription = stripe.Subscription.retrieve(
+                        user.profile.stripe_subscription_id)
+                    next_payment_date = datetime.date.fromtimestamp(
+                        subscription.current_period_end + 1)
+                    next_payment_date = formats.date_format(
+                        next_payment_date, "D, F d")
                     success(request,
                             'Congratulations, your account has been verified and your first payment is processing. '
                             'You will be seeing this amount show up in your member store account in 5 - 7 business '
@@ -545,7 +536,8 @@ def stripe_webhooks(request):
         )
 
         if event.type == 'charge.pending':
-            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(
+                profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
             # only save pending ach transfers. cc payments are basically instant
             if user and charge.source.object == 'bank_account':
@@ -559,10 +551,12 @@ def stripe_webhooks(request):
                     payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id,
                                                      pending=True)
                     payment.save()
-                    payments_url = request.build_absolute_uri(reverse("payments"))
+                    payments_url = request.build_absolute_uri(
+                        reverse("payments"))
                     send_pending_payment_email(user, payments_url)
         elif event.type == 'charge.succeeded':
-            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(
+                profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
             if user:
                 if charge.description == SIGNUP_DESCRIPTION:
@@ -571,15 +565,19 @@ def stripe_webhooks(request):
                 else:
                     amount = charge.amount / 100  # amount is in cents
                     date = datetime.datetime.fromtimestamp(charge.created)
-                    existing_payments = Payment.objects.filter(charge_id=charge.id)
+                    existing_payments = Payment.objects.filter(
+                        charge_id=charge.id)
                     if existing_payments.filter(pending=False).exists():
                         raise AssertionError(
                             "That payment already exists: {}".format(existing_payments.filter(pending=False).first()))
                     else:
-                        sendFirstPaymentEmail = not Payment.objects.filter(user=user).exists()
-                        payment = existing_payments.filter(pending=True).first()
+                        sendFirstPaymentEmail = not Payment.objects.filter(
+                            user=user).exists()
+                        payment = existing_payments.filter(
+                            pending=True).first()
                         if payment is None:
-                            payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id)
+                            payment = Payment.objects.create(
+                                user=user, amount=amount, date=date, charge_id=charge.id)
                         else:
                             payment.pending = False
                         payment.save()
@@ -588,26 +586,30 @@ def stripe_webhooks(request):
                             user.profile.save()
                             send_first_payment_email(user)
         elif event.type == 'charge.failed':
-            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(
+                profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
             err = charge.failure_message
             payments_url = request.build_absolute_uri(reverse("payments"))
-            created = datetime.datetime.fromtimestamp(charge.created).strftime('%d-%m-%Y')
-            send_failed_payment_email(user, err, charge.amount / 100, created, payments_url)
+            created = datetime.datetime.fromtimestamp(
+                charge.created).strftime('%d-%m-%Y')
+            send_failed_payment_email(
+                user, err, charge.amount / 100, created, payments_url)
         elif event.type == 'customer.source.updated' and event.data.object.object == 'bank_account':
-            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(
+                profile__stripe_customer_id=event.data.object.customer).first()
             if user.profile.ach_status == 'NEW' and event.data.object.status == 'verification_failed':
                 # most likely wrong account info was entered
                 clear_ach_payment_source(user, event.data.object.id)
         elif event.type == 'customer.subscription.deleted':
-            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(
+                profile__stripe_customer_id=event.data.object.customer).first()
             user.profile.stripe_subscription_id = None
             user.profile.save()
-            date = datetime.datetime.fromtimestamp(event.data.object.canceled_at).strftime('%d-%m-%Y')
+            date = datetime.datetime.fromtimestamp(
+                event.data.object.canceled_at).strftime('%d-%m-%Y')
             payments_url = request.build_absolute_uri(reverse("payments"))
             send_subscription_canceled_email(user, date, payments_url)
-
-
 
     except ValueError as e:
         # Invalid payload
@@ -659,8 +661,8 @@ def admin_member_budgets(request, template="admin/member_budgets.html"):
     budgets = []
 
     for user in users:
-        ytd_contrib = get_payment_total(user)
-        ytd_ordered = get_order_total(user)
+        ytd_contrib = Payment.objects.total_for_user(user)
+        ytd_ordered = Order.objects.total_for_user(user)
         if not ytd_ordered:
             ytd_ordered = Decimal(0)
         if not ytd_contrib:
@@ -685,7 +687,8 @@ def member_order_history(request, template="admin/member_order_history.html"):
 
     data = []
 
-    next_order_day = next_weekday(get_order_week_start(), ORDER_CUTOFF_DAY)  # get the order day
+    next_order_day = next_weekday(
+        get_order_week_start(), ORDER_CUTOFF_DAY)  # get the order day
 
     wk = next_order_day - datetime.timedelta(7)
     weeks = [wk]
@@ -750,7 +753,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
 
     if new_month:
         users = User.objects.filter(
-            ~Q(profile__monthly_contribution__isnull=True) & ~Q(profile__monthly_contribution=0),
+            ~Q(profile__monthly_contribution__isnull=True) & ~Q(
+                profile__monthly_contribution=0),
             is_active=True, profile__stripe_subscription_id__isnull=True).order_by(
             'last_name')
         extra = users.count() + 1
@@ -780,7 +784,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
             }
             i += 1
     else:
-        PaymentFormSet.form.base_fields['user'].queryset = User.objects.filter(is_active=True).order_by('last_name')
+        PaymentFormSet.form.base_fields['user'].queryset = User.objects.filter(
+            is_active=True).order_by('last_name')
         formset = PaymentFormSet(queryset=Payment.objects.filter(pk__in=ids))
 
     setattr(formset, 'opts', {
@@ -830,7 +835,8 @@ def product_keySort(product):
 @csrf_protect
 @staff_member_required
 def admin_product_invoice_order(request, template="admin/product_invoice_order.html"):
-    products = [p for p in Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)]
+    products = [p for p in Product.objects.filter(
+        available=True, status=CONTENT_STATUS_PUBLISHED)]
     products.sort(key=product_keySort)
 
     context = {
@@ -842,7 +848,8 @@ def admin_product_invoice_order(request, template="admin/product_invoice_order.h
 
 class ProductAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
-        qs = Product.objects.filter(available=True, status=CONTENT_STATUS_PUBLISHED)
+        qs = Product.objects.filter(
+            available=True, status=CONTENT_STATUS_PUBLISHED)
 
         if self.q:
             qs = qs.filter(title__icontains=self.q)

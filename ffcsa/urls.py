@@ -36,7 +36,6 @@ urlpatterns += [
 
     # Cartridge URLs.
     url("^", include("cartridge.shop.urls")),
-    url("^account/orders/$", ffcsa_core.order_history, name="shop_order_history"),
     url("^account/payments/$", ffcsa_core.payments, name="payments"),
     url("^account/payments/subscribe$", ffcsa_core.payments_subscribe, name="payments_subscribe"),
     url("^account/payments/verify$", ffcsa_core.verify_ach, name="payments_verify"),

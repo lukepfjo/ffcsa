@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 from future.builtins import bytes, zip, str as _str
 
 import hmac
+from decimal import Decimal
 from locale import setlocale, LC_MONETARY, Error as LocaleError
 
 try:
@@ -35,6 +36,31 @@ def clear_session(request, *names):
             pass
 
 
+def recalculate_remaining_budget(request):
+    """
+    utility function to attach the remaining budget as an attribute on the request.user
+
+    This should be called after any cart modifications, as we take into account the request.cart.total_price()
+    in the calculated remaining_budget
+    """
+    from cartridge.shop.models import Order
+    from ffcsa.core.models import Payment
+
+    if not request.user.is_authenticated():
+        return
+
+    ytd_contrib = Payment.objects.total_for_user(request.user)
+    ytd_ordered = Order.objects.total_for_user(request.user)
+    if not ytd_ordered:
+        ytd_ordered = Decimal(0)
+    if not ytd_contrib:
+        ytd_contrib = Decimal(0)
+
+    # update remaining_budget
+    request.session["remaining_budget"] = float(
+        "{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price_after_discount()))
+
+
 def recalculate_cart(request):
     """
     Updates an existing discount code, shipping, and tax when the
@@ -59,7 +85,7 @@ def recalculate_cart(request):
         if discount_form.is_valid():
             discount_form.set_discount()
 
-    handler = lambda s: import_dotted_path(s) if s else lambda *args: None
+    def handler(s): return import_dotted_path(s) if s else lambda *args: None
     billship_handler = handler(settings.SHOP_HANDLER_BILLING_SHIPPING)
     tax_handler = handler(settings.SHOP_HANDLER_TAX)
     try:
@@ -68,6 +94,7 @@ def recalculate_cart(request):
             tax_handler(request, None)
     except (checkout.CheckoutError, ValueError, KeyError):
         pass
+    recalculate_remaining_budget(request)
 
 
 def set_shipping(request, shipping_type, shipping_total):

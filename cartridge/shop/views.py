@@ -26,6 +26,10 @@ from cartridge.shop.models import Product, ProductVariation, Order
 from cartridge.shop.models import DiscountCode
 from cartridge.shop.utils import recalculate_cart, sign
 
+from ffcsa.core.models import Payment
+from ffcsa.core.forms import CartDinnerForm
+from ffcsa.core.utils import get_friday_pickup_date
+
 try:
     from xhtml2pdf import pisa
 except (ImportError, SyntaxError):
@@ -186,9 +190,12 @@ def cart(request, template="shop/cart.html",
     """
     cart_formset = cart_formset_class(instance=request.cart)
     discount_form = discount_form_class(request, request.POST or None)
+    cart_dinner_form = CartDinnerForm(request, request.POST or None)
     if request.method == "POST":
         valid = True
         if request.POST.get("update_cart"):
+            if cart_dinner_form.is_valid():
+                cart_dinner_form.save()
             valid = request.cart.has_items()
             if not valid:
                 # Session timed out.
@@ -224,7 +231,11 @@ def cart(request, template="shop/cart.html",
             recalculate_cart(request)
         if valid:
             return redirect("shop_cart")
-    context = {"cart_formset": cart_formset}
+    context = {
+        "cart_formset": cart_formset,
+        'cart_dinner_form': cart_dinner_form,
+        'dinner_week': get_friday_pickup_date().day <= 7
+    }
     context.update(extra_context or {})
     settings.clear_cache()
     if (settings.SHOP_DISCOUNT_FIELD_IN_CART and
@@ -434,7 +445,15 @@ def order_history(request, template="shop/order_history.html",
                       request.GET.get("page", 1),
                       settings.SHOP_PER_PAGE_CATEGORY,
                       settings.MAX_PAGING_LINKS)
-    context = {"orders": orders, "has_pdf": HAS_PDF}
+    ytd_order_total = Order.objects.total_for_user(request.user)
+    ytd_payment_total = Payment.objects.total_for_user(request.user)
+    context = {
+        "orders": orders,
+        "has_pdf": HAS_PDF,
+        'ytd_contrib': '{0:.2f}'.format(ytd_payment_total),
+        'ytd_ordered': ytd_order_total,
+        'budget': '{0:.2f}'.format(ytd_payment_total - ytd_order_total)
+    }
     context.update(extra_context or {})
     return TemplateResponse(request, template, context)
 

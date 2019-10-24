@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
-from future.builtins import str, zip
 
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
+from decimal import Decimal
 
-from django.db.models import Manager, Q
+from django.db.models import Manager, Q, Sum
 from django.utils.timezone import now
-
+from future.builtins import str, zip
 from mezzanine.conf import settings
 from mezzanine.core.managers import CurrentSiteManager
 
@@ -85,6 +85,25 @@ class OrderManager(CurrentSiteManager):
             lookup["user_id"] = request.user.id
         return self.get(**lookup)
 
+    def all_for_user(self, user):
+        """
+        Get all orders for the given user.
+
+        Note: Only returns orders after 12-01-2017 as that is when we started calculating payments
+        """
+        return self \
+            .filter(user_id=user.id) \
+            .filter(time__gte=datetime.date(2017, 12, 1))  # started calculating payments 12/1/2017
+
+    def total_for_user(self, user):
+        total = self.for_user(user) \
+            .aggregate(total=Sum('total'))['total']
+
+        if total is None:
+            total = Decimal(0)
+
+        return total
+
 
 class ProductOptionManager(Manager):
 
@@ -110,7 +129,7 @@ class ProductVariationManager(Manager):
         if not exclude:
             exclude = {}
         return dict([("%s__isnull" % f.name, True)
-            for f in self.model.option_fields() if f.name not in exclude])
+                     for f in self.model.option_fields() if f.name not in exclude])
 
     def create_from_options(self, options):
         """
@@ -135,7 +154,7 @@ class ProductVariationManager(Manager):
 
     def manage_empty(self):
         """
-        Create an empty variation (no options) if none exist,
+        Create an empty variation(no options) if none exist,
         otherwise if multiple variations exist ensure there is no
         redundant empty variation. Also ensure there is at least one
         default variation.
@@ -230,3 +249,39 @@ class DiscountCodeManager(Manager):
             if products.filter(variations__sku__in=cart.skus()).count() == 0:
                 raise self.model.DoesNotExist
         return discount
+
+
+class PersistentCartManager(CartManager):
+    def from_request(self, request):
+        """
+        Return a cart by user ID from the authenticated user, updating its last_updated
+        value and removing old carts. A new cart will be created(but not
+        persisted in the database) if the session cart is expired or missing.
+        """
+        user_id = request.user.id
+        cart_query = self.current().filter(user_id=user_id)
+        cart_id = request.session.get("cart", None)
+
+        last_updated = now()
+        cart = cart_query.first()
+
+        # Update timestamp and clear out old carts and put the cart_id in the session
+        if cart and cart_query.update(last_updated=last_updated):
+            self.expired().delete()
+            cart_id = cart.id
+            request.session["cart"] = cart_id
+        elif cart_id:
+            # Cart has expired. Delete the cart id and
+            # forget what checkout step we were up to.
+            del request.session["cart"]
+            cart_id = None
+            cart = None
+            try:
+                del request.session["order"]["step"]
+            except KeyError:
+                pass
+
+        if cart:
+            return cart
+        else:
+            return self.model(id=cart_id, last_updated=last_updated, user_id=user_id)

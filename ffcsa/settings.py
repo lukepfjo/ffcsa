@@ -32,8 +32,7 @@ DROP_SITE_COLORS = {
     'Banzhaf': 'orange',
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Corner Market',
-                   'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Corner Market', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
 
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
@@ -124,8 +123,7 @@ SHOP_PAYMENT_STEP_ENABLED = False
 SHOP_DEFAULT_SHIPPING_VALUE = 0
 SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
-SHOP_PRODUCT_SORT_OPTIONS = (
-    ('Title', 'title'), ('Recently added', '-date_added'),)
+SHOP_PRODUCT_SORT_OPTIONS = (('Title', 'title'), ('Recently added', '-date_added'),)
 SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
 SHOP_PER_PAGE_CATEGORY = 20
 SHOP_HIDE_UNAVAILABLE = True
@@ -153,8 +151,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "can_order",
     "google_person_id"
 ]
-# used to send notifications of new user accounts
-ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'
+ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 
 ACCOUNTS_NO_USERNAME = True
 

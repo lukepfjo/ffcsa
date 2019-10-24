@@ -1,5 +1,5 @@
 from ffcsa.core.budgets import clear_cached_budget
-from ffcsa.core.utils import recalculate_remaining_budget
+from cartridge.shop.utils import recalculate_remaining_budget
 
 
 class BudgetMiddleware(object):
@@ -34,7 +34,8 @@ class DiscountMiddleware(object):
 
         elif hasattr(request, 'user') and request.user.is_authenticated() and request.user.profile.discount_code:
             request.session["discount_code"] = request.user.profile.discount_code.code
-            total = request.cart.calculate_discount(request.user.profile.discount_code)
+            total = request.cart.calculate_discount(
+                request.user.profile.discount_code)
             request.session["discount_total"] = str(total)
             clear_cached_budget(request.user)
 
