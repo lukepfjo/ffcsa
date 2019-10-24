@@ -7,7 +7,7 @@ bleach==2.0.0
 cachetools==3.1.1
 cairocffi==1.0.2
 CairoSVG==2.0.3
-Cartridge==git+https://github.com/ewingrj/cartridge.git
+git+git://github.com/ewingrj/cartridge@master#egg=Cartridge
 certifi==2018.4.16
 cffi==1.10.0
 chardet==3.0.2
