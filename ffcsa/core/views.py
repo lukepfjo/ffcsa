@@ -17,7 +17,6 @@ from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
 from django.utils import formats
 from django.utils.http import is_safe_url
-from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from mezzanine.conf import settings

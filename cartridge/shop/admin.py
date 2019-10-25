@@ -25,7 +25,7 @@ from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    ProductVariation, Sale)
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
-from cartridge.shop.models import update_cart_items
+from cartridge.shop.models.Cart import update_cart_items
 
 """
 Admin classes for all the shop models.

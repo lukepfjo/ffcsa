@@ -1,6 +1,7 @@
 import datetime
 
-from cartridge.shop.models import Cart, Order, SelectedProduct, ProductVariation
+from cartridge.shop.models import Cart, Order, ProductVariation
+from cartridge.shop.models.SelectedProduct import SelectedProduct
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
