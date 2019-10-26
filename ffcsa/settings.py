@@ -4,6 +4,8 @@ import os
 from django import VERSION as DJANGO_VERSION
 from django.utils.translation import ugettext_lazy as _
 
+NESTED_ADMIN_DEBUG = True
+
 ##############################
 # FFCSA-CORE SETTINGS #
 ##############################
@@ -115,7 +117,7 @@ SHOP_OPTION_TYPE_CHOICES = ()
 # SHOP_OPTION_ADMIN_ORDER = (2, 1)
 
 SHOP_USE_WISHLIST = False
-SHOP_USE_VARIATIONS = False
+SHOP_USE_VARIATIONS = True
 SHOP_USE_UPSELL_PRODUCTS = False
 SHOP_USE_RELATED_PRODUCTS = False
 SHOP_USE_RATINGS = False
@@ -409,6 +411,7 @@ INSTALLED_APPS = (
     "mezzanine.accounts",
     # "ffcsa.invites",
     "ffcsa.core",
+    'nested_admin'
     # "mezzanine.mobile",
 )
 

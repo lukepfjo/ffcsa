@@ -18,7 +18,7 @@ from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 
 from cartridge.shop.models import Sale
-from cartridge.shop.forms import CategoryAdminForm, ImageWidget
+from cartridge.shop.forms import OptionalContentAdminForm, ImageWidget
 from ffcsa.core.subscriptions import update_stripe_subscription
 
 from .models import Payment, Recipe, RecipeProduct
@@ -124,7 +124,7 @@ class RecipeProductInlineAdmin(admin.TabularInline):
 
 
 class RecipeAdmin(PageAdmin):
-    form = CategoryAdminForm
+    form = OptionalContentAdminForm
     fieldsets = recipe_fieldsets
     formfield_overrides = {ImageField: {"widget": ImageWidget}}
     inlines = (RecipeProductInlineAdmin,)

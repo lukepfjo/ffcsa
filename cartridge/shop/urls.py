@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from django.conf.urls import url
+from django.conf.urls import url, include
 from mezzanine.conf import settings
 
 from cartridge.shop import views
@@ -21,4 +21,8 @@ urlpatterns = [
     url("^invoice/(?P<order_id>\d+)/resend%s$" % _slash,
         views.invoice_resend_email, name="shop_invoice_resend"),
     # note category_product url is registered in apps.py
+    url("^vendor/(?P<slug>.*)%s$" % _slash, views.vendor,
+        name="shop_vendor"),
+    url(r'^_nested_admin/', include('nested_admin.urls')),
+
 ]

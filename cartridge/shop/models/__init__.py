@@ -7,3 +7,4 @@ from .Order import Order, OrderItem
 from .Product import Product, ProductImage, ProductOption, ProductVariation
 from .ProductAction import ProductAction
 from .Sale import Sale
+from .Vendor import Vendor, VendorProductVariation

@@ -41,6 +41,11 @@ jQuery(function ($) {
       var vendorPrice = row.find('.field-vendor_price input')
       var unitPriceTd = row.find('.field-unit_price')
       var unitPrice = $(unitPriceTd).find('input')
+      if (!unitPrice.length) {
+        // if here, then there are multiple variations, so we don't need the margin input
+        $('<td>-</td>').insertAfter(unitPriceTd)
+        return
+      }
       var margin = $('<td>' + marginElement + '</td>').insertAfter(unitPriceTd)
       $(margin).find('input').css('width', '50px')
 
@@ -58,21 +63,24 @@ jQuery(function ($) {
   } else {
     $('<div class=\'form-cell\'>% Margin</div>').insertAfter($('.legend div.member-price'))
 
-    var items = $('#variations-group').find('.items > div').not('.empty-form')
-    var vendorPrice = $(items).find('.vendor_price input')
-    var unitPriceDiv = $(items).find('.unit_price')
-    var unitPrice = $(unitPriceDiv).find('input')
-    var margin = $('<div class="item form-cell margin">' + marginElement + '</div>').insertAfter(unitPriceDiv)
+    // var items = $('#variations-group').find('.items > div').not('.empty-form')
+    var items = $('#variations-group').find('.items > div[id^=variations-]')
+    items.each(function (i, item) {
+      var vendorPrice = $(item).find('.vendor_price input')
+      var unitPriceDiv = $(item).find('.unit_price')
+      var unitPrice = $(unitPriceDiv).find('input')
+      var margin = $('<div class="item form-cell margin">' + marginElement + '</div>').insertAfter(unitPriceDiv)
 
-    updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
-    vendorPrice.change(function () {
       updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
-    })
-    unitPrice.change(function () {
-      updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
-    })
-    $(margin).find('input').change(function () {
-      updateMargins(vendorPrice, unitPrice, $(margin).find('input'), true)
+      vendorPrice.change(function () {
+        updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
+      })
+      unitPrice.change(function () {
+        updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
+      })
+      $(margin).find('input').change(function () {
+        updateMargins(vendorPrice, unitPrice, $(margin).find('input'), true)
+      })
     })
   }
 })

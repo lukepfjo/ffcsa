@@ -1,8 +1,7 @@
-
 from __future__ import absolute_import, unicode_literals
 
 from collections import OrderedDict
-from copy import copy
+from copy import copy, deepcopy
 from datetime import date
 from itertools import dropwhile, takewhile
 from locale import localeconv
@@ -11,6 +10,7 @@ from re import match
 from django import forms
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
+from django.forms import Widget
 from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
                                  inlineformset_factory)
 from django.utils.safestring import mark_safe
@@ -256,18 +256,18 @@ class FormsetForm(object):
             return None
         filters = (
             ("^other_fields$", lambda:
-                self.fields.keys()),
+            self.fields.keys()),
             ("^hidden_fields$", lambda:
-                [n for n, f in self.fields.items()
-                 if isinstance(f.widget, forms.HiddenInput)]),
+            [n for n, f in self.fields.items()
+             if isinstance(f.widget, forms.HiddenInput)]),
             ("^(\w*)_fields$", lambda name:
-                [f for f in self.fields.keys() if f.startswith(name)]),
+            [f for f in self.fields.keys() if f.startswith(name)]),
             ("^(\w*)_field$", lambda name:
-                [f for f in self.fields.keys() if f == name]),
+            [f for f in self.fields.keys() if f == name]),
             ("^fields_before_(\w*)$", lambda name:
-                takewhile(lambda f: f != name, self.fields.keys())),
+            takewhile(lambda f: f != name, self.fields.keys())),
             ("^fields_after_(\w*)$", lambda name:
-                dropwhile(lambda f: f != name, self.fields.keys())[1:]),
+            dropwhile(lambda f: f != name, self.fields.keys())[1:]),
         )
         for filter_exp, filter_func in filters:
             filter_args = match(filter_exp, name)
@@ -277,7 +277,6 @@ class FormsetForm(object):
 
 
 class DiscountForm(forms.ModelForm):
-
     class Meta:
         model = Order
         fields = ("discount_code",)
@@ -409,17 +408,22 @@ class OrderForm(FormsetForm, DiscountForm):
         is_last_step = step == checkout.CHECKOUT_STEP_LAST
         is_payment_step = step == checkout.CHECKOUT_STEP_PAYMENT
 
-        def hidden_filter(f): return False
+        def hidden_filter(f):
+            return False
+
         if settings.SHOP_CHECKOUT_STEPS_SPLIT:
             if is_first_step:
                 # Hide cc fields for billing/shipping if steps are split.
-                def hidden_filter(f): return f.startswith("card_")
+                def hidden_filter(f):
+                    return f.startswith("card_")
             elif is_payment_step:
                 # Hide non-cc fields for payment if steps are split.
-                def hidden_filter(f): return not f.startswith("card_")
+                def hidden_filter(f):
+                    return not f.startswith("card_")
         elif not settings.SHOP_PAYMENT_STEP_ENABLED:
             # Hide all cc fields if payment step is not enabled.
-            def hidden_filter(f): return f.startswith("card_")
+            def hidden_filter(f):
+                return f.startswith("card_")
         if settings.SHOP_CHECKOUT_STEPS_CONFIRMATION and is_last_step:
             # Hide all fields for the confirmation step.
             def hidden_filter(f): return True
@@ -514,6 +518,7 @@ class ProductAdminFormMetaclass(ModelFormMetaclass):
     of the types of product options as sets of checkboxes for selecting
     which options to use when creating new product variations.
     """
+
     def __new__(cls, name, bases, attrs):
         for option in settings.SHOP_OPTION_TYPE_CHOICES:
             field = forms.MultipleChoiceField(label=option[1],
@@ -540,8 +545,8 @@ class ProductAdminForm(with_metaclass(ProductAdminFormMetaclass,
         upsell products (if enabled).
         """
         super(ProductAdminForm, self).__init__(*args, **kwargs)
-        for field, options in list(ProductOption.objects.as_fields().items()):
-            self.fields[field].choices = make_choices(options)
+        # for field, options in list(ProductOption.objects.as_fields().items()):
+        #     self.fields[field].choices = make_choices(options)
         instance = kwargs.get("instance")
         if instance:
             queryset = Product.objects.exclude(id=instance.id)
@@ -556,6 +561,7 @@ class ProductVariationAdminForm(forms.ModelForm):
     Ensure the list of images for the variation are specific to the
     variation's product.
     """
+    show_url = False
 
     def __init__(self, *args, **kwargs):
         super(ProductVariationAdminForm, self).__init__(*args, **kwargs)
@@ -573,7 +579,7 @@ class ProductVariationAdminFormset(BaseInlineFormSet):
     def clean(self):
         super(ProductVariationAdminFormset, self).clean()
         if len([f for f in self.forms if hasattr(f, "cleaned_data") and
-                f.cleaned_data.get("default", False)]) > 1:
+                                         f.cleaned_data.get("default", False)]) > 1:
             error = _("Only one variation can be checked as the default.")
             raise forms.ValidationError(error)
 
@@ -594,9 +600,9 @@ class DiscountAdminForm(forms.ModelForm):
         return super(DiscountAdminForm, self).clean()
 
 
-class CategoryAdminForm(PageAdminForm):
+class OptionalContentAdminForm(PageAdminForm):
     def clean_content(form):
-        # make the content field not required for Category Pages
+        # make the content field not required
         return form.cleaned_data.get("content")
 
 
@@ -642,18 +648,34 @@ class OrderAdminForm(forms.ModelForm):
         return cleaned_data
 
 
+class DisplayWidget(Widget):
+    template_name = "forms/widgets/display.html"
+
+
 class ProductChangelistForm(forms.ModelForm):
     vendor = forms.CharField()
+    single_variation_fields = ['vendor_price', 'unit_price', 'in_inventory', 'weekly_inventory', 'num_in_stock']
 
     class Meta:
         model = Product
+        # TODO add this back in for single variation products
         fields = ('vendor',)
 
     def __init__(self, *args, **kwargs):
         instance = kwargs.get('instance')
         if instance:
+            self.base_fields = deepcopy(self.base_fields)
             initial = kwargs.get('initial', {})
-            initial['vendor'] = getattr(instance, 'vendor')
+            # If there are multiple variations, disallow editing self.single_variation_fields in the changelist view
+            if instance.variations.count() > 1:
+                # if 'num_in_stock' in self.fields:
+                #     self.fields['num_in_stock']['disabled'] = True
+                #     self.fields['num_in_stock']['initial'] = instance.number_in_stock
+                for field in self.single_variation_fields:
+                    if field in self.base_fields:
+                        self.base_fields[field] = forms.CharField(required=False, widget=DisplayWidget)
+                        initial[field] = '-'
+
             kwargs['initial'] = initial
         super(ProductChangelistForm, self).__init__(*args, **kwargs)
 
@@ -661,7 +683,7 @@ class ProductChangelistForm(forms.ModelForm):
         obj = super(ProductChangelistForm, self).save(*args, **kwargs)
         if obj.variations.count() == 1:
             variation = obj.variations.first()
-            variation.vendor = self.cleaned_data['vendor']
+            # variation.vendor = self.cleaned_data['vendor']
             variation.save()
 
         return obj

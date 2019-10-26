@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from django.contrib import admin
 from django.db.models import ImageField
+from django import forms
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super, zip
@@ -12,17 +13,18 @@ from mezzanine.core.admin import (BaseTranslationModelAdmin, ContentTypedAdmin,
                                   DisplayableAdmin, TabularDynamicInlineAdmin)
 from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
+from nested_admin import nested
 
 from cartridge.shop.actions import order_actions, product_actions
 from cartridge.shop.fields import MoneyField
-from cartridge.shop.forms import (CategoryAdminForm, DiscountAdminForm,
+from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
                                   ImageWidget, MoneyWidget, OrderAdminForm,
                                   ProductAdminForm, ProductChangelistForm,
                                   ProductVariationAdminForm,
                                   ProductVariationAdminFormset)
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
-                                   ProductVariation, Sale)
+                                   ProductVariation, Sale, Vendor, VendorProductVariation)
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
 from cartridge.shop.models.Cart import update_cart_items
@@ -55,7 +57,6 @@ the product change list - if these form fields are used, the values
 are then pushed back onto the one variation for the product.
 """
 
-
 # Lists of field names.
 option_fields = [f.name for f in ProductVariation.option_fields()]
 
@@ -66,7 +67,6 @@ def _flds(s): return [
 
 billing_fields = _flds("billing_detail")
 shipping_fields = _flds("shipping_detail")
-
 
 ################
 #  CATEGORIES  #
@@ -91,36 +91,36 @@ if settings.SHOP_USE_VARIATIONS:
 
 
 class CategoryAdmin(PageAdmin):
-    form = CategoryAdminForm
+    form = OptionalContentAdminForm
     fieldsets = category_fieldsets
     formfield_overrides = {ImageField: {"widget": ImageWidget}}
     filter_horizontal = ("options", "products",)
+
 
 ################
 #  VARIATIONS  #
 ################
 
-
-# If variations aren't used, the variation inline should always
-# provide a single inline for managing the single variation per
-# product.
-variation_fields = ["sku", "num_in_stock", "in_inventory",
-                    "weekly_inventory", "vendor_price", "unit_price", "vendor", "image"]
-if settings.SHOP_USE_VARIATIONS:
-    variation_fields.insert(1, "default")
-    variations_max_num = None
-    variations_extra = 0
-else:
-    variations_max_num = 1
-    variations_extra = 1
+class VendorProductVariationAdmin(nested.NestedTabularInline):
+    verbose_name_plural = _("Variation Vendors")
+    verbose_name = _("Vendor")
+    model = ProductVariation.vendors.through
+    min_num = 1
+    extra = 0
 
 
-class ProductVariationAdmin(admin.TabularInline):
-    verbose_name_plural = _("Current variations")
+class ProductVariationAdmin(nested.NestedStackedInline):
+    verbose_name_plural = _("Product Variations")
+    inlines = (VendorProductVariationAdmin,)
     model = ProductVariation
-    fields = variation_fields
-    max_num = variations_max_num
-    extra = variations_extra
+    view_on_site = False
+    fieldsets = (
+        (None, {
+            "fields": ["sku", "default", "in_inventory", "weekly_inventory", ("vendor_price", "unit_price"), "image"],
+        }),
+    )
+    min_num = 1
+    extra = 0
     formfield_overrides = {MoneyField: {"widget": MoneyWidget}}
     form = ProductVariationAdminForm
     formset = ProductVariationAdminFormset
@@ -130,6 +130,7 @@ class ProductVariationAdmin(admin.TabularInline):
 class ProductImageAdmin(TabularDynamicInlineAdmin):
     model = ProductImage
     formfield_overrides = {ImageField: {"widget": ImageWidget}}
+
 
 ##############
 #  PRODUCTS  #
@@ -159,31 +160,31 @@ product_list_editable = ["available"]
 # If variations are used, set up the product option fields for managing
 # variations. If not, expose the denormalised price fields for a product
 # in the change list view.
-if settings.SHOP_USE_VARIATIONS:
-    product_fieldsets.insert(1, (_("Create new variations"),
-                                 {"classes": ("create-variations",), "fields": option_fields}))
-else:
-    extra_list_fields = ["vendor_price", "unit_price",
-                         "in_inventory", "weekly_inventory", "num_in_stock", "order_on_invoice"]
-    product_list_display[3:3] = extra_list_fields
-    product_list_display[9:9] = ["vendor"]
-    product_list_editable.extend(extra_list_fields)
+# if settings.SHOP_USE_VARIATIONS:
+# product_fieldsets.insert(1, (_("Create new variations"),
+#                              {"classes": ("create-variations",), "fields": option_fields}))
+# else:
+extra_list_fields = ["vendor_price", "unit_price",
+                     "in_inventory", "weekly_inventory", "num_in_stock", "order_on_invoice"]
+product_list_display[3:3] = extra_list_fields
+# product_list_display[9:9] = ["vendor"]
+product_list_editable.extend(extra_list_fields)
 
 
-class ProductAdmin(ContentTypedAdmin, DisplayableAdmin):
-
+class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableAdmin):
     class Media:
         js = (static("cartridge/js/admin/product_variations.js"),
               static('js/admin/product_margins.js'))
-        css = {"all": (static("cartridge/css/admin/product.css"),
-                       static('css/admin/product.css'))}
+        css = {"all": (static("cartridge/css/admin/product.css"),)}
 
     actions = [product_actions.export_price_list]
 
     list_display = product_list_display
     list_display_links = ("admin_thumb", "title")
     list_editable = product_list_editable
-    list_filter = ("status", "available", "categories", "variations__vendor")
+    # TODO allow filtering by vendor
+    # list_filter = ("status", "available", "categories", "variations__vendors__vendor")
+    list_filter = ("status", "available", "categories")
     filter_horizontal = ("categories",) + tuple(other_product_fields)
     search_fields = ("title", "content", "categories__title",
                      "variations__sku")
@@ -366,7 +367,6 @@ if HAS_PDF:
 
 
 class OrderAdmin(admin.ModelAdmin):
-
     class Media:
         css = {"all": (static("cartridge/css/admin/order.css"),)}
 
@@ -386,10 +386,11 @@ class OrderAdmin(admin.ModelAdmin):
     formfield_overrides = {MoneyField: {"widget": MoneyWidget}}
     fieldsets = (
         (_("Billing details"), {"fields": [
-         'order_date', 'user'] + address_pairs(billing_fields)}),
+                                              'order_date', 'user'] + address_pairs(billing_fields)}),
         (_("Shipping details"), {"fields": address_pairs(shipping_fields)}),
         (None, {"fields": ("additional_instructions", 'attending_dinner', 'drop_site', ("shipping_total",
-                                                                                        "shipping_type"), ('tax_total', 'tax_type'),
+                                                                                        "shipping_type"),
+                           ('tax_total', 'tax_type'),
                            ("discount_total", "discount_code"), "item_total",
                            ("total", "status"), "transaction_id")}),
     )
@@ -451,10 +452,10 @@ class SaleAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("title", "active")}),
         (_("Apply to product and/or products in categories"),
-            {"fields": ("products", "categories")}),
+         {"fields": ("products", "categories")}),
         (_("Reduce unit price by"),
-            {"fields": (("discount_deduct", "discount_percent",
-                         "discount_exact"),)}),
+         {"fields": (("discount_deduct", "discount_percent",
+                      "discount_exact"),)}),
         (_("Sale period"), {"fields": (("valid_from", "valid_to"),)}),
     )
 
@@ -471,19 +472,30 @@ class DiscountCodeAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("title", "active", "code")}),
         (_("Apply to product and/or products in categories"),
-            {"fields": ("products", "categories")}),
+         {"fields": ("products", "categories")}),
         (_("Reduce unit price by"),
-            {"fields": (("discount_deduct", "discount_percent"),)}),
+         {"fields": (("discount_deduct", "discount_percent"),)}),
         (None, {"fields": (("min_purchase", "free_shipping"),)}),
         (_("Valid for"),
-            {"fields": (("valid_from", "valid_to", "uses_remaining"),)}),
+         {"fields": (("valid_from", "valid_to", "uses_remaining"),)}),
     )
+
+
+vendor_fieldsets = deepcopy(DisplayableAdmin.fieldsets)
+vendor_fieldsets[0][1]["fields"][2] = ('publish_date',)
+vendor_fieldsets[0][1]["fields"].extend(['featured_image', 'content'])
+
+
+class VendorAdmin(DisplayableAdmin):
+    fieldsets = vendor_fieldsets
+    form = OptionalContentAdminForm
 
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Product, ProductAdmin)
-if settings.SHOP_USE_VARIATIONS:
-    admin.site.register(ProductOption, ProductOptionAdmin)
+# if settings.SHOP_USE_VARIATIONS:
+#     admin.site.register(ProductOption, ProductOptionAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Sale, SaleAdmin)
 admin.site.register(DiscountCode, DiscountCodeAdmin)
+admin.site.register(Vendor, VendorAdmin)

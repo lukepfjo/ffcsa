@@ -7,7 +7,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from cartridge.shop import fields
-from cartridge.shop.models import Product
+from cartridge.shop.models.Product import Product
 
 
 @python_2_unicode_compatible

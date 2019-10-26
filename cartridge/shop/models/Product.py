@@ -64,9 +64,9 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         verbose_name_plural = _("Products")
         unique_together = ("sku", "site")
 
-    @property
-    def vendor(self):
-        return self.variations.first().vendor
+    # @property
+    # def vendor(self):
+    #     return self.variations.first().vendor
 
     def save(self, *args, **kwargs):
         """
@@ -154,7 +154,6 @@ class ProductImage(Orderable):
         return value
 
 
-@python_2_unicode_compatible
 class ProductOption(models.Model):
     """
     A selectable option for a product such as size or colour.
@@ -201,8 +200,12 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     default = models.BooleanField(_("Default"), default=False)
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
+    num_in_stock = None
 
-    vendor = models.CharField(blank=True, max_length=255)
+    vendors = models.ManyToManyField('shop.Vendor', verbose_name="Vendors", related_name="variations",
+                                     through='shop.VendorProductVariation')
+    # on_delete=models.SET_NULL, blank=True,
+    # null=True)
 
     objects = managers.ProductVariationManager()
 
@@ -213,13 +216,10 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         """
         Display the option names and values for the variation.
         """
-        options = []
-        for field in self.option_fields():
-            name = getattr(self, field.name)
-            if name is not None:
-                option = u"%s: %s" % (field.verbose_name, name)
-                options.append(option)
-        result = u"%s %s" % (str(self.product), u", ".join(options))
+        vendors = []
+        # for vendor in self.vendors.all():
+        #     vendors.append(u"vendor: %s" % vendor.name)
+        result = u"%s %s" % (str(self.product), u", ".join(vendors))
         return result.strip()
 
     def save(self, *args, **kwargs):
@@ -264,6 +264,10 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         ``ProductVariationMetaclass``.
         """
         return [getattr(self, field.name) for field in self.option_fields()]
+
+    @property
+    def number_in_stock(self):
+        return self.vendors.aggregate(num_in_stock=models.Sum("num_in_stock"))['num_in_stock']
 
     def live_num_in_stock(self):
         """

@@ -22,7 +22,7 @@ from mezzanine.utils.urls import next_url
 from cartridge.shop import checkout
 from cartridge.shop.forms import (AddProductForm, CartItemFormSet,
                                   DiscountForm, OrderForm)
-from cartridge.shop.models import Product, ProductVariation, Order
+from cartridge.shop.models import Product, ProductVariation, Order, Vendor
 from cartridge.shop.models import DiscountCode
 from cartridge.shop.utils import recalculate_cart, sign
 
@@ -127,6 +127,22 @@ def category_product(request, category_slug, slug,
         return redirect(product_obj.get_absolute_url(), permanent=True)
 
     return product(request, slug, template=template, product=product_obj)
+
+
+def vendor(request, slug, template="shop/vendor.html", extra_context=None, vendor=None):
+    """
+    Display a vendor
+    """
+    if not vendor:
+        published_vendors = Vendor.objects.published(for_user=request.user)
+        vendor = get_object_or_404(published_vendors, slug=slug)
+    context = {
+
+        "vendor": vendor,
+    }
+    context.update(extra_context or {})
+
+    return TemplateResponse(request, template, context)
 
 
 @never_cache

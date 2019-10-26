@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import OrderedDict, defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from decimal import Decimal
 
 from django.db.models import Manager, Q, Sum
@@ -93,10 +93,10 @@ class OrderManager(CurrentSiteManager):
         """
         return self \
             .filter(user_id=user.id) \
-            .filter(time__gte=datetime.date(2017, 12, 1))  # started calculating payments 12/1/2017
+            .filter(time__gte=date(2017, 12, 1))  # started calculating payments 12/1/2017
 
     def total_for_user(self, user):
-        total = self.for_user(user) \
+        total = self.all_for_user(user) \
             .aggregate(total=Sum('total'))['total']
 
         if total is None:
@@ -121,6 +121,9 @@ class ProductOptionManager(Manager):
 class ProductVariationManager(Manager):
 
     use_for_related_fields = True
+
+    def create(self, *args, **kwargs):
+        return super(ProductVariationManager, self).create(*args, **kwargs)
 
     def _empty_options_lookup(self, exclude=None):
         """
@@ -162,8 +165,8 @@ class ProductVariationManager(Manager):
         total_variations = self.count()
         if total_variations == 0:
             self.create()
-        elif total_variations > 1:
-            self.filter(**self._empty_options_lookup()).delete()
+        # elif total_variations > 1:
+        #     self.filter(**self._empty_options_lookup()).delete()
         try:
             self.get(default=True)
         except self.model.DoesNotExist:
