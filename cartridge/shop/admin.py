@@ -193,9 +193,11 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
     fieldsets = product_fieldsets
     ordering = ('-available',)
 
-    # TODO get thie prefetch_related to work. Doesn't appear to be reducing the query count
-    # def get_queryset(self, request):
-    #     return super(ProductAdmin, self).get_queryset(request).prefetch_related('variations')
+    def get_queryset(self, request):
+        return super(ProductAdmin, self) \
+            .get_queryset(request) \
+            .prefetch_related('variations__vendorproductvariation_set') \
+            .prefetch_related('categories__parent__category')
 
     def save_model(self, request, obj, form, change):
         """
