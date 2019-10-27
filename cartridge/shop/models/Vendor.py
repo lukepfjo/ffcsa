@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.core.fields import FileField
+from mezzanine.core.managers import DisplayableManager
 from mezzanine.core.models import Displayable, Orderable, RichText
 from mezzanine.utils.models import upload_to
 
@@ -12,6 +13,8 @@ class Vendor(RichText, Orderable, Displayable):
                                upload_to=upload_to(
                                    "shop.Vendor.featured_image", "vendors"),
                                format="Image", max_length=255, null=True, blank=True)
+
+    objects = DisplayableManager()
 
     @property
     def name(self):

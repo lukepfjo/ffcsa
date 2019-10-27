@@ -212,10 +212,6 @@ PAGE_MENU_TEMPLATES_DEFAULT = ()
 EXTRA_MODEL_FIELDS = (
 )
 
-MIGRATION_MODULES = {
-    "shop": "ffcsa.core.migrations.shop",
-}
-
 # Setting to turn on featured images for blog posts. Defaults to False.
 #
 # BLOG_USE_FEATURED_IMAGE = True

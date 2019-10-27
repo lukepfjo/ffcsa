@@ -5,21 +5,18 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
         ('ffcsa_core', '0038_usersession'),
-        ('shop', '0029_myproduct'),
+        ('shop', '0028_auto_20191026_0709'),
     ]
 
     operations = [
         migrations.RenameModel(
             old_name='VendorProductVariations',
             new_name='VendorProductVariation',
-        ),
-        migrations.RemoveField(
-            model_name='myproduct',
-            name='product_ptr',
         ),
         migrations.RemoveField(
             model_name='productvariation',
@@ -41,8 +38,5 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='vendorproductvariation',
             unique_together=set([('vendor', 'variation')]),
-        ),
-        migrations.DeleteModel(
-            name='MyProduct',
         ),
     ]
