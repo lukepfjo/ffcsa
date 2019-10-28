@@ -12,7 +12,9 @@ def create_vendors(apps, schema_editor):
     VendorProductVariation = apps.get_model("shop", "VendorProductVariations")
 
     for pv in ProductVariation.objects.all():
-        v, created = Vendor.objects.get_or_create(title=pv.vendor, defaults={'site_id': pv.product.site.id})
+        if not pv.vendor:
+            continue
+        v, created = Vendor.objects.get_or_create(title=pv.vendor.title(), defaults={'site_id': pv.product.site.id})
         VendorProductVariation.objects.create(variation=pv, vendor_id=v.id, num_in_stock=pv.num_in_stock)
 
 

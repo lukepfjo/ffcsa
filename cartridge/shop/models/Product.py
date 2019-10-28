@@ -64,9 +64,17 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         verbose_name_plural = _("Products")
         unique_together = ("sku", "site")
 
-    # @property
-    # def vendor(self):
-    #     return self.variations.first().vendor
+    @property
+    def vendor(self):
+        if self.variations.count() > 1:
+            return None
+
+        v = self.variations.first()
+
+        if v.vendors.count() != 1:
+            return None
+
+        return v.vendors.first().title
 
     def save(self, *args, **kwargs):
         """

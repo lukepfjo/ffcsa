@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from collections import OrderedDict
-from copy import copy, deepcopy
+from copy import copy
 from datetime import date
 from itertools import dropwhile, takewhile
 from locale import localeconv
@@ -24,7 +24,7 @@ from mezzanine.pages.admin import PageAdminForm
 
 from cartridge.shop import checkout
 from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
-                                   Product, ProductOption, ProductVariation)
+                                   Product, ProductVariation, Vendor, VendorProductVariation)
 from cartridge.shop.utils import (clear_session, make_choices, set_locale,
                                   set_shipping)
 
@@ -652,38 +652,66 @@ class DisplayWidget(Widget):
     template_name = "forms/widgets/display.html"
 
 
+class DisplayField(forms.Field):
+    widget = DisplayWidget
+
+    def __init__(self, actual_value, *args, **kwargs):
+        self._actual_value = actual_value
+        super(DisplayField, self).__init__(*args, **kwargs)
+
+    def clean(self, value):
+        return self._actual_value
+
+    def has_changed(self, initial, data):
+        return False
+
+
 class ProductChangelistForm(forms.ModelForm):
-    vendor = forms.CharField()
-    single_variation_fields = ['vendor_price', 'unit_price', 'in_inventory', 'weekly_inventory', 'num_in_stock']
+    vendor = forms.ModelChoiceField(Vendor.objects.all().order_by('title'))
+    single_variation_fields = ['vendor_price', 'unit_price', 'in_inventory', 'weekly_inventory', 'num_in_stock',
+                               'vendor']
 
     class Meta:
         model = Product
-        # TODO add this back in for single variation products
         fields = ('vendor',)
 
     def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance')
-        if instance:
-            self.base_fields = deepcopy(self.base_fields)
-            initial = kwargs.get('initial', {})
+        super(ProductChangelistForm, self).__init__(*args, **kwargs)
+
+        if self.instance:
             # If there are multiple variations, disallow editing self.single_variation_fields in the changelist view
-            if instance.variations.count() > 1:
+            if self.instance.variations.count() > 1:
                 # if 'num_in_stock' in self.fields:
                 #     self.fields['num_in_stock']['disabled'] = True
                 #     self.fields['num_in_stock']['initial'] = instance.number_in_stock
                 for field in self.single_variation_fields:
-                    if field in self.base_fields:
-                        self.base_fields[field] = forms.CharField(required=False, widget=DisplayWidget)
-                        initial[field] = '-'
-
-            kwargs['initial'] = initial
-        super(ProductChangelistForm, self).__init__(*args, **kwargs)
+                    if field in self.fields:
+                        self.fields[field] = DisplayField(getattr(self.instance, field))
+                        self.initial[field] = '-'
+            elif self.instance.variations.count() == 1:
+                variation = self.instance.variations.first()
+                # If a variations has more then 1 vendor, we can't allow editing via this form
+                if variation.vendors.count() > 1:
+                    # don't need to set actual_value b/c vendor is a calculated attribute
+                    self.fields['vendor'] = DisplayField(None)
+                    self.initial['vendor'] = '-- Multiple Vendors --'
+                elif variation.vendors.count() == 1:
+                    # We add this here b/c the way modelform_factory works is that the fields
+                    # on this Form.Meta class are dynamically populated via the admin.list_editable attribute
+                    # Since vendor is not an attribute of Product, we can't include it in list_editable w/o getting
+                    # an error So we add a field on this form. In order to correctly populate that field we need to
+                    # pass a value in in the initial dict b/c the ModelForm constructor will only populate the initial
+                    # data for self.Meta.fields which doesn't include vendor
+                    self.initial['vendor'] = self.instance.variations.first().vendors.first().id
 
     def save(self, *args, **kwargs):
         obj = super(ProductChangelistForm, self).save(*args, **kwargs)
-        if obj.variations.count() == 1:
+
+        # update the vendor if there is only a single variation and the variation has a single vendor
+        if obj.variations.count() == 1 and obj.variations.first().vendors.count() == 1:
             variation = obj.variations.first()
-            # variation.vendor = self.cleaned_data['vendor']
-            variation.save()
+            vpv = variation.vendorproductvariation_set.first()
+            vpv.vendor = self.cleaned_data['vendor']
+            vpv.save()
 
         return obj

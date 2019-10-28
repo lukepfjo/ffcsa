@@ -7,7 +7,6 @@ from mezzanine.utils.models import upload_to
 
 
 class Vendor(RichText, Orderable, Displayable):
-    title = models.CharField(_("Name"), max_length=500)
     expiry_date = None
     featured_image = FileField(verbose_name=_("Featured Image"),
                                upload_to=upload_to(
@@ -15,14 +14,6 @@ class Vendor(RichText, Orderable, Displayable):
                                format="Image", max_length=255, null=True, blank=True)
 
     objects = DisplayableManager()
-
-    @property
-    def name(self):
-        return self.title
-
-    @name.setter
-    def name(self, name):
-        self.title = name
 
     @models.permalink
     def get_absolute_url(self):

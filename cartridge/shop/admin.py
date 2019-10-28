@@ -4,7 +4,6 @@ from copy import deepcopy
 
 from django.contrib import admin
 from django.db.models import ImageField
-from django import forms
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super, zip
@@ -24,10 +23,10 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
                                   ProductVariationAdminFormset)
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
-                                   ProductVariation, Sale, Vendor, VendorProductVariation)
+                                   ProductVariation, Sale, Vendor)
+from cartridge.shop.models.Cart import update_cart_items
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
-from cartridge.shop.models.Cart import update_cart_items
 
 """
 Admin classes for all the shop models.
@@ -167,7 +166,7 @@ product_list_editable = ["available"]
 extra_list_fields = ["vendor_price", "unit_price",
                      "in_inventory", "weekly_inventory", "num_in_stock", "order_on_invoice"]
 product_list_display[3:3] = extra_list_fields
-# product_list_display[9:9] = ["vendor"]
+product_list_display[9:9] = ["vendor"]
 product_list_editable.extend(extra_list_fields)
 
 
@@ -182,9 +181,7 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
     list_display = product_list_display
     list_display_links = ("admin_thumb", "title")
     list_editable = product_list_editable
-    # TODO allow filtering by vendor
-    # list_filter = ("status", "available", "categories", "variations__vendors__vendor")
-    list_filter = ("status", "available", "categories")
+    list_filter = ("status", "available", "categories", "variations__vendors")
     filter_horizontal = ("categories",) + tuple(other_product_fields)
     search_fields = ("title", "content", "categories__title",
                      "variations__sku")
@@ -194,9 +191,11 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
     ordering = ('-available',)
 
     def get_queryset(self, request):
+        # we prefetch variations__vendorproductvariation_set b/c it contains the num_in_stock attribute
         return super(ProductAdmin, self) \
             .get_queryset(request) \
             .prefetch_related('variations__vendorproductvariation_set') \
+            .prefetch_related('variations__vendors') \
             .prefetch_related('categories__parent__category')
 
     def save_model(self, request, obj, form, change):
@@ -317,6 +316,12 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
                             var.save()
 
     def get_changelist_form(self, request, **kwargs):
+        # we set the choices here b/c the default Django Formset will cause ModelChoiceField to query the db for
+        # each form rendered. By setting the choices here, we only issue a single db query
+        vendor_choices = [(v.pk, v) for v in
+                          Vendor.objects.all().order_by('title')]
+        vendor_choices.insert(0, ('', '-- Select a Vendor --'))  # provide empty option
+        ProductChangelistForm.base_fields['vendor'].choices = vendor_choices
         return ProductChangelistForm
 
     def cat(self, obj):
