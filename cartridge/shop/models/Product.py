@@ -202,9 +202,11 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     A combination of selected options from
     ``SHOP_OPTION_TYPE_CHOICES`` for a ``Product`` instance.
     """
+    # TODO do we need to extend Priced?
 
     product = models.ForeignKey("shop.Product", related_name="variations",
                                 on_delete=models.CASCADE)
+    title = models.CharField(_("Title"), max_length=500, help_text='defaults to the product title', blank=True)
     default = models.BooleanField(_("Default"), default=False)
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
@@ -219,16 +221,18 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
     class Meta:
         ordering = ("-default",)
+        unique_together = ('product', 'title')
 
     def __str__(self):
+        return "{}: {}".format(self.product.title, self.title)
+
+    def clean(self):
         """
-        Display the option names and values for the variation.
+        Use the Product.title as title if title is not set
         """
-        vendors = []
-        # for vendor in self.vendors.all():
-        #     vendors.append(u"vendor: %s" % vendor.name)
-        result = u"%s %s" % (str(self.product), u", ".join(vendors))
-        return result.strip()
+        if not self.title:
+            self.title = self.product.title
+        super(ProductVariation, self).clean()
 
     def save(self, *args, **kwargs):
         """

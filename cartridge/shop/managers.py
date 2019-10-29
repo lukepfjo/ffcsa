@@ -155,16 +155,13 @@ class ProductVariationManager(Manager):
                 except self.model.DoesNotExist:
                     self.create(**variation)
 
-    def manage_empty(self):
+    def ensure_default(self):
         """
-        Create an empty variation(no options) if none exist,
-        otherwise if multiple variations exist ensure there is no
-        redundant empty variation. Also ensure there is at least one
-        default variation.
+        Ensure there is at least one default variation.
         """
-        total_variations = self.count()
-        if total_variations == 0:
-            self.create()
+        # total_variations = self.count()
+        # if total_variations == 0:
+        #     self.create()
         # elif total_variations > 1:
         #     self.filter(**self._empty_options_lookup()).delete()
         try:

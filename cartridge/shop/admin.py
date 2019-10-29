@@ -56,9 +56,6 @@ the product change list - if these form fields are used, the values
 are then pushed back onto the one variation for the product.
 """
 
-# Lists of field names.
-option_fields = [f.name for f in ProductVariation.option_fields()]
-
 
 def _flds(s): return [
     f.name for f in Order._meta.fields if f.name.startswith(s)]
@@ -105,6 +102,7 @@ class VendorProductVariationAdmin(nested.NestedTabularInline):
     verbose_name = _("Vendor")
     model = ProductVariation.vendors.through
     min_num = 1
+    validate_min = True  # TODO does this work?
     extra = 0
 
 
@@ -115,7 +113,8 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["sku", "default", "in_inventory", "weekly_inventory", ("vendor_price", "unit_price"), "image"],
+            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price"), "sku",
+                       "image"],
         }),
     )
     min_num = 1
@@ -159,10 +158,6 @@ product_list_editable = ["available"]
 # If variations are used, set up the product option fields for managing
 # variations. If not, expose the denormalised price fields for a product
 # in the change list view.
-# if settings.SHOP_USE_VARIATIONS:
-# product_fieldsets.insert(1, (_("Create new variations"),
-#                              {"classes": ("create-variations",), "fields": option_fields}))
-# else:
 extra_list_fields = ["vendor_price", "unit_price",
                      "in_inventory", "weekly_inventory", "num_in_stock", "order_on_invoice"]
 product_list_display[3:3] = extra_list_fields
@@ -217,7 +212,8 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
         # obj.variations.all()[0].live_num_in_stock()
 
         # update any cart items if necessary
-        if updating and not settings.SHOP_USE_VARIATIONS and 'changelist' in request.resolver_match.url_name:
+        # TODO this probably needs to be moved to save_formset and use the ProductVariation sku
+        if updating and 'changelist' in request.resolver_match.url_name:
             # This is called in both the product admin & product admin changelist view
             # Since the product admin doesn't update the Product to include the default
             # variation values until later, we only want to update_cart_items if we are
@@ -270,17 +266,17 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
         if formset.model == ProductVariation:
 
             # Build up selected options for new variations.
-            options = dict([(f, request.POST.getlist(f)) for f in option_fields
-                            if request.POST.getlist(f)])
+            # options = dict([(f, request.POST.getlist(f)) for f in option_fields
+            #                 if request.POST.getlist(f)])
             # Create a list of image IDs that have been marked to delete.
             deleted_images = [request.POST.get(f.replace("-DELETE", "-id"))
                               for f in request.POST
                               if f.startswith("images-") and f.endswith("-DELETE")]
 
             # Create new variations for selected options.
-            product.variations.create_from_options(options)
-            # Create a default variation if there are none.
-            product.variations.manage_empty()
+            # product.variations.create_from_options(options)
+            # Ensure there is a default variation
+            product.variations.ensure_default()
 
             # Remove any images deleted just now from variations they're
             # assigned to, and set an image for any variations without one.
@@ -323,6 +319,9 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
         vendor_choices.insert(0, ('', '-- Select a Vendor --'))  # provide empty option
         ProductChangelistForm.base_fields['vendor'].choices = vendor_choices
         return ProductChangelistForm
+
+    # def get_formsets_with_inlines(self, request, obj=None):
+    #     return super(ProductAdmin, self).get_formsets_with_inlines(request, obj=obj)
 
     def cat(self, obj):
         return 'Multiple' if obj.categories.count() > 1 else obj.get_category()

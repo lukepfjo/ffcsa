@@ -74,7 +74,7 @@ class ShopTests(TestCase):
         self._product.variations.all().delete()
         self.assertEqual(self._product.variations.count(), 0)
         # Create single empty variation.
-        self._product.variations.manage_empty()
+        self._product.variations.ensure_default()
         self.assertEqual(self._product.variations.count(), 1)
         # Create variations from all options.
         self._product.variations.create_from_options(self._options)
@@ -83,7 +83,7 @@ class ShopTests(TestCase):
         # All options plus empty.
         self.assertEqual(self._product.variations.count(), total + 1)
         # Remove empty.
-        self._product.variations.manage_empty()
+        self._product.variations.ensure_default()
         self.assertEqual(self._product.variations.count(), total)
 
     def test_stock(self):
@@ -91,7 +91,7 @@ class ShopTests(TestCase):
         Test stock checking on product variations.
         """
         self._product.variations.all().delete()
-        self._product.variations.manage_empty()
+        self._product.variations.ensure_default()
         variation = self._product.variations.all()[0]
         variation.num_in_stock = TEST_STOCK
         # Check stock field not in use.

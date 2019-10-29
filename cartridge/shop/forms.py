@@ -24,7 +24,7 @@ from mezzanine.pages.admin import PageAdminForm
 
 from cartridge.shop import checkout
 from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
-                                   Product, ProductVariation, Vendor, VendorProductVariation)
+                                   Product, ProductVariation, Vendor)
 from cartridge.shop.utils import (clear_session, make_choices, set_locale,
                                   set_shipping)
 
@@ -575,6 +575,11 @@ class ProductVariationAdminFormset(BaseInlineFormSet):
     """
     Ensure no more than one variation is checked as default.
     """
+
+    def __init__(self, *args, **kwargs):
+        super(ProductVariationAdminFormset, self).__init__(*args, **kwargs)
+        # not sure why this can't be a class attribute???
+        self.validate_min = True
 
     def clean(self):
         super(ProductVariationAdminFormset, self).clean()

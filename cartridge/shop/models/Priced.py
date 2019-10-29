@@ -13,7 +13,7 @@ class Priced(models.Model):
     ``Product`` and ``ProductVariation`` models.
     """
 
-    unit_price = fields.MoneyField(_("Member Price"))
+    unit_price = fields.MoneyField(_("Member Price"), blank=False)
     sale_id = models.IntegerField(null=True)
     sale_price = fields.MoneyField(_("Sale price"))
     sale_from = models.DateTimeField(_("Sale start"), blank=True, null=True)
@@ -26,7 +26,7 @@ class Priced(models.Model):
         _("Weekly Inventory"), blank=False, default=True)
     in_inventory = models.BooleanField(
         _("FFCSA Inventory"), default=False, blank=False, null=False)
-    vendor_price = fields.MoneyField(_("Vendor price"), blank=True, null=True)
+    vendor_price = fields.MoneyField(_("Vendor price"), blank=False)
 
     class Meta:
         abstract = True
