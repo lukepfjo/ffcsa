@@ -41,7 +41,7 @@ jQuery(function ($) {
       var vendorPrice = row.find('.field-vendor_price input')
       var unitPriceTd = row.find('.field-unit_price')
       var unitPrice = $(unitPriceTd).find('input')
-      if (!unitPrice.length) {
+      if (unitPrice.attr('type') === 'hidden') {
         // if here, then there are multiple variations, so we don't need the margin input
         $('<td>-</td>').insertAfter(unitPriceTd)
         return
@@ -61,25 +61,20 @@ jQuery(function ($) {
       })
     })
   } else {
-    $('<div class=\'form-cell\'>% Margin</div>').insertAfter($('.legend div.member-price'))
+    var margin_inputs = $('.field-margin > input')
+    margin_inputs.each(function (i, input) {
+      var vendorPrice = $('#' + input.id.replace('-margin', '-vendor_price'))
+      var unitPrice = $('#' + input.id.replace('-margin', '-unit_price'))
 
-    // var items = $('#variations-group').find('.items > div').not('.empty-form')
-    var items = $('#variations-group').find('.items > div[id^=variations-]')
-    items.each(function (i, item) {
-      var vendorPrice = $(item).find('.vendor_price input')
-      var unitPriceDiv = $(item).find('.unit_price')
-      var unitPrice = $(unitPriceDiv).find('input')
-      var margin = $('<div class="item form-cell margin">' + marginElement + '</div>').insertAfter(unitPriceDiv)
-
-      updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
+      updateMargins(vendorPrice, unitPrice, input)
       vendorPrice.change(function () {
-        updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
+        updateMargins(vendorPrice, unitPrice, input)
       })
       unitPrice.change(function () {
-        updateMargins(vendorPrice, unitPrice, $(margin).find('input'))
+        updateMargins(vendorPrice, unitPrice, input)
       })
-      $(margin).find('input').change(function () {
-        updateMargins(vendorPrice, unitPrice, $(margin).find('input'), true)
+      $(input).change(function () {
+        updateMargins(vendorPrice, unitPrice, input, true)
       })
     })
   }

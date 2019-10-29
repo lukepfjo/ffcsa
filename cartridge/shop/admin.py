@@ -113,7 +113,7 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price"), "sku",
+            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"), "sku",
                        "image"],
         }),
     )
@@ -168,7 +168,7 @@ product_list_editable.extend(extra_list_fields)
 class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableAdmin):
     class Media:
         js = (static("cartridge/js/admin/product_variations.js"),
-              static('js/admin/product_margins.js'))
+              static('cartridge/js/admin/product_margins.js'))
         css = {"all": (static("cartridge/css/admin/product.css"),)}
 
     actions = [product_actions.export_price_list]

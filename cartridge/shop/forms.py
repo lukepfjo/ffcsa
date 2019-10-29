@@ -562,6 +562,7 @@ class ProductVariationAdminForm(forms.ModelForm):
     variation's product.
     """
     show_url = False
+    margin = forms.DecimalField(label="% Margin", required=False, widget=MoneyWidget())
 
     def __init__(self, *args, **kwargs):
         super(ProductVariationAdminForm, self).__init__(*args, **kwargs)
