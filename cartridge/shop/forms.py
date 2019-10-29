@@ -25,8 +25,10 @@ from mezzanine.pages.admin import PageAdminForm
 from cartridge.shop import checkout
 from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
                                    Product, ProductVariation, Vendor)
+from cartridge.shop.models.Cart import update_cart_items
 from cartridge.shop.utils import (clear_session, make_choices, set_locale,
                                   set_shipping)
+from ffcsa.core.availability import inform_user_product_unavailable
 
 User = get_user_model()
 
@@ -710,14 +712,40 @@ class ProductChangelistForm(forms.ModelForm):
                     # data for self.Meta.fields which doesn't include vendor
                     self.initial['vendor'] = self.instance.variations.first().vendors.first().id
 
-    def save(self, *args, **kwargs):
+    def save(self, request, *args, **kwargs):
         obj = super(ProductChangelistForm, self).save(*args, **kwargs)
 
-        # update the vendor if there is only a single variation and the variation has a single vendor
-        if obj.variations.count() == 1 and obj.variations.first().vendors.count() == 1:
+        # update the variation fields if there is only a single variation and the variation has a single vendor
+        if obj.variations.count() == 1:
             variation = obj.variations.first()
-            vpv = variation.vendorproductvariation_set.first()
-            vpv.vendor = self.cleaned_data['vendor']
-            vpv.save()
+            vpv = None
+            orig_sku = variation.sku
+            variation_fields = [f.name for f in variation._meta.fields]
+            for key, value in self.cleaned_data.items():
+                if key is not 'id' and key in variation_fields:
+                    setattr(variation, key, value)
+                elif key is 'vendor':
+                    # only allow modification if there is a single vendor
+                    if not vpv:
+                        vpv = variation.vendorproductvariation_set.first()
+                    vpv.vendor = value
+                elif key is 'num_in_stock':
+                    # only allow modification if there is a single vendor
+                    if not vpv:
+                        vpv = variation.vendorproductvariation_set.first()
+                    vpv.num_in_stock = value
+
+            if vpv:
+                vpv.save()
+            variation.save()
+            update_cart_items(variation, orig_sku)
+
+        # TODO verify this works correctly
+        if "available" in self.changed_data and not obj.available:
+            from django.urls import reverse
+            cart_url = request.build_absolute_uri(reverse("shop_cart"))
+            # TODO is variation.title the correct CartItem.description?
+            for variation in obj.variations.all():
+                inform_user_product_unavailable(variation.sku, variation.title, cart_url)
 
         return obj

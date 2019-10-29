@@ -113,7 +113,8 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"), "sku",
+            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"),
+                       "sku",
                        "image"],
         }),
     )
@@ -193,38 +194,21 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
             .prefetch_related('variations__vendors') \
             .prefetch_related('categories__parent__category')
 
+    def save_form(self, request, form, change):
+        if isinstance(form, ProductChangelistForm):
+            return form.save(request, commit=False)
+        return form.save(commit=False)
+
     def save_model(self, request, obj, form, change):
         """
         Store the product ID for creating variations in save_formset.
 
         Inform customers when a product in their cart has become unavailable
         """
-        updating = obj.id is not None
-        if updating:
-            orig = Product.objects.filter(id=obj.id).first()
-            orig_sku = orig.sku
-
         super(ProductAdmin, self).save_model(request, obj, form, change)
         # We store the product ID so we can retrieve a clean copy of
         # the product in save_formset, see: GH #301.
         self._product_id = obj.id
-
-        # obj.variations.all()[0].live_num_in_stock()
-
-        # update any cart items if necessary
-        # TODO this probably needs to be moved to save_formset and use the ProductVariation sku
-        if updating and 'changelist' in request.resolver_match.url_name:
-            # This is called in both the product admin & product admin changelist view
-            # Since the product admin doesn't update the Product to include the default
-            # variation values until later, we only want to update_cart_items if we are
-            # in the changelist view. Otherwise update_cart_items needs to be called
-            # in a different method after the Product has been updated. We do this in
-            # Product.copy_default_variation
-            update_cart_items(obj, orig_sku)
-
-        if "available" in form.changed_data and not obj.available:
-            cart_url = request.build_absolute_uri(reverse("shop_cart"))
-            inform_user_product_unavailable(obj.sku, obj.title, cart_url)
 
     def save_formset(self, request, form, formset, change):
         """

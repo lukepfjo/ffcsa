@@ -4,12 +4,12 @@ from mezzanine.conf import settings
 from mezzanine.utils.email import send_mail_template
 
 
-def inform_user_product_unavailable(sku, product_name, cart_url):
+def inform_user_product_unavailable(sku, variation_name, cart_url):
     users_ids = Cart.objects.filter(items__sku=sku).values_list('user_id', flat=True)
     users = get_user_model().objects.filter(id__in=users_ids)
 
     if users:
-        send_unavailable_email([u.email for u in users], product_name, cart_url)
+        send_unavailable_email([u.email for u in users], variation_name, cart_url)
 
         CartItem.objects.filter(sku=sku).delete()
 

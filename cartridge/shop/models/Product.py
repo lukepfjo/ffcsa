@@ -116,6 +116,7 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         if default.image:
             self.image = default.image.file.name
         if not settings.SHOP_USE_VARIATIONS:
+            # TODO handle & change to variation
             update_cart_items(self, orig_sku)
         self.save()
 

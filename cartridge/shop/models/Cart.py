@@ -184,22 +184,25 @@ class CartItem(SelectedProduct):
             self.cart.delete()
 
 
-def update_cart_items(product, orig_sku):
+def update_cart_items(variation, orig_sku=None):
     """
     When an item has changed, update any items that are already in the cart
     """
+    if not orig_sku:
+        orig_sku = variation.sku
     from ffcsa.core.budgets import clear_cached_budget_for_user_id
-    cat = product.get_category()
+    cat = variation.product.get_category()
+    # TODO make sure this is correct. What is the description when a variation is added?
     update = {
-        'sku': product.sku,
-        'description': product.title,
-        'unit_price': product.price(),
-        'total_price': F('quantity') * product.price(),
+        'sku': variation.sku,
+        'description': variation.title,
+        'unit_price': variation.price(),
+        'total_price': F('quantity') * variation.price(),
         'category': cat.__str__(),
-        'vendor': product.variations.first().vendor,
-        'vendor_price': product.vendor_price,
-        'in_inventory': product.in_inventory,
-        'weekly_inventory': product.weekly_inventory
+        'vendor': variation.vendors.first().title,
+        'vendor_price': variation.vendor_price,
+        'in_inventory': variation.in_inventory,
+        'weekly_inventory': variation.weekly_inventory
     }
 
     items = CartItem.objects.filter(sku=orig_sku)
