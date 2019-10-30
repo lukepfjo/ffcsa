@@ -184,6 +184,11 @@ class CartItem(SelectedProduct):
             self.cart.delete()
 
 
+def update_cart_items_for_product(product):
+    cat = product.get_category()
+    CartItem.objects.filter(sku__in=[v.sku for v in product.variations.all()]).update(category=cat.__str__())
+
+
 def update_cart_items(variation, orig_sku=None):
     """
     When an item has changed, update any items that are already in the cart

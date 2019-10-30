@@ -740,12 +740,4 @@ class ProductChangelistForm(forms.ModelForm):
             variation.save()
             update_cart_items(variation, orig_sku)
 
-        # TODO verify this works correctly
-        if "available" in self.changed_data and not obj.available:
-            from django.urls import reverse
-            cart_url = request.build_absolute_uri(reverse("shop_cart"))
-            # TODO is variation.title the correct CartItem.description?
-            for variation in obj.variations.all():
-                inform_user_product_unavailable(variation.sku, variation.title, cart_url)
-
         return obj

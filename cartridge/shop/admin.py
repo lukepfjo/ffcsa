@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 
 from django.contrib import admin
+from django.db import transaction
 from django.db.models import ImageField
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -24,7 +25,7 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
                                    ProductVariation, Sale, Vendor)
-from cartridge.shop.models.Cart import update_cart_items
+from cartridge.shop.models.Cart import update_cart_items, update_cart_items_for_product
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
 
@@ -205,10 +206,20 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
 
         Inform customers when a product in their cart has become unavailable
         """
+        updating = obj.id is not None
         super(ProductAdmin, self).save_model(request, obj, form, change)
         # We store the product ID so we can retrieve a clean copy of
         # the product in save_formset, see: GH #301.
         self._product_id = obj.id
+
+        if updating and form.has_changed():
+            update_cart_items_for_product(obj)
+            if 'available' in form.changed_data and not obj.available:
+                # TODO verify this works correctly
+                cart_url = request.build_absolute_uri(reverse("shop_cart"))
+                # TODO is variation.title the correct CartItem.description?
+                for variation in self.variations.all():
+                    inform_user_product_unavailable(variation.sku, variation.title, cart_url)
 
     def save_formset(self, request, form, formset, change):
         """
@@ -257,6 +268,17 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
                               for f in request.POST
                               if f.startswith("images-") and f.endswith("-DELETE")]
 
+            cart_url = request.build_absolute_uri(reverse("shop_cart"))
+            for form in formset.deleted_forms:
+                variation = form.instance
+                inform_user_product_unavailable(variation.sku, variation.title, cart_url)
+
+            for form in formset.forms:
+                # if missing initial data, this is a new ProductVariation
+                if form.has_changed() and form.initial and form not in formset.deleted_forms:
+                    orig_sku = form.initial.get('sku', None)
+                    update_cart_items(form.instance, orig_sku)
+
             # Create new variations for selected options.
             # product.variations.create_from_options(options)
             # Ensure there is a default variation
@@ -294,6 +316,10 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
                                 setattr(var, _loc(opt_name, code),
                                         getattr(opt_obj, _loc('name', code)))
                             var.save()
+
+    @transaction.atomic()
+    def changelist_view(self, request, extra_context=None):
+        return super(ProductAdmin, self).changelist_view(request, extra_context=None)
 
     def get_changelist_form(self, request, **kwargs):
         # we set the choices here b/c the default Django Formset will cause ModelChoiceField to query the db for
