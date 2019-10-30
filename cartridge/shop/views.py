@@ -69,6 +69,14 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, to_cart=to_cart, cart=request.cart)
     if request.method == "POST":
+        if not request.user.is_authenticated():
+            raise Exception(
+                "You must be authenticated in order to add products to your cart")
+        if not request.cart.user_id:
+            request.cart.user_id = request.user.id
+        elif request.cart.user_id != request.user.id:
+            raise Exception("Server Error")
+
         if add_product_form.is_valid():
             if to_cart:
                 quantity = add_product_form.cleaned_data["quantity"]

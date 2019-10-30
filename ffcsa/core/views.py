@@ -58,38 +58,6 @@ def shop_home(request, template="shop_home.html"):
     return TemplateResponse(request, template, context)
 
 
-
-# monkey patch the product view
-original_product_view = deepcopy(s_views.product)
-
-
-def product(request, slug, template="shop/product.html", extra_context=None, **kwargs):
-    """
-    extends cartridge shop product view, only allowing authenticated users to add products to the cart
-    """
-    if request.method == 'POST':
-        if not request.user.is_authenticated():
-            raise Exception(
-                "You must be authenticated in order to add products to your cart")
-        if not request.cart.user_id:
-            request.cart.user_id = request.user.id
-        elif request.cart.user_id != request.user.id:
-            raise Exception("Server Error")
-
-    response = original_product_view(request, slug, template=template, form_class=form_class,
-                                     extra_context=extra_context)
-
-    if isinstance(response, HttpResponseRedirect):
-        request.method = 'GET'
-        return original_product_view(request, slug, template=template, form_class=form_class,
-                                     extra_context=extra_context, **kwargs)
-
-    return response
-
-
-s_views.product = product
-
-
 def signup(request, template="accounts/account_signup.html",
            extra_context=None):
     """
