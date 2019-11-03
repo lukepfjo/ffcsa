@@ -9,7 +9,6 @@ from re import match
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.forms import Widget
 from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
                                  inlineformset_factory)
@@ -28,7 +27,6 @@ from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
 from cartridge.shop.models.Cart import update_cart_items
 from cartridge.shop.utils import (clear_session, make_choices, set_locale,
                                   set_shipping)
-from ffcsa.core.availability import inform_user_product_unavailable
 
 User = get_user_model()
 
@@ -36,6 +34,7 @@ ADD_PRODUCT_ERRORS = {
     "invalid_options": _("The selected options are currently unavailable."),
     "no_stock": _("The selected options are currently not in stock."),
     "no_stock_quantity": _("The selected quantity is currently unavailable."),
+    "over_budget": _("Adding the selected quantity would put you over your remaining budget.")
 }
 
 
@@ -122,11 +121,19 @@ class AddProductForm(forms.Form):
         except ProductVariation.DoesNotExist:
             error = "invalid_options"
         else:
-            # Validate stock if adding to cart.
+            # Validate stock
             if not variation.has_stock():
                 error = "no_stock"
             elif not variation.has_stock(self.cleaned_data['quantity']):
                 error = "no_stock_quantity"
+            else:
+                # Validate user is under budget
+                quantity = self.cleaned_data['quantity']
+                additional_total = variation.price() * quantity
+
+                if self._cart.over_budget(additional_total) and additional_total > 0:
+                    error = "over_budget"
+
         if error is not None:
             raise forms.ValidationError(ADD_PRODUCT_ERRORS[error])
         self.variation = variation
