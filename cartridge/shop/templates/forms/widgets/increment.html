@@ -1,0 +1,17 @@
+<div class="flex incrementor{% if widget.attrs.class %} {{ widget.attrs.class }}{% endif %}">
+    <button onclick="this.parentNode.querySelector('input[type=number]').stepDown()" type="button"
+            class="h-12 bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 rounded-l inline-flex items-center focus:outline-none increment-remove-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 icon-remove">
+            <path class="secondary" fill-rule="evenodd" d="M17 11a1 1 0 0 1 0 2H7a1 1 0 0 1 0-2h10z"></path>
+        </svg>
+    </button>
+    <input type="number" name="{{ widget.name }}" class="min-w-0 w-20 px-4 text-center border border-gray-200"
+           {% if widget.value != None %}value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}/>
+    <button onclick="this.parentNode.querySelector('input[type=number]').stepUp()" type="button"
+            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 rounded-r inline-flex items-center focus:outline-none increment-add-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-10 icon-add">
+            <path class="secondary" fill-rule="evenodd"
+                  d="M17 11a1 1 0 0 1 0 2h-4v4a1 1 0 0 1-2 0v-4H7a1 1 0 0 1 0-2h4V7a1 1 0 0 1 2 0v4h4z"></path>
+        </svg>
+    </button>
+</div>

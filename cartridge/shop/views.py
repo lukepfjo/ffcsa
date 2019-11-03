@@ -60,14 +60,12 @@ def product(request, slug, template="shop/product.html",
     variations = product.variations.all()
     variations_json = dumps([dict([(f, getattr(v, f))
                                    for f in fields + ["sku", "image_id"]]) for v in variations])
-    to_cart = (request.method == "POST" and
-               request.POST.get("add_wishlist") is None)
     initial_data = {}
     if variations:
         initial_data = dict([(f, getattr(variations[0], f)) for f in fields])
     initial_data["quantity"] = 1
     add_product_form = form_class(request.POST or None, product=product,
-                                  initial=initial_data, to_cart=to_cart, cart=request.cart)
+                                  initial=initial_data, cart=request.cart)
     if request.method == "POST":
         if not request.user.is_authenticated():
             raise Exception(
@@ -78,21 +76,11 @@ def product(request, slug, template="shop/product.html",
             raise Exception("Server Error")
 
         if add_product_form.is_valid():
-            if to_cart:
-                quantity = add_product_form.cleaned_data["quantity"]
-                request.cart.add_item(add_product_form.variation, quantity)
-                recalculate_cart(request)
-                info(request, _("Item added to cart"))
-                return redirect("shop_cart")
-            else:
-                skus = request.wishlist
-                sku = add_product_form.variation.sku
-                if sku not in skus:
-                    skus.append(sku)
-                info(request, _("Item added to wishlist"))
-                response = redirect("shop_wishlist")
-                set_cookie(response, "wishlist", ",".join(skus))
-                return response
+            quantity = add_product_form.cleaned_data["quantity"]
+            request.cart.add_item(add_product_form.variation, quantity)
+            recalculate_cart(request)
+            info(request, _("Item added to cart"))
+            return redirect("shop_cart")
     related = []
     if settings.SHOP_USE_RELATED_PRODUCTS:
         related = product.related_products.published(for_user=request.user)

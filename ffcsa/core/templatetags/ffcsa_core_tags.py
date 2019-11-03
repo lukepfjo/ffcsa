@@ -1,8 +1,10 @@
 import datetime
 
+import bleach
 from django.template.loader import get_template
 from django import forms
 from django.utils import formats
+from django.utils.safestring import mark_safe
 from mezzanine import template
 from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start
 
@@ -77,6 +79,24 @@ def render_field(context, field, **kwargs):
     """
     template = kwargs.get('template', "includes/form_field.html")
     context["field"] = field
-    context["show_required"] = True
+    if 'show_required' not in context:
+        context["show_required"] = True
+    if 'show_label' not in context:
+        context["show_label"] = True
     context.update(kwargs)
     return get_template(template).render(context.flatten())
+
+
+@register.filter
+def truncate(value, length):
+    if not value:
+        return value
+    elif len(value) <= length:
+        return mark_safe(value)
+
+    # don't truncate in the middle of a word
+    s = bleach.clean(value[:length], strip=True)
+    while not s[-1] in [' ', '\n']:
+        s = s[:-1]
+
+    return s + ' ...'

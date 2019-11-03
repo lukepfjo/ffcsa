@@ -1,4 +1,3 @@
-
 from __future__ import unicode_literals
 from future.builtins import str
 
@@ -10,8 +9,15 @@ from django import template
 
 from cartridge.shop.utils import set_locale
 
-
 register = template.Library()
+
+
+@register.filter
+def product_has_stock(product):
+    if not product:
+        return False
+
+    return any(v.has_stock() for v in product.variations.all())
 
 
 @register.filter

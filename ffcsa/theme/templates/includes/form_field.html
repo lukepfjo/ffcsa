@@ -6,7 +6,7 @@
 {% else %}
     <div class="form-group input_{{ field.id_for_label }} {{ field.field.type }}
         {% if field.errors %} has-error {% endif %}{% if field|is_checkbox %}checkbox{% endif %}">
-        {% if field.label %}
+        {% if field.label and show_label %}
             <label class="control-label" for="{{ field.auto_id }}">
                 {{ field.label }} {% if field.field.required and show_required and not field|is_select %}
                 <span class="required">-
@@ -21,8 +21,10 @@
         {% endif %}
         {% if field.help_text %}
             <p class="help-block">{{ field.help_text }}</p>
-        {% elif not field.label and field.field.required and show_required and not field|is_select %}
-            <p class="help-block">{% trans "required" %}</p>
+        {% elif not field.label or not show_label %}
+            {% if field.field.required and show_required and not field|is_select %}
+                <p class="help-block">{% trans "required" %}</p>
+            {% endif %}
         {% endif %}
     </div>
 {% endif %}

@@ -39,14 +39,34 @@ ADD_PRODUCT_ERRORS = {
 }
 
 
+class VariationChoiceWidget(forms.Select):
+    def __init__(self, *args, **kwargs):
+        super(VariationChoiceWidget, self).__init__(*args, **kwargs)
+
+    def get_context(self, name, value, attrs):
+        # if len(self.choices) == 1:
+        # self.input_type = 'hidden'
+        context = super(VariationChoiceWidget, self).get_context(name, value, attrs)
+        return context
+
+
+class IncrementWidget(forms.NumberInput):
+    template_name = "forms/widgets/increment.html"
+
+    class Media:
+        css = {'all': ('css/forms/widgets/increment.css',)}
+        # js = ('js/forms/widgets/increment.js',)
+
+
 class AddProductForm(forms.Form):
     """
     A form for adding the given product to the cart or the
     wishlist.
     """
 
-    quantity = forms.IntegerField(label=_("Quantity"), min_value=1)
-    sku = forms.CharField(required=False, widget=forms.HiddenInput())
+    quantity = forms.IntegerField(label=_("Quantity"), min_value=1, widget=IncrementWidget())
+
+    field_order = ['variation', 'quantity']
 
     def __init__(self, *args, **kwargs):
         """
@@ -58,8 +78,6 @@ class AddProductForm(forms.Form):
         the form. When the form is validated, the selected options
         are used to determine the chosen variation.
 
-        A ``to_cart`` boolean keyword arg is also given specifying
-        whether the product is being added to a cart or wishlist.
         If a product is being added to the cart, then its stock
         level is also validated.
 
@@ -67,34 +85,28 @@ class AddProductForm(forms.Form):
         given for the variation, so the creation of choice fields
         is skipped.
         """
-        self._product = kwargs.pop("product", None)
-        self._to_cart = kwargs.pop("to_cart")
+        self._product = kwargs.pop("product")
         self._cart = kwargs.pop("cart")
 
-        if self._to_cart and not self._cart:
-            raise ImproperlyConfigured(
-                "You must provide the cart if to_cart=True")
+        widget = kwargs.pop("widget", forms.RadioSelect)
+
         super(AddProductForm, self).__init__(*args, **kwargs)
-        # Adding from the wishlist with a sku, bail out.
-        if args[0] is not None and args[0].get("sku", None):
-            return
-        # Adding from the product page, remove the sku field
-        # and build the choice fields for the variations.
-        del self.fields["sku"]
-        option_fields = ProductVariation.option_fields()
-        if not option_fields:
-            return
-        option_names, option_labels = list(zip(*[(f.name, f.verbose_name)
-                                                 for f in option_fields]))
-        option_values = list(zip(*self._product.variations.filter(
-            unit_price__isnull=False).values_list(*option_names)))
-        if option_values:
-            for i, name in enumerate(option_names):
-                values = [_f for _f in set(option_values[i]) if _f]
-                if values:
-                    field = forms.ChoiceField(label=option_labels[i],
-                                              choices=make_choices(values))
-                    self.fields[name] = field
+        # for variation in self._product.variations.filter(unit_price__isnull=False):
+        choices = [(v.sku, v.title) for v in
+                   self._product.variations.filter(unit_price__isnull=False).order_by('-default')]
+
+        if choices:
+            field = forms.ChoiceField(label='Options', choices=choices, widget=widget, initial=choices[0][0])
+            if len(choices) <= 1:
+                field.widget = field.hidden_widget()
+            self.fields['variation'] = field
+            # re-order fields
+            self.order_fields(self.field_order)
+
+        for name in self.fields:
+            field = self.fields[name]
+            # field.widget.attrs['id'] = "id_{}_{}".format(field.label if field.label else name, self._product.id)
+            field.auto_id = "id_{}_{}".format(field.label if field.label else name, self._product.id)
 
     def clean(self):
         """
@@ -103,32 +115,18 @@ class AddProductForm(forms.Form):
         """
         if not self.is_valid():
             return
-        # Posted data will either be a sku, or product options for
-        # a variation.
-        data = self.cleaned_data.copy()
-        quantity = data.pop("quantity")
-        # Ensure the product has a price if adding to cart.
-        if self._to_cart:
-            data["unit_price__isnull"] = False
         error = None
-        if self._product is not None:
-            # Chosen options will be passed to the product's
-            # variations.
-            qs = self._product.variations
-        else:
-            # A product hasn't been given since we have a direct sku.
-            qs = ProductVariation.objects
         try:
-            variation = qs.get(**data)
+            # Ensure the product has a price if adding to cart.
+            variation = self._product.variations.get(unit_price__isnull=False, sku=self.cleaned_data['variation'])
         except ProductVariation.DoesNotExist:
             error = "invalid_options"
         else:
             # Validate stock if adding to cart.
-            if self._to_cart:
-                if not variation.has_stock():
-                    error = "no_stock"
-                elif not variation.has_stock(quantity):
-                    error = "no_stock_quantity"
+            if not variation.has_stock():
+                error = "no_stock"
+            elif not variation.has_stock(self.cleaned_data['quantity']):
+                error = "no_stock_quantity"
         if error is not None:
             raise forms.ValidationError(ADD_PRODUCT_ERRORS[error])
         self.variation = variation
@@ -719,7 +717,6 @@ class ProductChangelistForm(forms.ModelForm):
         if obj.variations.count() == 1:
             variation = obj.variations.first()
             vpv = None
-            orig_sku = variation.sku
             variation_fields = [f.name for f in variation._meta.fields]
             for key, value in self.cleaned_data.items():
                 if key is not 'id' and key in variation_fields:
@@ -738,6 +735,6 @@ class ProductChangelistForm(forms.ModelForm):
             if vpv:
                 vpv.save()
             variation.save()
-            update_cart_items(variation, orig_sku)
+            update_cart_items(variation)
 
         return obj
