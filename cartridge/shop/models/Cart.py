@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from decimal import Decimal
+from itertools import takewhile
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -9,6 +10,7 @@ from future.builtins import super
 from mezzanine.conf import settings
 
 from cartridge.shop import managers
+from cartridge.shop.models.Order import Order
 from ffcsa.core.models import Payment
 
 
@@ -59,7 +61,7 @@ class Cart(models.Model):
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
-        ytd_order_total = self.objects.total_for_user(user)
+        ytd_order_total = Order.objects.total_for_user(user)
         ytd_payment_total = Payment.objects.total_for_user(user)
 
         return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
@@ -191,41 +193,37 @@ class CartItem(models.Model):
         return self._cached_quantity
 
     def update_quantity(self, quantity):
-        remaining = quantity
-        vendor_stock = OrderedDict()
-
-        # Fetch the live_num_in_stock value for all possible vendors for this variation
-        for vpv in self.variation.vendorproductvariation_set.all().order_by('_order'):
-            vendor_stock[vpv.vendor_id] = vpv.live_num_in_stock()
-
         vendor_items = []
-        for vendor_id, stock in vendor_stock.items():
-            if stock is None:
-                # If here, there is no limit. So we want this vendor
-                vi, created = self.vendors.get_or_create(vendor_id=vendor_id)
-                vi.quantity = vi.quantity + quantity
+
+        if quantity > 0:
+            remaining = quantity
+            qs = self.variation.vendorproductvariation_set.all().order_by('_order')
+            for vpv in takewhile(lambda x: remaining > 0, qs):
+                stock = vpv.live_num_in_stock()
+                # If stock is None then there is no limit.
+                qty = min(stock, remaining) if stock is not None else remaining
+                vi, created = self.vendors.get_or_create(vendor_id=vpv.vendor_id)
+                vi._order = vpv._order
+                vi.quantity = vi.quantity + qty
                 vendor_items.append(vi)
-                break
-            else:
-                if remaining > 0:
-                    while remaining > 0:
-                        qty = min(stock, quantity)
-                        vi, created = self.vendors.get_or_create(vendor_id=vendor_id)
-                        vi.quantity = vi.quantity + qty
-                        vendor_items.append(vi)
-                        remaining = remaining - qty
-                    break
-                else:
-                    # TODO handle case where quantity is negative
-                    # - when decreasing quantity, need to make sure we are updating the correct vendor if multiple. may need to update both & delete one, etc
-                    raise NotImplementedError('Can not handle negative quantity')
+                remaining = remaining - qty
+        else:
+            remaining = abs(quantity)
+            qs = self.vendors.all().order_by('-_order')
+            for v in takewhile(lambda x: remaining > 0, qs):
+                # Product vendors are listed by preference using the _order field
+                # So we want to decrease quantity starting from least preferred vendors
+                qty = min(remaining, v.quantity)
+                v.quantity = v.quantity - qty
+                vendor_items.append(v)
+                remaining = remaining - qty
 
         for item in vendor_items:
             if item.quantity < 0:
                 raise AssertionError('Item quantity is negative')
             item.delete() if item.quantity == 0 else item.save()
 
-        if hasattr(self, '_cached_quantity'):
+        if hasattr(self, '_cached_quantity') and self._cached_quantity is not None:
             self._cached_quantity = self._cached_quantity + quantity
 
     def save(self, *args, **kwargs):

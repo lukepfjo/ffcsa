@@ -9,7 +9,7 @@ from re import match
 
 from django import forms
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.forms import Widget
 from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
                                  inlineformset_factory)
@@ -145,18 +145,35 @@ class CartItemForm(forms.ModelForm):
         model = CartItem
         fields = ("quantity",)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.initial['quantity'] = self.instance.quantity
+
     def clean_quantity(self):
         """
         Validate that the given quantity is available.
         """
-        variation = ProductVariation.objects.get(sku=self.instance.sku)
+        variation = self.instance.variation
         quantity = self.cleaned_data["quantity"]
         if not variation.has_stock(quantity - self.instance.quantity):
             error = ADD_PRODUCT_ERRORS["no_stock_quantity"].rstrip(".")
             raise forms.ValidationError("%s: %s" % (error, quantity))
         return quantity
 
-    # TODO does this need to be put on the CartItemFormSet instead? This is where it was previously monkey patched to
+    def save(self, commit=True):
+        quantity = self.cleaned_data["quantity"]
+        self.instance.update_quantity(quantity - self.instance.quantity)
+        if self.instance.quantity == 0:
+            self.instance.delete()
+
+
+class BaseCartItemFormSet(forms.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.queryset = self.queryset.select_related('variation').prefetch_related('vendors')
+
     def clean(self):
         """
         Validate that the user hasn't gone overbudget
@@ -185,11 +202,11 @@ class CartItemForm(forms.ModelForm):
                 self._errors.append(error)
                 raise forms.ValidationError(error)
 
-        return super(CartItemForm, self).clean()
+        return super().clean()
 
 
-CartItemFormSet = inlineformset_factory(Cart, CartItem, form=CartItemForm,
-                                        can_delete=True, extra=0)
+CartItemFormSet = inlineformset_factory(Cart, CartItem, form=CartItemForm, formset=BaseCartItemFormSet, can_delete=True,
+                                        extra=0)
 
 
 class FormsetForm(object):
@@ -570,6 +587,17 @@ class ProductVariationAdminForm(forms.ModelForm):
             product = kwargs["instance"].product
             qs = self.fields["image"].queryset.filter(product=product)
             self.fields["image"].queryset = qs
+
+
+class VendorProductVariationAdminFormset(BaseInlineFormSet):
+    """
+    Ensure at least 1 VendorProductVariation exists
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # not sure why this can't be a class attribute???
+        self.validate_min = True
 
 
 class ProductVariationAdminFormset(BaseInlineFormSet):

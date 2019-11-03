@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from copy import deepcopy
 
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import ImageField
 from django.urls import reverse
@@ -21,7 +22,7 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
                                   ImageWidget, MoneyWidget, OrderAdminForm,
                                   ProductAdminForm, ProductChangelistForm,
                                   ProductVariationAdminForm,
-                                  ProductVariationAdminFormset)
+                                  ProductVariationAdminFormset, VendorProductVariationAdminFormset)
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
                                    ProductVariation, Sale, Vendor)
@@ -103,8 +104,9 @@ class VendorProductVariationAdmin(nested.NestedTabularInline):
     verbose_name = _("Vendor")
     model = ProductVariation.vendors.through
     min_num = 1
-    validate_min = True  # TODO does this work?
     extra = 0
+
+    formset = VendorProductVariationAdminFormset
 
 
 class ProductVariationAdmin(nested.NestedStackedInline):
@@ -114,7 +116,8 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["_title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"),
+            "fields": ["_title", "in_inventory", "weekly_inventory", "default",
+                       ("vendor_price", "unit_price", "margin"),
                        "sku",
                        "image"],
         }),

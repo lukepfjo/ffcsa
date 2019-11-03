@@ -29,7 +29,7 @@ class Vendor(RichText, Orderable, Displayable):
         return ("shop_vendor", (), {"slug": self.slug})
 
 
-class VendorProductVariation(Orderable):
+class VendorProductVariation(models.Model):
     vendor = models.ForeignKey(
         Vendor, verbose_name="Vendor", on_delete=models.CASCADE)
     variation = models.ForeignKey(
@@ -40,6 +40,7 @@ class VendorProductVariation(Orderable):
         verbose_name = _("Vendor Product Variation")
         verbose_name_plural = _("Vendor Product Variations")
         unique_together = ('vendor', 'variation')
+        order_with_respect_to = 'variation'
 
     def __str__(self):
         return '%s: %s' % (self.variation, self.vendor)
@@ -85,12 +86,14 @@ class VendorCartItemMetaClass(ModelBase):
                 # lambda self, value:    setattr(self.vendor, field, value)
             )
 
+        base_fields = [field.attname for base in bases if hasattr(base, '_meta') for field in base._meta.fields]
+
         # Only assign new attrs if not a proxy model.
         # For each Vendor field, assign getters directly from the VendorCartItem model
         for field in Vendor._meta.fields:
-            if field.name in attrs:
+            if field.name in attrs or field.name in base_fields:
                 raise ImproperlyConfigured("A field with the same name exists in both Vendor and VendorCartItem.")
-            if field.attname is not 'id':
+            if field.attname not in ['id', '_order']:
                 attrs[field.attname] = prop(field.attname)
         args = (cls, name, bases, attrs)
         return super().__new__(*args)
@@ -103,6 +106,7 @@ class VendorCartItem(models.Model, metaclass=VendorCartItemMetaClass):
 
     class Meta:
         unique_together = ('item', 'vendor')
+        order_with_respect_to = 'item'
 
     def __str__(self):
         return '%s: %s - %s' % (self.item, self.vendor, self.quantity)

@@ -15,8 +15,6 @@ from mezzanine.generic.fields import RatingField
 from mezzanine.utils.models import AdminThumbMixin, upload_to
 
 from cartridge.shop import fields, managers
-from cartridge.shop.models import CartItem
-from cartridge.shop.models.Cart import Cart
 from cartridge.shop.models.Priced import Priced
 
 
@@ -298,6 +296,8 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         for subsequent lookups.
         """
         if not hasattr(self, "_cached_num_in_stock"):
+            from cartridge.shop.models import Cart, CartItem
+
             num_in_stock = self.number_in_stock
             if num_in_stock is not None:
                 carts = Cart.objects.current()

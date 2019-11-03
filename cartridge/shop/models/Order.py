@@ -3,7 +3,6 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import pgettext_lazy as __
 from django.utils.translation import ugettext as _
 from mezzanine.conf import settings
@@ -15,7 +14,6 @@ from cartridge.shop.models.DiscountCode import DiscountCode
 from cartridge.shop.utils import clear_session
 
 
-@python_2_unicode_compatible
 class Order(SiteRelated):
     billing_detail_first_name = CharField(_("First name"), max_length=100)
     billing_detail_last_name = CharField(_("Last name"), max_length=100)
