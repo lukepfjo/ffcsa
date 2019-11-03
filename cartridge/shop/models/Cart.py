@@ -144,6 +144,9 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey("shop.Cart", related_name="items", on_delete=models.CASCADE)
     variation = models.ForeignKey("shop.ProductVariation", related_name="+", on_delete=models.PROTECT, null=False)
+    time = models.DateTimeField(_("Time"), auto_now_add=True, null=True)
+
+    objects = managers.CartItemManager()
 
     def __str__(self):
         return ''

@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 from copy import deepcopy
 
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import ImageField
-from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super, zip
 from mezzanine.conf import settings
@@ -26,9 +24,8 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
                                    ProductVariation, Sale, Vendor)
-from cartridge.shop.models.Cart import update_cart_items
+from cartridge.shop.models.Cart import update_cart_items, CartItem
 from cartridge.shop.views import HAS_PDF
-from ffcsa.core.availability import inform_user_product_unavailable
 
 """
 Admin classes for all the shop models.
@@ -217,11 +214,7 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
 
         if updating and form.has_changed():
             if 'available' in form.changed_data and not obj.available:
-                # TODO verify this works correctly
-                cart_url = request.build_absolute_uri(reverse("shop_cart"))
-                # TODO is variation.title the correct CartItem.description?
-                for variation in self.variations.all():
-                    inform_user_product_unavailable(variation.sku, variation.title, cart_url)
+                CartItem.objects.handle_unavailable_variations(obj.variations.all())
 
     def save_formset(self, request, form, formset, change):
         """
@@ -270,10 +263,7 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
                               for f in request.POST
                               if f.startswith("images-") and f.endswith("-DELETE")]
 
-            cart_url = request.build_absolute_uri(reverse("shop_cart"))
-            for form in formset.deleted_forms:
-                variation = form.instance
-                inform_user_product_unavailable(variation.sku, variation.title, cart_url)
+            CartItem.objects.handle_unavailable_variations([form.instance for form in formset.deleted_forms])
 
             for form in formset.forms:
                 # if missing initial data, this is a new ProductVariation

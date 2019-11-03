@@ -185,7 +185,6 @@ class ProductVariationMetaclass(ModelBase):
         return super(ProductVariationMetaclass, cls).__new__(*args)
 
 
-@python_2_unicode_compatible
 class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     """
     A combination of selected options from

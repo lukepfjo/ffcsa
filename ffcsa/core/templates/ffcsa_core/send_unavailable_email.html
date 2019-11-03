@@ -1,10 +1,13 @@
-<p>Order inventory has been updated for the week.</p>
+{% if quantity %}
+    <p>Our inventory has been updated and we do not have enough "{{ variation }}" available to fulfill your order. We have
+        reduced the quantity in your order to {{ quantity }}.</p>
+{% else %}
+    <p>Our inventory has been updated and the following product is no longer available.</p>
+    <p>{{ variation }}</p>
+{% endif %}
 
-<p>Unfortunately, the following product in your order for the coming week is not available.</p>
-
-<p>{{ product }}</p>
-
-<p>Feel free to add/change your order. You can view you current order here <a href="{{ cart_url }}">{{ cart_url }}</a></p>
+<p>Feel free to add/change your order. You can view you current order here <a href="{{ cart_url }}">{{ cart_url }}</a>
+</p>
 
 <p>Sorry for any inconvenience.</p>
 

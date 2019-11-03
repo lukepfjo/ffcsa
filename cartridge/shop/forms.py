@@ -15,7 +15,7 @@ from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
 from django.utils.safestring import mark_safe
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-from future.builtins import filter, int, range, str, super, zip
+from future.builtins import filter, int, range, str, super
 from future.utils import with_metaclass
 from mezzanine.conf import settings
 from mezzanine.core.templatetags.mezzanine_tags import thumbnail
@@ -605,6 +605,14 @@ class VendorProductVariationAdminFormset(BaseInlineFormSet):
         super().__init__(*args, **kwargs)
         # not sure why this can't be a class attribute???
         self.validate_min = True
+
+    def save(self, commit=True):
+        items = super().save(commit)
+
+        variations = set([v.variation for v, _ in self.changed_objects])
+        CartItem.objects.handle_changed_variations(variations)
+
+        return items
 
 
 class ProductVariationAdminFormset(BaseInlineFormSet):

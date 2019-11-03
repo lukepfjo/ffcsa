@@ -4,12 +4,16 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta, date
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Manager, Q, Sum
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from future.builtins import str, zip
 from mezzanine.conf import settings
 from mezzanine.core.managers import CurrentSiteManager
+
+from ffcsa.core.availability import send_unavailable_email
 
 
 class CartManager(Manager):
@@ -59,6 +63,64 @@ class CartManager(Manager):
         Expired carts.
         """
         return self.filter(last_updated__lt=self.expiry_time())
+
+
+class CartItemManager(Manager):
+
+    def handle_unavailable_variations(self, variations):
+        """
+        Remove any CartItems for the provided variations and inform the cart owners
+        """
+        for variation in variations:
+            qs = self.filter(variation=variation)
+            users = get_user_model().objects.filter(id__in=qs.values_list("cart__user_id"))
+            qs.delete()
+
+            if users:
+                transaction.on_commit(lambda: send_unavailable_email(variation, bcc_addresses=[u.email for u in users]))
+
+    def handle_changed_variations(self, variations):
+        """ Update the vendor and quantity for each CartItem. If we don't have enough, inform the cart owner"""
+        from cartridge.shop.models import Cart
+        from ffcsa.core.budgets import clear_cached_budget_for_user_id
+
+        User = get_user_model()
+        to_delete = []
+        affected_users = {}
+
+        for v in variations:
+            stock = v.number_in_stock
+
+            for i in self.filter(variation=v, cart__in=Cart.objects.current()).order_by('time'):
+                if stock == 0:
+                    to_delete.append(i.id)
+                    if i.cart.user_id not in affected_users:
+                        affected_users[i.cart.user_id] = []
+                    affected_users[i.cart.user_id].append((i.variation, None))
+                    continue
+
+                qty = i.quantity
+                updated_quantity = min(qty, stock)
+
+                i.update_quantity(updated_quantity)
+
+                if updated_quantity < qty:
+                    if i.cart.user_id not in affected_users:
+                        affected_users[i.cart.user_id] = []
+                    affected_users[i.cart.user_id].append((i.variation, updated_quantity))
+
+                stock = stock - updated_quantity
+
+        if to_delete:
+            self.filter(id__in=to_delete).delete()
+
+        if affected_users:
+            for user in User.objects.filter(id__in=affected_users.keys()):
+                clear_cached_budget_for_user_id(user.id)
+
+                for variation, quantity in affected_users[user.id]:
+                    transaction.on_commit(
+                        lambda: send_unavailable_email(variation, to_addr=user.email, quantity=quantity))
 
 
 class OrderManager(CurrentSiteManager):
