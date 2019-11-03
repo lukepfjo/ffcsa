@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, date
 from decimal import Decimal
 
 from django.db.models import Manager, Q, Sum
+from django.utils.encoding import force_text
 from django.utils.timezone import now
 from future.builtins import str, zip
 from mezzanine.conf import settings
@@ -105,6 +106,29 @@ class OrderManager(CurrentSiteManager):
         return total
 
 
+class OrderItemManager(Manager):
+    def create_from_cartitem(self, item):
+        data = {
+            'sku': item.sku,
+            'description': item.description,
+            'vendor_price': item.vendor_price,
+            'unit_price': item.unit_price,
+            'url': item.url,
+            'category': item.category,
+            'in_inventory': item.in_inventory,
+            'image': force_text(item.image.file) if item.image is not None else None,
+        }
+
+        for v in item.vendors.all():
+            d = data.copy()
+            d.update({
+                'vendor': v.vendor,
+                'quantity': v.quantity
+            })
+
+            yield self.create(**d)
+
+
 class ProductOptionManager(Manager):
 
     def as_fields(self):
@@ -119,7 +143,6 @@ class ProductOptionManager(Manager):
 
 
 class ProductVariationManager(Manager):
-
     use_for_related_fields = True
 
     def create(self, *args, **kwargs):
@@ -196,7 +219,6 @@ class ProductVariationManager(Manager):
 
 
 class ProductActionManager(Manager):
-
     use_for_related_fields = True
 
     def _action_for_field(self, field):

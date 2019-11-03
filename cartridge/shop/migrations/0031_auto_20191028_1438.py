@@ -11,9 +11,7 @@ def set_variation_title(apps, schema_editor):
     for pv in ProductVariation.objects.all():
         if pv.product.variations.count() > 1:
             pv.title = "{} - {}".format(pv.id, pv.product.title)
-        else:
-            pv.title = pv.product.title
-        pv.save()
+            pv.save()
 
 
 class Migration(migrations.Migration):

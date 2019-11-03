@@ -4,7 +4,7 @@ from django.db.models import CharField
 from django.db.models.base import ModelBase
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
-from future.builtins import str, super
+from future.builtins import super
 from future.utils import with_metaclass
 from mezzanine.conf import settings
 from mezzanine.core.fields import FileField
@@ -16,8 +16,8 @@ from mezzanine.utils.models import AdminThumbMixin, upload_to
 
 from cartridge.shop import fields, managers
 from cartridge.shop.models import CartItem
+from cartridge.shop.models.Cart import Cart
 from cartridge.shop.models.Priced import Priced
-from cartridge.shop.models.Cart import Cart, update_cart_items
 
 
 class BaseProduct(Displayable):
@@ -76,6 +76,9 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
 
         return v.vendors.first().title
 
+    def has_stock(self):
+        pass
+
     def save(self, *args, **kwargs):
         self.set_content_model()
         super(Product, self).save(*args, **kwargs)
@@ -99,16 +102,12 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
         when the product is updated via the change view.
         """
         default = self.variations.get(default=True)
-        orig_sku = self.sku
         default.copy_price_fields_to(self)
         # TODO I don't think we need this anymore
         # setattr(self, "weekly_inventory", getattr(default, "weekly_inventory"))
         # setattr(self, "in_inventory", getattr(default, "in_inventory"))
         if default.image:
             self.image = default.image.file.name
-        if not settings.SHOP_USE_VARIATIONS:
-            # TODO handle & change to variation
-            update_cart_items(self, orig_sku)
         self.save()
 
     def get_category(self):
@@ -198,7 +197,7 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
     product = models.ForeignKey("shop.Product", related_name="variations",
                                 on_delete=models.CASCADE)
-    title = models.CharField(_("Title"), max_length=500, help_text='defaults to the product title', blank=True)
+    _title = models.CharField(_("Title"), max_length=500, blank=True)
     default = models.BooleanField(_("Default"), default=False)
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
@@ -213,17 +212,25 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
     class Meta:
         ordering = ("-default",)
-        unique_together = ('product', 'title')
+        unique_together = ('product', '_title')
 
     def __str__(self):
-        return "{}: {}".format(self.product.title, self.title)
+        return "{} - {}".format(self.product.title, self.title) if self.title else self.product.title
+
+    @property
+    def title(self):
+        return getattr(self, '_title', self.product.title)
+
+    @title.setter
+    def title(self, value):
+        self._title = value
 
     def clean(self):
         """
         Use the Product.title as title if title is not set
         """
-        if not self.title:
-            self.title = self.product.title
+        # if not self.title:
+        #     self.title = self.product.title
         super(ProductVariation, self).clean()
 
     def save(self, *args, **kwargs):
@@ -271,7 +278,18 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
     @property
     def number_in_stock(self):
-        return self.vendors.aggregate(num_in_stock=models.Sum("num_in_stock"))['num_in_stock']
+        # The following check works in Django 2.2
+        # if 'vendorproductvariation_set' not in self._state.fields_cache:
+        if 'vendorproductvariation' not in getattr(self, '_prefetched_objects_cache', []) \
+                and not hasattr(self, self._meta.get_field('vendorproductvariation').get_cache_name()):
+            return self.vendorproductvariation_set.aggregate(num_in_stock=models.Sum("num_in_stock"))['num_in_stock']
+
+        stock = 0
+        for vpv in self.vendorproductvariation_set.all():
+            if vpv.num_in_stock is None:
+                return None
+            stock += vpv.num_in_stock
+        return stock
 
     def live_num_in_stock(self):
         """
@@ -279,16 +297,15 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         ``self.num_in_stock - num in carts``. Also caches the value
         for subsequent lookups.
         """
-        if self.num_in_stock is None:
-            return None
         if not hasattr(self, "_cached_num_in_stock"):
-            num_in_stock = self.num_in_stock
-            carts = Cart.objects.current()
-            items = CartItem.objects.filter(sku=self.sku, cart__in=carts)
-            aggregate = items.aggregate(quantity_sum=models.Sum("quantity"))
-            num_in_carts = aggregate["quantity_sum"]
-            if num_in_carts is not None:
-                num_in_stock = num_in_stock - num_in_carts
+            num_in_stock = self.number_in_stock
+            if num_in_stock is not None:
+                carts = Cart.objects.current()
+                items = CartItem.objects.filter(variation=self, cart__in=carts)
+                aggregate = items.aggregate(quantity_sum=models.Sum("vendors__quantity"))
+                num_in_carts = aggregate["quantity_sum"]
+                if num_in_carts is not None:
+                    num_in_stock = num_in_stock - num_in_carts
             self._cached_num_in_stock = num_in_stock
         return self._cached_num_in_stock
 

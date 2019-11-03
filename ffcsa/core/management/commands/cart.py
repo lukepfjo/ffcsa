@@ -1,7 +1,6 @@
 import datetime
 
 from cartridge.shop.models import Cart, Order, ProductVariation
-from cartridge.shop.models.SelectedProduct import SelectedProduct
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
@@ -52,17 +51,6 @@ class Command(BaseCommand):
 
                 print("saved order")
                 for item in cart:
-                    product_fields = [f.name for f in SelectedProduct._meta.fields]
-                    item_dict = dict([(f, getattr(item, f)) for f in product_fields])
-
-                    # since we can't perform field injection on abstract classes we need to manually add
-                    # any injected fields here
-
-                    item_dict['category'] = item.category
-                    item_dict['vendor'] = item.vendor
-                    item_dict['vendor_price'] = item.vendor_price
-                    item_dict['in_inventory'] = item.in_inventory
-
                     try:
                         variation = ProductVariation.objects.get(sku=item.sku)
                         if not variation.weekly_inventory:
@@ -70,7 +58,7 @@ class Command(BaseCommand):
                     except ProductVariation.DoesNotExist:
                         pass
 
-                    order.items.create(**item_dict)
+                    order.items.create_from_cartitem(item)
 
                 order.save()
 

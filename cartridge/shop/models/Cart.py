@@ -1,15 +1,14 @@
+from collections import OrderedDict
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import CharField, F
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
-from future.builtins import str, super
+from future.builtins import super
 from mezzanine.conf import settings
 
 from cartridge.shop import managers
-from cartridge.shop.models.SelectedProduct import SelectedProduct
 from ffcsa.core.models import Payment
 
 
@@ -33,41 +32,17 @@ class Cart(models.Model):
 
     def add_item(self, variation, quantity):
         """
-        Increase quantity of existing item if SKU matches, otherwise create
-        new.
+        Increase quantity of existing item if variation matches, otherwise create new.
         """
         if not self.user_id:
-            raise Exception(
-                "You must be logged in to add products to your cart")
+            raise Exception("You must be logged in to add products to your cart")
         if not self.pk:
             self.save()
-        kwargs = {"sku": variation.sku, "unit_price": variation.price()}
-        item, created = self.items.get_or_create(**kwargs)
+        item, created = self.items.get_or_create(variation=variation)
         if created:
-            item.description = force_text(variation)
-            item.unit_price = variation.price()
-            item.url = variation.product.get_absolute_url()
-            image = variation.image
-            if image is not None:
-                item.image = force_text(image.file)
             variation.product.actions.added_to_cart()
-        item.quantity += quantity
 
-        # TODO is there a better way to do this now?
-        if not item.category:
-            # TODO fix this hack
-            from cartridge.shop.models import Product
-            p = Product.objects.filter(sku=item.sku).first()
-            item.category = str(p.get_category())
-        if not item.vendor:
-            item.vendor = variation.vendor
-        if not item.vendor_price:
-            item.vendor_price = variation.vendor_price
-        if item.in_inventory != variation.in_inventory:
-            item.in_inventory = variation.in_inventory
-        if variation.weekly_inventory != item.weekly_inventory:
-            item.weekly_inventory = variation.weekly_inventory
-
+        item.update_quantity(quantity)
         item.save()
 
     def clear(self):
@@ -164,17 +139,94 @@ class Cart(models.Model):
         return total
 
 
-class CartItem(SelectedProduct):
-    cart = models.ForeignKey("shop.Cart", related_name="items",
-                             on_delete=models.CASCADE)
-    url = CharField(max_length=2000)
-    image = CharField(max_length=200, null=True)
-    # TODO is this needed?
-    weekly_inventory = models.BooleanField(
-        _("Weekly Inventory"), blank=False, default=True)
+class CartItem(models.Model):
+    cart = models.ForeignKey("shop.Cart", related_name="items", on_delete=models.CASCADE)
+    variation = models.ForeignKey("shop.ProductVariation", related_name="+", on_delete=models.PROTECT, null=False)
+
+    def __str__(self):
+        return ''
+
+    @property
+    def image(self):
+        return self.variation.image
+
+    @property
+    def description(self):
+        return force_text(self.variation)
+
+    @property
+    def unit_price(self):
+        return self.variation.price()
+
+    @property
+    def vendor_price(self):
+        return self.variation.vendor_price
+
+    @property
+    def in_inventory(self):
+        return self.variation.product.in_inventory
+
+    @property
+    def sku(self):
+        return self.variation.sku
+
+    @property
+    def total_price(self):
+        return self.unit_price * self.quantity
 
     def get_absolute_url(self):
-        return self.url
+        return self.variation.product.get_absolute_url()
+
+    @property
+    def quantity(self):
+        # The following check works in Django 2.2
+        # if 'vendorproductvariation_set' not in self._state.fields_cache:
+        if not hasattr(self, "_cached_quantity"):
+            if 'vendors' not in getattr(self, '_prefetched_objects_cache', []) \
+                    and not hasattr(self, self._meta.get_field('vendors').get_cache_name()):
+                quantity = self.vendors.aggregate(quantity=models.Sum("quantity"))['quantity']
+            else:
+                quantity = sum([v.quantity for v in self.vendors.all()])
+            self._cached_quantity = quantity
+        return self._cached_quantity
+
+    def update_quantity(self, quantity):
+        remaining = quantity
+        vendor_stock = OrderedDict()
+
+        # Fetch the live_num_in_stock value for all possible vendors for this variation
+        for vpv in self.variation.vendorproductvariation_set.all().order_by('_order'):
+            vendor_stock[vpv.vendor_id] = vpv.live_num_in_stock()
+
+        vendor_items = []
+        for vendor_id, stock in vendor_stock.items():
+            if stock is None:
+                # If here, there is no limit. So we want this vendor
+                vi, created = self.vendors.get_or_create(vendor_id=vendor_id)
+                vi.quantity = vi.quantity + quantity
+                vendor_items.append(vi)
+                break
+            else:
+                if remaining > 0:
+                    while remaining > 0:
+                        qty = min(stock, quantity)
+                        vi, created = self.vendors.get_or_create(vendor_id=vendor_id)
+                        vi.quantity = vi.quantity + qty
+                        vendor_items.append(vi)
+                        remaining = remaining - qty
+                    break
+                else:
+                    # TODO handle case where quantity is negative
+                    # - when decreasing quantity, need to make sure we are updating the correct vendor if multiple. may need to update both & delete one, etc
+                    raise NotImplementedError('Can not handle negative quantity')
+
+        for item in vendor_items:
+            if item.quantity < 0:
+                raise AssertionError('Item quantity is negative')
+            item.delete() if item.quantity == 0 else item.save()
+
+        if hasattr(self, '_cached_quantity'):
+            self._cached_quantity = self._cached_quantity + quantity
 
     def save(self, *args, **kwargs):
         super(CartItem, self).save(*args, **kwargs)
@@ -184,34 +236,11 @@ class CartItem(SelectedProduct):
             self.cart.delete()
 
 
-def update_cart_items_for_product(product):
-    cat = product.get_category()
-    CartItem.objects.filter(sku__in=[v.sku for v in product.variations.all()]).update(category=cat.__str__())
-
-
-def update_cart_items(variation, orig_sku=None):
+def update_cart_items(variation):
     """
     When an item has changed, update any items that are already in the cart
     """
-    if not orig_sku:
-        orig_sku = variation.sku
     from ffcsa.core.budgets import clear_cached_budget_for_user_id
-    cat = variation.product.get_category()
-    # TODO make sure this is correct. What is the description when a variation is added?
-    update = {
-        'sku': variation.sku,
-        'description': variation.title,
-        'unit_price': variation.price(),
-        'total_price': F('quantity') * variation.price(),
-        'category': cat.__str__(),
-        'vendor': variation.vendors.first().title,
-        'vendor_price': variation.vendor_price,
-        'in_inventory': variation.in_inventory,
-        'weekly_inventory': variation.weekly_inventory
-    }
-
-    items = CartItem.objects.filter(sku=orig_sku)
-    items.update(**update)
-    for item in items:
-        clear_cached_budget_for_user_id(item.cart.user_id)
-        return
+    carts = Cart.objects.filter(items__variation__sku=variation.sku)
+    for cart in carts:
+        clear_cached_budget_for_user_id(cart.user_id)

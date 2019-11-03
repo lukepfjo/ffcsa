@@ -25,7 +25,7 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
                                    ProductVariation, Sale, Vendor)
-from cartridge.shop.models.Cart import update_cart_items, update_cart_items_for_product
+from cartridge.shop.models.Cart import update_cart_items
 from cartridge.shop.views import HAS_PDF
 from ffcsa.core.availability import inform_user_product_unavailable
 
@@ -114,7 +114,7 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"),
+            "fields": ["_title", "in_inventory", "weekly_inventory", "default", ("vendor_price", "unit_price", "margin"),
                        "sku",
                        "image"],
         }),
@@ -213,7 +213,6 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
         self._product_id = obj.id
 
         if updating and form.has_changed():
-            update_cart_items_for_product(obj)
             if 'available' in form.changed_data and not obj.available:
                 # TODO verify this works correctly
                 cart_url = request.build_absolute_uri(reverse("shop_cart"))
@@ -276,8 +275,7 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
             for form in formset.forms:
                 # if missing initial data, this is a new ProductVariation
                 if form.has_changed() and form.initial and form not in formset.deleted_forms:
-                    orig_sku = form.initial.get('sku', None)
-                    update_cart_items(form.instance, orig_sku)
+                    update_cart_items(form.instance)
 
             # Create new variations for selected options.
             # product.variations.create_from_options(options)

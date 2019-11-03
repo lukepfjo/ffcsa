@@ -10,7 +10,6 @@ from mezzanine.conf import settings
 from mezzanine.core.models import SiteRelated
 
 from cartridge.shop import fields, managers
-from cartridge.shop.models.SelectedProduct import SelectedProduct
 from cartridge.shop.models.Product import ProductVariation
 from cartridge.shop.models.DiscountCode import DiscountCode
 from cartridge.shop.utils import clear_session
@@ -106,9 +105,7 @@ class Order(SiteRelated):
             self.total += Decimal(self.tax_total)
         self.save()  # We need an ID before we can add related items.
         for item in request.cart:
-            product_fields = [f.name for f in SelectedProduct._meta.fields]
-            item = dict([(f, getattr(item, f)) for f in product_fields])
-            self.items.create(**item)
+            self.items.create_from_cartitem(item)
 
     def complete(self, request):
         """
@@ -161,9 +158,37 @@ class Order(SiteRelated):
     invoice.short_description = ""
 
 
-class OrderItem(SelectedProduct):
+class OrderItem(models.Model):
     """
     A selected product in a completed order.
     """
-    order = models.ForeignKey("Order", related_name="items",
-                              on_delete=models.CASCADE)
+    sku = fields.SKUField()
+    order = models.ForeignKey("Order", related_name="items", on_delete=models.CASCADE)
+
+    description = CharField(_("Description"), max_length=2000)
+
+    quantity = models.IntegerField(_("Quantity"), default=0)
+    unit_price = fields.MoneyField(_("Unit price"), default=Decimal("0"))
+    vendor_price = fields.MoneyField(_("Vendor price"), blank=True, null=True)
+    total_price = fields.MoneyField(_("Total price"), default=Decimal("0"))
+
+    category = models.TextField(blank=True)
+    vendor = models.CharField(blank=True, max_length=255)
+    in_inventory = models.BooleanField(_("FFCSA Inventory"), default=False, blank=False, null=False)
+
+    objects = managers.OrderItemManager()
+
+    def __str__(self):
+        return ""
+
+    def save(self, *args, **kwargs):
+        """
+        Set the total price based on the given quantity. If the
+        quantity is zero, which may occur via the cart page, just
+        delete it.
+        """
+        if not self.id or self.quantity > 0:
+            self.total_price = self.unit_price * self.quantity
+            super(OrderItem, self).save(*args, **kwargs)
+        else:
+            self.delete()
