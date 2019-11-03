@@ -71,16 +71,6 @@ def is_select(boundfield):
 
 
 @register.simple_tag(takes_context=True)
-def fields_for(context, form, *exclude_fields, template="includes/form_fields_exclude.html"):
-    """
-    Renders fields for a form with an optional template choice.
-    """
-    context["form_for_fields"] = form
-    context["exclude_fields"] = exclude_fields
-    return get_template(template).render(context.flatten())
-
-
-@register.simple_tag(takes_context=True)
 def render_field(context, field, **kwargs):
     """
     Renders a single form field
