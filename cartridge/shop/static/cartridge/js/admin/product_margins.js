@@ -62,7 +62,8 @@ jQuery(function ($) {
     })
   } else {
     var margin_inputs = $('.field-margin > input')
-    margin_inputs.each(function (i, input) {
+
+    function init (i, input) {
       var vendorPrice = $('#' + input.id.replace('-margin', '-vendor_price'))
       var unitPrice = $('#' + input.id.replace('-margin', '-unit_price'))
 
@@ -76,6 +77,14 @@ jQuery(function ($) {
       $(input).change(function () {
         updateMargins(vendorPrice, unitPrice, input, true)
       })
+    }
+
+    margin_inputs.each(init)
+
+    django.jQuery(document).on('formset:added', function (event, $row, formsetName) {
+      if (formsetName === 'variations') {
+        $row.find('.field-margin > input').each(init)
+      }
     })
   }
 })

@@ -212,11 +212,11 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         unique_together = ('product', '_title')
 
     def __str__(self):
-        return "{} - {}".format(self.product.title, self.title) if self.title else self.product.title
+        return "{} - {}".format(self.product.title, self.title) if self._title else self.product.title
 
     @property
     def title(self):
-        return getattr(self, '_title', self.product.title)
+        return self._title if self._title else self.product.title
 
     @title.setter
     def title(self, value):
