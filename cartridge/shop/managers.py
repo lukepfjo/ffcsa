@@ -175,12 +175,11 @@ class OrderItemManager(Manager):
             'description': item.description,
             'vendor_price': item.vendor_price,
             'unit_price': item.unit_price,
-            'url': item.url,
             'category': item.category,
             'in_inventory': item.in_inventory,
-            'image': force_text(item.image.file) if item.image is not None else None,
         }
 
+        objs = []
         for v in item.vendors.all():
             d = data.copy()
             d.update({
@@ -188,7 +187,9 @@ class OrderItemManager(Manager):
                 'quantity': v.quantity
             })
 
-            yield self.create(**d)
+            objs.append(self.create(**d))
+
+        return objs
 
 
 class ProductOptionManager(Manager):

@@ -1,3 +1,5 @@
+from itertools import takewhile
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import CharField
@@ -318,15 +320,16 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
         live = self.live_num_in_stock()
         return live is None or quantity == 0 or live >= quantity
 
-    def update_stock(self, quantity):
+    def reduce_stock(self, quantity):
         """
-        Update the stock amount - called when an order is complete.
-        Also update the denormalised stock amount of the product if
-        this is the default variation.
+        reduce the stock amount - called when an order is complete.
         """
-        if self.num_in_stock is not None:
-            self.num_in_stock += quantity
-            self.save()
-            if self.default:
-                self.product.num_in_stock = self.num_in_stock
-                self.product.save()
+        remaining = quantity
+        for vpv in takewhile(lambda x: remaining > 0, self.vendorproductvariation_set.all()):
+            if vpv.num_in_stock is None:
+                return
+
+            qty = min(remaining, vpv.num_in_stock)
+            vpv.num_in_stock = vpv.num_in_stock - qty
+            vpv.save()
+            remaining = remaining - qty

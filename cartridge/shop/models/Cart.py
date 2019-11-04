@@ -164,6 +164,10 @@ class CartItem(models.Model):
         return self.variation.price()
 
     @property
+    def category(self):
+        return self.variation.product.get_category()
+
+    @property
     def vendor_price(self):
         return self.variation.vendor_price
 
@@ -197,9 +201,13 @@ class CartItem(models.Model):
 
     def update_quantity(self, quantity):
         vendor_items = []
+        diff = quantity - (self.quantity if self.quantity is not None else 0)
 
-        if quantity > 0:
-            remaining = quantity
+        if diff == 0:
+            return
+
+        if diff > 0:
+            remaining = diff
             qs = self.variation.vendorproductvariation_set.all().order_by('_order')
             for vpv in takewhile(lambda x: remaining > 0, qs):
                 stock = vpv.live_num_in_stock()
@@ -211,7 +219,7 @@ class CartItem(models.Model):
                 vendor_items.append(vi)
                 remaining = remaining - qty
         else:
-            remaining = abs(quantity)
+            remaining = abs(diff)
             qs = self.vendors.all().order_by('-_order')
             for v in takewhile(lambda x: remaining > 0, qs):
                 # Product vendors are listed by preference using the _order field
@@ -227,7 +235,7 @@ class CartItem(models.Model):
             item.delete() if item.quantity == 0 else item.save()
 
         if hasattr(self, '_cached_quantity') and self._cached_quantity is not None:
-            self._cached_quantity = self._cached_quantity + quantity
+            self._cached_quantity = quantity
 
     def save(self, *args, **kwargs):
         super(CartItem, self).save(*args, **kwargs)

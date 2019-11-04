@@ -165,7 +165,7 @@ class CartItemForm(forms.ModelForm):
 
     def save(self, commit=True):
         quantity = self.cleaned_data["quantity"]
-        self.instance.update_quantity(quantity - self.instance.quantity)
+        self.instance.update_quantity(quantity)
         if self.instance.quantity == 0:
             self.instance.delete()
 

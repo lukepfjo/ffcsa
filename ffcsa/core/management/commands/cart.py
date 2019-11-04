@@ -51,12 +51,8 @@ class Command(BaseCommand):
 
                 print("saved order")
                 for item in cart:
-                    try:
-                        variation = ProductVariation.objects.get(sku=item.sku)
-                        if not variation.weekly_inventory:
-                            variation.update_stock(item.quantity * -1)
-                    except ProductVariation.DoesNotExist:
-                        pass
+                    if not item.variation.weekly_inventory:
+                        item.variation.reduce_stock(item.quantity)
 
                     order.items.create_from_cartitem(item)
 

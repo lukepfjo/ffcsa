@@ -121,7 +121,7 @@ class Order(SiteRelated):
             except ProductVariation.DoesNotExist:
                 pass
             else:
-                variation.update_stock(item.quantity * -1)
+                variation.reduce_stock(item.quantity)
                 variation.product.actions.purchased()
         if discount_code:
             DiscountCode.objects.active().filter(code=discount_code).update(
@@ -175,6 +175,9 @@ class OrderItem(models.Model):
     in_inventory = models.BooleanField(_("FFCSA Inventory"), default=False, blank=False, null=False)
 
     objects = managers.OrderItemManager()
+
+    class Meta:
+        base_manager_name = 'objects'
 
     def __str__(self):
         return ""
