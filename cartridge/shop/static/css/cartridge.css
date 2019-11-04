@@ -96,25 +96,7 @@
 .order-complete-form a {
     margin-right: 10px;
 }
-/*================================
-            Wishlist
-==================================*/
-.wishlist img {
-    vertical-align: middle;
-}
-.wishlist-actions {
-    white-space: nowrap;
-}
-.wishlist form {
-    margin: 0;
-    float: right;
-}
-.wishlist .btn {
-    margin-left: 5px
-}
-.wishlist .btn-primary {
-    margin-left: 15px
-}
+
 /*================================
     Cart panel in checkout
 ==================================*/

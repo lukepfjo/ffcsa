@@ -10,14 +10,12 @@ from cartridge.shop.models import Cart
 
 class ShopMiddleware(MiddlewareMixin):
     """
-    Adds cart and wishlist attributes to the current request.
+    Adds cart  attributes to the current request.
     """
+
     def process_request(self, request):
         request.cart = Cart.objects.from_request(request)
-        wishlist = request.COOKIES.get("wishlist", "").split(",")
-        if not wishlist[0]:
-            wishlist = []
-        request.wishlist = wishlist
+
 
 class MultiurlPageMiddleware(PageMiddleware):
     def process_view(self, request, view_func, view_args, view_kwargs):

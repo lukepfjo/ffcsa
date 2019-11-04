@@ -119,10 +119,6 @@
                 <div class="form-actions">
                     <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
                            value="{% trans "Add to Order" %}">
-                    {% if settings.SHOP_USE_WISHLIST %}
-                        <input type="submit" class="btn btn-default btn-lg pull-left" name="add_wishlist"
-                               value="{% trans "Save for later" %}">
-                    {% endif %}
                 </div>
             </form>
         {% else %}

@@ -59,8 +59,7 @@ class IncrementWidget(forms.NumberInput):
 
 class AddProductForm(forms.Form):
     """
-    A form for adding the given product to the cart or the
-    wishlist.
+    A form for adding the given product to the cart
     """
 
     quantity = forms.IntegerField(label=_("Quantity"), min_value=1, widget=IncrementWidget())
@@ -69,7 +68,7 @@ class AddProductForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         """
-        Handles adding a variation to the cart or wishlist.
+        Handles adding a variation to the cart.
 
         When adding from the product page, the product is provided
         from the view and a set of choice fields for all the
@@ -79,10 +78,6 @@ class AddProductForm(forms.Form):
 
         If a product is being added to the cart, then its stock
         level is also validated.
-
-        When adding to the cart from the wishlist page, a sku is
-        given for the variation, so the creation of choice fields
-        is skipped.
         """
         self._product = kwargs.pop("product")
         self._cart = kwargs.pop("cart")

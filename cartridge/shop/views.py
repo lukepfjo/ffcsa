@@ -51,7 +51,7 @@ def product(request, slug, template="shop/product.html",
             form_class=AddProductForm, extra_context=None, product=None):
     """
     Display a product - convert the product variations to JSON as well as
-    handling adding the product to either the cart or the wishlist.
+    handling adding the product to the cart
     """
     if not product:
         published_products = Product.objects.published(for_user=request.user)
@@ -139,57 +139,6 @@ def vendor(request, slug, template="shop/vendor.html", extra_context=None, vendo
     context.update(extra_context or {})
 
     return TemplateResponse(request, template, context)
-
-
-@never_cache
-def wishlist(request, template="shop/wishlist.html",
-             form_class=AddProductForm, extra_context=None):
-    """
-    Display the wishlist and handle removing items from the wishlist and
-    adding them to the cart.
-    """
-
-    if not settings.SHOP_USE_WISHLIST:
-        raise Http404
-
-    skus = request.wishlist
-    error = None
-    if request.method == "POST":
-        to_cart = request.POST.get("add_cart")
-        add_product_form = form_class(request.POST or None,
-                                      to_cart=to_cart)
-        if to_cart:
-            if add_product_form.is_valid():
-                request.cart.add_item(add_product_form.variation, 1)
-                recalculate_cart(request)
-                message = _("Item added to cart")
-                url = "shop_cart"
-            else:
-                error = list(add_product_form.errors.values())[0]
-        else:
-            message = _("Item removed from wishlist")
-            url = "shop_wishlist"
-        sku = request.POST.get("sku")
-        if sku in skus:
-            skus.remove(sku)
-        if not error:
-            info(request, message)
-            response = redirect(url)
-            set_cookie(response, "wishlist", ",".join(skus))
-            return response
-
-    # Remove skus from the cookie that no longer exist.
-    published_products = Product.objects.published(for_user=request.user)
-    f = {"product__in": published_products, "sku__in": skus}
-    wishlist = ProductVariation.objects.filter(**f).select_related("product")
-    wishlist = sorted(wishlist, key=lambda v: skus.index(v.sku))
-    context = {"wishlist_items": wishlist, "error": error}
-    context.update(extra_context or {})
-    response = TemplateResponse(request, template, context)
-    if len(wishlist) < len(skus):
-        skus = [variation.sku for variation in wishlist]
-        set_cookie(response, "wishlist", ",".join(skus))
-    return response
 
 
 @never_cache
