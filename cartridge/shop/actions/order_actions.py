@@ -264,7 +264,7 @@ def download_invoices(self, request, queryset):
         context = {"order": order}
         context.update(order.details_as_dict())
 
-        items = [i for i in order.items.all()]
+        items = [i for i in order.items.all_grouped()]
 
         items.sort(key=keySort(categories))
 

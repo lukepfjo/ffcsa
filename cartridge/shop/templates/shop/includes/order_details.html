@@ -41,7 +41,7 @@
         <th align="right">{% trans "Qty" %}</th>
         <th align="right">{% trans "Price" %}</th>
     </tr>
-    {% for item in order.items.all %}
+    {% for item in order.items.all_grouped %}
     <tr>
         <td>{{ item.description }}</td>
         <td align="right" valign="top">{{ item.unit_price|currency }}</td>

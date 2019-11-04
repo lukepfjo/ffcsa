@@ -7,13 +7,16 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Manager, Q, Sum
-from django.utils.encoding import force_text
 from django.utils.timezone import now
 from future.builtins import str, zip
 from mezzanine.conf import settings
 from mezzanine.core.managers import CurrentSiteManager
 
 from ffcsa.core.availability import send_unavailable_email
+
+
+class NotAllowedError(Exception):
+    pass
 
 
 class CartManager(Manager):
@@ -168,6 +171,10 @@ class OrderManager(CurrentSiteManager):
         return total
 
 
+def readOnly(*args, **kwargs):
+    raise NotImplementedError("This is a read-only model")
+
+
 class OrderItemManager(Manager):
     def create_from_cartitem(self, item):
         data = {
@@ -190,6 +197,27 @@ class OrderItemManager(Manager):
             objs.append(self.create(**d))
 
         return objs
+
+    def all_grouped(self):
+        """
+        Fetch all OrderItems for an order, grouping the results by sku
+        """
+        if not hasattr(self, 'instance'):
+            raise NotAllowedError("all_grouped is only allowed when there is a parent instance for the OrderItem")
+
+        qs = self.get_queryset().values('sku', 'unit_price', 'vendor_price', 'order_id', 'category', 'description',
+                                        'in_inventory').annotate(quantity=Sum('quantity'),
+                                                                 total_price=Sum('total_price'))
+        result_list = []
+        for row in qs:
+            i = self.model(**row)
+            i.save = readOnly
+            i.delete = readOnly
+            del i.id
+            del i.vendor
+            result_list.append(i)
+
+        return result_list
 
 
 class ProductOptionManager(Manager):

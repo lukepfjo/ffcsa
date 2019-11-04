@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import CharField
 from django.urls import reverse
-from django.utils.translation import pgettext_lazy as __
+from django.utils.translation import pgettext_lazy as __, ugettext
 from django.utils.translation import ugettext as _
 from mezzanine.conf import settings
 from mezzanine.core.models import SiteRelated

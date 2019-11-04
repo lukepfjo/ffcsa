@@ -31,10 +31,10 @@ from ffcsa.core.forms import CartDinnerForm
 from ffcsa.core.utils import get_friday_pickup_date
 
 try:
-    from xhtml2pdf import pisa
+    from weasyprint import HTML
 except (ImportError, SyntaxError):
-    pisa = None
-HAS_PDF = pisa is not None
+    HTML = None
+HAS_PDF = HTML is not None
 
 
 # Set up checkout handlers.
@@ -388,7 +388,7 @@ def invoice(request, order_id, template="shop/order_invoice.html",
         name = slugify("%s-invoice-%s" % (settings.SITE_TITLE, order.id))
         response["Content-Disposition"] = "attachment; filename=%s.pdf" % name
         html = get_template(template_pdf).render(context)
-        pisa.CreatePDF(html, response)
+        HTML(string=html).write_pdf(response)
         return response
     return TemplateResponse(request, template, context)
 
