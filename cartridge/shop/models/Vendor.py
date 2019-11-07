@@ -1,4 +1,4 @@
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models
 from django.db.models.base import ModelBase
 from django.utils.translation import ugettext_lazy as _
@@ -16,8 +16,14 @@ class Vendor(RichText, Orderable, Displayable):
                                upload_to=upload_to(
                                    "shop.Vendor.featured_image", "vendors"),
                                format="Image", max_length=255, null=True, blank=True)
+    email = models.EmailField(_("Email"), max_length=254, blank=True, null=True)
+    auto_send_order = models.BooleanField(help_text="Automatically email order to vendor?", default=True)
 
     objects = DisplayableManager()
+
+    def clean(self):
+        if self.auto_send_order and not self.email:
+            raise ValidationError("You must provide an email address if auto_send_order is True")
 
     @models.permalink
     def get_absolute_url(self):

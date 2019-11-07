@@ -201,6 +201,7 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
     num_in_stock = None
+    is_frozen = models.BooleanField(default=False)
 
     vendors = models.ManyToManyField('shop.Vendor', verbose_name="Vendors", related_name="variations",
                                      through='shop.VendorProductVariation')

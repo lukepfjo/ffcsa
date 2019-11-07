@@ -184,6 +184,7 @@ class OrderItemManager(Manager):
             'unit_price': item.unit_price,
             'category': item.category,
             'in_inventory': item.in_inventory,
+            'is_frozen': item.is_frozen
         }
 
         objs = []

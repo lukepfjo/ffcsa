@@ -1,14 +1,26 @@
 from __future__ import absolute_import, unicode_literals
 import os
+from collections import OrderedDict
 
 from django import VERSION as DJANGO_VERSION
 from django.utils.translation import ugettext_lazy as _
 
-NESTED_ADMIN_DEBUG = True
-
 ##############################
 # FFCSA-CORE SETTINGS #
 ##############################
+FROZEN_PRODUCT_CATEGORIES = ['pasture raised meats']
+GRAIN_BEANS_CATEGORIES = ['grains & beans']
+PRODUCT_ORDER_CATEGORIES = ['vegetables', 'eggs', 'fruit', 'eggs', 'mushroom']
+MARKET_CHECKLISTS = ['LCFM', 'Hollywood', 'PSU', 'St Johns', 'Woodstock']
+MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
+    # checklist columns -> (category list, additional kwargs, default)
+    # if default is None, then we will sum the number of items
+    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {}, 1)),
+    ('Meat', (['meat', 'butter'], {'is_frozen': True}, 1)),
+    ('Dairy', (['dairy'], {}, None)),
+    ('Flowers', (['flowers'], {}, None)),
+])
+DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'

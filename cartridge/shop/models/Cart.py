@@ -176,6 +176,10 @@ class CartItem(models.Model):
         return self.variation.product.in_inventory
 
     @property
+    def is_frozen(self):
+        return self.variation.product.is_frozen
+
+    @property
     def sku(self):
         return self.variation.sku
 

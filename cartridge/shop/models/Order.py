@@ -173,6 +173,7 @@ class OrderItem(models.Model):
     category = models.TextField(blank=True)
     vendor = models.CharField(blank=True, max_length=255)
     in_inventory = models.BooleanField(_("FFCSA Inventory"), default=False, blank=False, null=False)
+    is_frozen = models.BooleanField(default=False)
 
     objects = managers.OrderItemManager()
 

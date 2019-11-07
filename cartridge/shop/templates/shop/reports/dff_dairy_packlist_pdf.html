@@ -1,0 +1,117 @@
+<style>
+    @page {
+        size: Letter;
+    }
+
+    .items li:nth-child(even) {
+        background: #F7F7F7;
+    }
+
+    .items li:first-child {
+        background: white;
+    }
+
+    ul {
+        padding: 0;
+        list-style: none;
+        clear: both;
+    }
+
+    h4 {
+        margin: 0;
+    }
+
+    .header h4 {
+        text-align: center;
+    }
+
+    .header .item {
+        text-align: left;
+    }
+
+    .header .qty,
+    .header .checklist {
+        font-size: 13px;
+    }
+
+    li > * {
+        padding: 3px 4px;
+        border: 1px solid #E1E1E1;
+        flex-shrink: 0;
+    }
+
+    .header > * {
+        border-color: transparent;
+    }
+
+    .header {
+        display: flex;
+        align-items: end;
+        border-bottom: 3px solid #9E9E9E;
+    }
+
+    .items {
+        margin-bottom: 12px;
+    }
+
+    .category,
+    .items li {
+        display: flex;
+    }
+
+    .items .item {
+        padding-left: 32px;
+    }
+
+    .item {
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+
+    .num {
+        text-align: right;
+        padding: 2px 8px;
+    }
+
+    .qty,
+    .checklist {
+        width: 50px;
+    }
+
+    .category {
+        background: #E1E1E1;
+        font-weight: bold;
+        padding-left: 12px;
+    }
+
+</style>
+
+<h3 style="float: left; margin-top:0">DFF Dairy Packlist</h3>
+<p style="float: right; margin-top:0">{{ date }}</p>
+
+<ul>
+    <li class="header">
+        <h4 class="item"></h4>
+        <h4 class="qty">Quantity</h4>
+        <h4 class="checklist">Packed</h4>
+    </li>
+
+    {% for description, list, total_qty in items %}
+        <li class="category">
+            <span class="item">{{ description }}</span>
+            <span class="num qty">{{ total_qty }}</span>
+            <span class="checklist"></span>
+        </li>
+
+        <ul class="items">
+            {% for item in list %}
+                <li>
+                    <span class="item">{{ item.order.billing_detail_last_name }}</span>
+                    <span class="num qty">{{ item.quantity }}</span>
+                    <span class="checklist"></span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</ul>
+

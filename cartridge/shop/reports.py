@@ -1,0 +1,401 @@
+import datetime
+import logging
+import tempfile
+from collections import namedtuple, OrderedDict
+from itertools import groupby
+
+from django.conf import settings
+from django.core.mail import EmailMessage
+from django.db.models import Sum, Q, Case, When, IntegerField, Value, Subquery, OuterRef, F
+from django.template.loader import select_template, get_template
+from weasyprint import HTML
+
+from cartridge.shop.models import OrderItem, Vendor, Product, Order
+from ffcsa.core.views import product_keySort
+
+logger = logging.getLogger(__name__)
+
+
+def generate_weekly_order_reports(date=datetime.datetime.now().date()):
+    date = datetime.date(2019, 10, 24)
+    qs = OrderItem.objects \
+        .filter(order__time__date=date) \
+        .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
+        .annotate(total_price=Sum('total_price'), quantity=Sum('quantity'))
+
+    # zip_files = []
+    docs = []
+
+    # generate orders & pickup sheets
+
+    for order, pickuplist, vendor_title, vendor in get_vendor_orders(date, qs):
+        send_order_to_vendor(order.write_pdf(), vendor, vendor_title, date)
+        docs.append(pickuplist)
+        # zip_files.append(("{}_pickup_list_{}.pdf".format(vendor_title, date), pickuplist))
+        # we need 2 of these
+        if vendor_title.lower() == 'deck family farm':
+            # for some reason this doesn't render the title???
+            docs.append(pickuplist.copy())
+            # zip_files.append(("{}_pickup_list_karina_{}.pdf".format(vendor_title, date), pickuplist))
+
+    # generate packing lists
+
+    # frozen items bulk list
+    # zip_files.append(("frozen_bulk_{}_packlist.pdf".format(date), generate_frozen_items_report(date, qs)))
+    docs.append(generate_frozen_items_report(date, qs))
+
+    # FFCSA Inventory Products
+    # zip_files.append(("ffcsa_inventory_{}.pdf".format(date), generate_ffcsa_inventory_packlist(date, qs)))
+    docs.append(generate_ffcsa_inventory_packlist(date, qs))
+
+    # Woven Roots pack sheet
+    # zip_files.append(("woven_roots_dairy_packlist_{}.pdf".format(date), generate_woven_roots_dairy_packlist(date)))
+    docs.append(generate_woven_roots_dairy_packlist(date))
+
+    # DFF Dairy totals sheet
+    # zip_files.append(("dff_dairy_packlist_{}.pdf".format(date), generate_dff_dairy_packlist(date)))
+    docs.append(generate_dff_dairy_packlist(date))
+
+    # Dairy pack sheet
+    # zip_files.append(("dairy_packlist_{}.pdf".format(date), generate_dairy_packlist(date)))
+    docs.append(generate_dairy_packlist(date))
+
+    # Grain & Bean Sheet
+    # zip_files.append(("grain_and_bean_packlist_{}.pdf".format(date), generate_grain_and_bean_packlist(date)))
+    docs.append(generate_grain_and_bean_packlist(date))
+
+    # Packing Order Sheet
+    # zip_files.append(("product_order_{}.pdf".format(date), generate_product_order(date)))
+    docs.append(generate_product_order(date))
+
+    # Market Checklists
+    # checklist = generate_market_checklists(date)
+    # zip_files.append(("market_checklists_{}.pdf".format(date), checklist))
+    docs.append(generate_market_checklists(date))
+
+    doc = docs[0]
+    pages = []
+    for doc in docs:
+        for p in doc.pages:
+            pages.append(p)
+    doc = doc.copy(pages)  # uses the metadata from doc
+
+    with tempfile.SpooledTemporaryFile() as tmp:
+    # with tempfile.NamedTemporaryFile(
+    #         delete=False, dir="app-messages", suffix='.pdf') as tmp:
+        tmp.write(doc.write_pdf())
+
+    # for file, contents in zip_files:
+    #     with tempfile.NamedTemporaryFile(
+    #             delete=False, dir="app-messages", suffix='.' + file.split('.')[1],
+    #             prefix=file + "_%s" % datetime.datetime.now().timestamp()) as t:
+    #         t.write(contents)
+
+    # with tempfile.SpooledTemporaryFile() as tmp:
+    # with tempfile.NamedTemporaryFile(
+    #         delete=False, dir="app-messages", suffix='.zip') as tmp:
+    #     with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
+    #         for fname, contents in zip_files:
+    #             archive.writestr(fname, contents)
+
+        # Reset file pointer
+        tmp.seek(0)
+
+    msg = EmailMessage("Weekly Order Files - {}".format(date), "Weekly Order Files are attached",
+                       settings.EMAIL_HOST_USER, settings.EMAIL_HOST_USER)
+    msg.attach("ffcsa_weekly_orders_{}".format(date), tmp, mimetype='application/pdf')
+    msg.send()
+
+
+def get_vendor_orders(date, qs):
+    vendors = Vendor.objects.all()
+    vendor_items = {}
+
+    for item in qs.filter(in_inventory=False):
+        items = vendor_items.setdefault(item['vendor'], [])
+        items.append(item)
+
+    for vendor_title, items in vendor_items.items():
+        items.sort(key=lambda x: x['description'])
+        context = {
+            "items": items,
+            "vendor": vendor_title,
+            "date": date,
+            "grand_total": sum([i['total_price'] for i in items])
+        }
+
+        vendor = None
+        try:
+            vendor = vendors.get(title=vendor_title)
+        except Vendor.DoesNotExist:
+            pass
+
+        # send order to vendor
+
+        html = select_template([
+            "shop/reports/{}_vendor_order_pdf.html".format(vendor_title.lower()),
+            "shop/reports/vendor_order_pdf.html"
+        ]).render(context)
+        order = HTML(string=html).render()
+
+        # generate a pickup list
+        html = select_template([
+            "shop/reports/{}_vendor_pickup_list_pdf.html".format(vendor_title.lower()),
+            "shop/reports/vendor_pickup_list_pdf.html"
+        ]).render(context)
+        pickuplist = HTML(string=html).render()
+
+        yield order, pickuplist, vendor_title, vendor
+
+
+def generate_ffcsa_inventory_packlist(date, qs):
+    """
+    Generate a picklist for ffcsa_inventory products that are not on the
+    grains & bean packlist or the frozen item packlist
+    """
+    exclude_filter = Q()
+    for cat in settings.FROZEN_PRODUCT_CATEGORIES + settings.GRAIN_BEANS_CATEGORIES:
+        exclude_filter = exclude_filter | Q(category__icontains=cat)
+    filter = Q(in_inventory=True, is_frozen=False) & ~exclude_filter
+    items = qs.filter(filter).order_by('category', 'description')
+    context = {
+        "items": items,
+        "date": date,
+    }
+    html = get_template("shop/reports/ffcsa_inventory_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_dairy_packlist(date):
+    items = OrderItem.objects \
+        .filter(order__time__date=date, category__icontains='raw dairy') \
+        .select_related('order') \
+        .order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
+    order_items = OrderedDict()
+    for k, v in groupby(items, key=lambda x: x.order.drop_site):
+        i = OrderedDict()
+        for k2, v2 in groupby(v, key=lambda x: x.order.billing_detail_last_name):
+            i[k2] = list(v2)
+
+        order_items[k] = i
+
+    context = {
+        'items': order_items,
+        'date': date
+    }
+
+    html = get_template("shop/reports/dairy_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_frozen_items_report(date, qs):
+    """
+    This should include the following:
+       - any is_frozen items
+       - any DFF item that is not in inventory and not in DFF_ORDER_TICKET_EXCLUDE_CATEGORIES
+       - any item in FROZEN_PRODUCT_CATEGORIES
+   """
+    filter = Q()
+    exclude_filter = Q()
+    for cat in settings.FROZEN_PRODUCT_CATEGORIES:
+        filter = filter | Q(category__icontains=cat)
+    for cat in settings.DFF_ORDER_TICKET_EXCLUDE_CATEGORIES:
+        exclude_filter = exclude_filter & ~Q(category__icontains=cat)
+    exclude_filter = exclude_filter & Q(vendor__iexact='Deck Family Farm', in_inventory=False)
+    filter = filter | exclude_filter
+    filter = filter | Q(is_frozen=True)
+    # we sort so we can use the django regroup filter
+    items = qs.filter(filter).order_by('category', 'description')
+    context = {
+        "items": items,
+        "date": date,
+    }
+    html = get_template("shop/reports/frozen_bulk_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_dff_dairy_packlist(date):
+    items = OrderItem.objects \
+        .filter(order__time__date=date, vendor__iexact='deck family farm', category__icontains='raw dairy') \
+        .select_related('order') \
+        .order_by('category', 'description')
+    GroupedResult = namedtuple('GroupedResult', ['description', 'items', 'total_quantity'])
+    order_items = []
+    for key, val in groupby(items, key=lambda x: x.description):
+        val = list(val)
+        order_items.append(
+            GroupedResult(description=key, items=val, total_quantity=sum([i.quantity for i in val]))
+        )
+    context = {
+        'items': order_items,
+        'date': date
+    }
+    html = get_template("shop/reports/dff_dairy_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_woven_roots_dairy_packlist(date):
+    items = OrderItem.objects \
+        .filter(order__time__date=date, vendor__iexact='woven roots', category__icontains='raw dairy') \
+        .select_related('order') \
+        .order_by('description')
+    GroupedResult = namedtuple('GroupedResult', ['description', 'items'])
+    order_items = [
+        GroupedResult(description=key, items=list(val))
+        for key, val in
+        groupby(items, key=lambda x: x.description)
+    ]
+    context = {
+        'items': order_items,
+        'date': date
+    }
+    html = get_template("shop/reports/woven_roots_dairy_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_grain_and_bean_packlist(date):
+    filter = Q()
+    for cat in settings.GRAIN_BEANS_CATEGORIES:
+        filter = filter | Q(category__icontains=cat)
+    filter = Q(order__time__date=date, in_inventory=True) & filter
+    items = OrderItem.objects \
+        .filter(filter) \
+        .select_related('order') \
+        .order_by('description')
+    GroupedResult = namedtuple('GroupedResult', ['description', 'items'])
+    order_items = [
+        GroupedResult(description=key, items=list(val))
+        for key, val in
+        groupby(items, key=lambda x: x.description)
+    ]
+    context = {
+        'items': order_items,
+        'date': date
+    }
+    html = get_template("shop/reports/grain_and_bean_packlist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_product_order(date):
+    filter = Q()
+    for cat in settings.PRODUCT_ORDER_CATEGORIES:
+        filter = filter | Q(category__icontains=cat)
+    cart_items = OrderItem.objects.filter(filter, order__time__date=date).values('sku').distinct()
+    qs = Product.objects.filter(variations__sku__in=cart_items)
+    products = [p for p in qs]
+    products.sort(key=product_keySort)
+
+    context = {
+        'products': products,
+        'date': date,
+    }
+
+    html = get_template("shop/reports/product_order_list_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def generate_market_checklists(date):
+    #
+    # checklist columns -> (category list, additional kwargs, default)
+    checklists = []
+
+    for drop_site in settings.MARKET_CHECKLISTS:
+        values = ['last_name']
+        qs = Order.objects.filter(drop_site=drop_site, time__date=date).annotate(
+            last_name=F('billing_detail_last_name'))
+        for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
+            filter = Q()
+            for cat in categories:
+                filter = filter | Q(category__icontains=cat)
+
+            annotation = {}
+            if default is None:
+                annotation[column] = Subquery(
+                    OrderItem.objects
+                        .filter(filter, order_id=OuterRef('pk'))
+                        .values('order_id')  # This provides a group_by order_id clause
+                        .annotate(total=Sum('quantity'))
+                        .values('total'),
+                    output_field=IntegerField(),
+                )
+            else:
+                case = Case(
+                    When(total__gte=1, then=Value(default)),
+                    default=Value('0'),
+                    output_field=IntegerField())
+
+                annotation[column] = Subquery(
+                    OrderItem.objects
+                        .filter(filter, order_id=OuterRef('pk'))
+                        .values('order_id')  # This provides a group_by order_id clause
+                        .annotate(total=Sum('quantity'))
+                        .annotate(has=case)
+                        .values('has')
+                )
+
+            values.append(column)
+            qs = qs.annotate(**annotation)
+
+        qs = qs.values(*values).order_by('last_name')
+        users = list(qs)
+
+        if len(users) == 0:
+            continue
+
+        context = {
+            'users': users,
+            'headers': values,
+            'drop_site': drop_site,
+            'date': date,
+        }
+
+        html = get_template("shop/reports/market_checklist_pdf.html").render(context)
+        checklists.append(HTML(string=html).render())
+
+    if len(checklists) > 0:
+        doc = checklists[0]
+
+        pages = []
+        for doc in checklists:
+            for p in doc.pages:
+                pages.append(p)
+        return doc.copy(pages)  # uses the metadata from doc
+
+
+def send_order_to_vendor(order, vendor, vendor_title, date):
+    """
+    Attempt to email the order to the vendor if appropriate
+    """
+
+    to = (settings.DEFAULT_FROM_EMAIL,)
+    bcc = (settings.DEFAULT_FROM_EMAIL,)
+    subject = "FFCSA Order for {}".format(date)
+
+    if vendor:
+        if not vendor.auto_send_order:
+            return
+        to = (vendor.email,)
+    else:
+        subject = "URGENT FAILED TO SEND TO VENDOR: " + subject
+
+    msg = EmailMessage(subject,
+                       "Our order for {} is attached.\n Thanks,\nThe FFCSA team".format(date),
+                       settings.DEFAULT_FROM_EMAIL, to, bcc=bcc)
+    msg.attach("{}_ffcsa_order_{}".format(vendor_title, date), order, mimetype='application/pdf')
+    try:
+        msg.send()
+    except Exception as e:
+        # Try to send attachment to ourselves
+        logger.error(e)
+        msg.subject = "URGENT FAILED TO SEND TO VENDOR: " + msg.subject
+        msg.to = (settings.DEFAULT_FROM_EMAIL,)
+        msg.cc = (settings.ADMINS[0][1],)
+
+        try:
+            msg.send()
+        except Exception as e:
+            # Try to send a notification to ourselves
+            logger.error(e)
+            EmailMessage("URGENT: FAILED TO SEND ORDER FOR {}".format(vendor_title),
+                         "Was not able to send order attachment. You will need to manually send this",
+                         settings.DEFAULT_FROM_EMAIL, msg.to, msg.cc).send()

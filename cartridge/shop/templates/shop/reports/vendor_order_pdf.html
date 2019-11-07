@@ -1,0 +1,73 @@
+{% load shop_tags i18n ffcsa_core_tags %}
+
+<style>
+    @page {
+        size: Letter;
+    }
+
+    h2 {
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    .items {
+        clear: both;
+        border-collapse: collapse;
+        color: #333;
+        width: 100%;
+    }
+
+
+    .items tr:nth-child(even) {
+        background: #eee;
+    }
+
+    .items tr:first-child {
+        background: white;
+    }
+
+    .items td, th {
+        border: 1px solid #ccc;
+        padding: 0.5em;
+    }
+
+    .items th {
+        border: none;
+        text-align: center;
+    }
+
+    .items tbody {
+        border-bottom: 3px solid black;
+    }
+
+    .items .qty {
+        text-align: right;
+        width: 40px;
+    }
+</style>
+
+{#<table style="border: none; width: 100%; margin-bottom: 0">#}
+{#    <tr>#}
+{#        <td>{% trans "Order ID:" %} {{ order.id }}</td>#}
+{#        <td style="float:right;">{{ order.time }}</td>#}
+{#    </tr>#}
+{#</table>#}
+
+<h3 style="float: left">{{ vendor }} Order from FFCSA</h3>
+<p style="float: right">{{ date }}</p>
+
+<table class="items">
+    <tr>
+        <th>Item</th>
+        <th class="qty">Qty</th>
+    </tr>
+
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.description }}</td>
+            <td class="qty">{{ item.quantity }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
