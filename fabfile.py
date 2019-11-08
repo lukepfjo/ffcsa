@@ -44,7 +44,8 @@ if sys.argv[0].split(os.sep)[-1] in ("fab", "fab-script.py"):
 
 if local("uname -s", capture=True) == "Darwin":
     try:
-        env.sudo_password = local("security find-generic-password -gwa {}".format(conf.get("KEYCHAIN_SUDO_ACCOUNT")), capture=True)
+        env.sudo_password = local("security find-generic-password -gwa {}".format(conf.get("KEYCHAIN_SUDO_ACCOUNT")),
+                                  capture=True)
     except:
         pass
 
@@ -84,6 +85,8 @@ env.num_workers = conf.get("NUM_WORKERS",
 
 env.secret_key = conf.get("SECRET_KEY", "")
 env.nevercache_key = conf.get("NEVERCACHE_KEY", "")
+env.rollbar_token = conf.get("ROLLBAR_TOKEN", "")
+env.rollbar_client_token = conf.get("ROLLBAR_client_TOKEN", "")
 
 if not env.secret_key:
     print("Aborting, no SECRET_KEY setting defined.")
@@ -548,7 +551,7 @@ def create():
             pip("-r %s/%s" % (env.proj_path, env.reqs_path))
         pip("gunicorn setproctitle mysqlclient"
             "django-compressor python-memcached")
-    # Bootstrap the DB
+        # Bootstrap the DB
         manage("createdb --noinput --nodata")
         python("from django.conf import settings;"
                "from django.contrib.sites.models import Site;"
@@ -662,6 +665,11 @@ def deploy():
         manage("collectstatic -v 0 --noinput")
         manage("migrate --noinput")
     restart()
+
+    # notify rollbar of a deployment
+    cmd = 'curl https://api.rollbar.com/api/1/deploy/ -F access_token="{}" -F environment="production" -F revision="$(git rev-parse --verify HEAD)" -F rollbar_username="ewingrj"'
+    local(cmd.format(env.rollbar_token))
+
     return True
 
 

@@ -54,6 +54,21 @@ GOOGLE_GROUP_IDS = {
     "MANAGED": "contactGroups/41aaae0b0f3d9da7",
 }
 
+# Rollbar settings
+
+ROLLBAR = {
+    'enabled': False,
+    'access_token': '',
+    'client_access_token': '',
+    'environment': 'development',
+    'branch': 'master',
+    'root': os.getcwd(),
+    # 'ignorable_404_urls': (
+    #     re.compile('/index\.php'),
+    #     re.compile('/foobar'),
+    # ),
+}
+
 ##############################
 # FFCSA-INVITES SETTINGS #
 ##############################
@@ -430,7 +445,7 @@ INSTALLED_APPS = (
     "mezzanine.accounts",
     # "ffcsa.invites",
     "ffcsa.core",
-    'nested_admin'
+    'nested_admin',
     # "mezzanine.mobile",
 )
 
@@ -463,6 +478,8 @@ MIDDLEWARE_CLASSES = (
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
     "ffcsa.core.middleware.DiscountMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
+
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 )
 
 # Store these package names here as they may change in the future since
@@ -544,25 +561,42 @@ if not DEBUG:
                 'datefmt': '%Y-%m-%d %H:%M:%S'
             },
         },
+        'filters': {
+            'require_rollbar': {
+                '()': 'ffcsa.core.log.RequireRollbar',
+            }
+        },
         'handlers': {
             'console': {
                 'class': 'logging.StreamHandler',
                 'formatter': 'console',
             },
+            'rollbar': {
+                'level': 'WARNING',
+                'filters': ['require_rollbar'],
+                'access_token': ROLLBAR['access_token'],
+                'environment': 'production',
+                'class': 'rollbar.logger.RollbarHandler'
+            },
         },
         'loggers': {
             '': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
                 'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
             },
             'ffcsa_core': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
                 'level': 'INFO',
                 # required to avoid double logging with root logger
                 'propagate': False,
             },
             'invites': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'cartridge': {
+                'handlers': ['console', 'rollbar'],
                 'level': 'INFO',
                 'propagate': False,
             },

@@ -15,6 +15,12 @@ SECRET_KEY = "%(secret_key)s"
 NEVERCACHE_KEY = "%(nevercache_key)s"
 ALLOWED_HOSTS = [%(domains_python)s]
 
+# Rollbar settings
+ROLLBAR['enabled'] = True
+ROLLBAR['access_token'] = '%(rollbar_token)s'
+ROLLBAR['client_access_token'] = '%(rollbar_client_token)s'
+ROLLBAR['environment'] = 'production'
+
 DATABASES = {
     "default": {
         # Ends with "postgresql_psycopg2", "mysql", "sqlite3" or "oracle".
