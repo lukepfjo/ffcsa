@@ -68,9 +68,10 @@ def generate_weekly_order_reports(date):
     docs.append(generate_product_order(date))
 
     # Market Checklists
-    # checklist = generate_market_checklists(date)
+    checklist = generate_market_checklists(date)
     # zip_files.append(("market_checklists_{}.pdf".format(date), checklist))
-    docs.append(generate_market_checklists(date))
+    if checklist:
+        docs.append(checklist)
 
     doc = docs[0]
     doc = doc.copy([p for d in docs for p in d.pages])  # uses the metadata from doc
@@ -342,10 +343,7 @@ def generate_market_checklists(date):
     if len(checklists) > 0:
         doc = checklists[0]
 
-        pages = []
-        for doc in checklists:
-            for p in doc.pages:
-                pages.append(p)
+        pages = [p for doc in checklists for p in doc.pages]
         return doc.copy(pages)  # uses the metadata from doc
 
 
