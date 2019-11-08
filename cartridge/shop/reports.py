@@ -1,4 +1,3 @@
-import datetime
 import logging
 import tempfile
 from collections import namedtuple, OrderedDict
@@ -16,8 +15,7 @@ from ffcsa.core.views import product_keySort
 logger = logging.getLogger(__name__)
 
 
-def generate_weekly_order_reports(date=datetime.datetime.now().date()):
-    date = datetime.date(2019, 10, 24)
+def generate_weekly_order_reports(date):
     qs = OrderItem.objects \
         .filter(order__time__date=date) \
         .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
@@ -27,15 +25,16 @@ def generate_weekly_order_reports(date=datetime.datetime.now().date()):
     docs = []
 
     # generate orders & pickup sheets
+    vendor_orders = get_vendor_orders(date, qs)
 
-    for order, pickuplist, vendor_title, vendor in get_vendor_orders(date, qs):
-        send_order_to_vendor(order.write_pdf(), vendor, vendor_title, date)
-        docs.append(pickuplist)
+    for vo in vendor_orders:
+        # send_order_to_vendor(order.write_pdf(), vendor, vendor_title, date)
+        docs.append(vo.pickuplist)
         # zip_files.append(("{}_pickup_list_{}.pdf".format(vendor_title, date), pickuplist))
         # we need 2 of these
-        if vendor_title.lower() == 'deck family farm':
+        if vo.vendor_title.lower() == 'deck family farm':
             # for some reason this doesn't render the title???
-            docs.append(pickuplist.copy())
+            docs.append(vo.pickuplist.copy())
             # zip_files.append(("{}_pickup_list_karina_{}.pdf".format(vendor_title, date), pickuplist))
 
     # generate packing lists
@@ -74,16 +73,9 @@ def generate_weekly_order_reports(date=datetime.datetime.now().date()):
     docs.append(generate_market_checklists(date))
 
     doc = docs[0]
-    pages = []
-    for doc in docs:
-        for p in doc.pages:
-            pages.append(p)
-    doc = doc.copy(pages)  # uses the metadata from doc
+    doc = doc.copy([p for d in docs for p in d.pages])  # uses the metadata from doc
 
-    with tempfile.SpooledTemporaryFile() as tmp:
-    # with tempfile.NamedTemporaryFile(
-    #         delete=False, dir="app-messages", suffix='.pdf') as tmp:
-        tmp.write(doc.write_pdf())
+    return vendor_orders, doc
 
     # for file, contents in zip_files:
     #     with tempfile.NamedTemporaryFile(
@@ -98,13 +90,8 @@ def generate_weekly_order_reports(date=datetime.datetime.now().date()):
     #         for fname, contents in zip_files:
     #             archive.writestr(fname, contents)
 
-        # Reset file pointer
-        tmp.seek(0)
 
-    msg = EmailMessage("Weekly Order Files - {}".format(date), "Weekly Order Files are attached",
-                       settings.EMAIL_HOST_USER, settings.EMAIL_HOST_USER)
-    msg.attach("ffcsa_weekly_orders_{}".format(date), tmp, mimetype='application/pdf')
-    msg.send()
+VendorOrder = namedtuple('VendorOrder', ['order', 'pickuplist', 'vendor_title', 'vendor'])
 
 
 def get_vendor_orders(date, qs):
@@ -145,7 +132,7 @@ def get_vendor_orders(date, qs):
         ]).render(context)
         pickuplist = HTML(string=html).render()
 
-        yield order, pickuplist, vendor_title, vendor
+        yield VendorOrder(order, pickuplist, vendor_title, vendor)
 
 
 def generate_ffcsa_inventory_packlist(date, qs):

@@ -3,6 +3,8 @@
 <style>
     @page {
         size: Letter;
+        margin-top: 1%;
+        margin-bottom: 1%;
     }
 
     h2 {
@@ -19,7 +21,7 @@
 
 
     .items tr:nth-child(even) {
-        background: #eee;
+        background: #F7F7F7;
     }
 
     .items tr:first-child {
@@ -28,8 +30,8 @@
 
     .items .grand_total th,
     .items td, th {
-        border: 1px solid #ccc;
-        padding: 0.5em;
+        border: 1px solid #E1E1E1;
+        padding: 2px 4px;
     }
 
     .items th {
@@ -72,8 +74,12 @@
 {#    </tr>#}
 {#</table>#}
 
-<h3 style="float: left">{{ vendor }}</h3>
-<p style="float: right">{{ date }}</p>
+<div style="display: flex; justify-content: space-between">
+    <h3 style="">{{ vendor }}</h3>
+    <p style="">{{ date }}</p>
+</div>
+{#<h3 style="float: left">{{ vendor }}</h3>#}
+{#<p style="float: right">{{ date }}</p>#}
 
 <table class="items">
     <tr>

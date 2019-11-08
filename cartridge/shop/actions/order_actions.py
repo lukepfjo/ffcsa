@@ -1,21 +1,18 @@
-import collections
 import csv
 import tempfile
 import zipfile
 from decimal import Decimal
-from itertools import groupby
 
 import labels
 from django import forms
 from django.contrib import admin, messages
 from django.http import HttpResponse
-from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from mezzanine.conf import settings
 from reportlab.graphics import shapes
 from reportlab.pdfbase.pdfmetrics import stringWidth
-from weasyprint import HTML
 
+from cartridge.shop.invoice import generate_invoices
 from cartridge.shop.models import Category, Product
 
 TWOPLACES = Decimal(10) ** -2
@@ -209,7 +206,7 @@ def create_labels(modeladmin, request, queryset):
                 return response
     else:
         form = SkipLabelsForm(initial={
-                              'skip': 0, '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            'skip': 0, '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
 
     return TemplateResponse(request, 'admin/skip_labels.html', {'form': form})
 
@@ -256,50 +253,17 @@ def keySort(categories):
 
 def download_invoices(self, request, queryset):
     invoices = {}
-    categories = Category.objects.exclude(slug='weekly-box')
 
-    orders = [o for o in queryset]
-    orders.sort(key=order_sort)
-    for order in orders:
-        context = {"order": order}
-        context.update(order.details_as_dict())
-
-        items = [i for i in order.items.all_grouped()]
-
-        items.sort(key=keySort(categories))
-
-        grouper = groupby(items, keySort(categories))
-        grouped_items = collections.OrderedDict()
-
-        for k, g in grouper:
-            k = int(k[0])
-            if not k in grouped_items:
-                grouped_items[k] = []
-            grouped_items[k] += list(g)
-
-        context['grouped_items'] = grouped_items
-        context['details'] = [
-            [("Name", order.billing_detail_first_name +
-              " " + order.billing_detail_last_name)],
-            [("Phone", order.billing_detail_phone),
-             ("Alt. Phone", order.billing_detail_phone_2)],
-        ]
-
-        html = get_template("shop/order_packlist_pdf.html").render(context)
-        invoice = tempfile.SpooledTemporaryFile()
-        HTML(string=html).write_pdf(invoice)
+    for invoice, order in generate_invoices(queryset):
         prefix = settings.DROP_SITE_ORDER.index(
             order.drop_site) if order.drop_site in settings.DROP_SITE_ORDER else len(settings.DROP_SITE_ORDER)
         invoices["{}_{}_{}_{}".format(
             prefix, order.drop_site, order.billing_detail_last_name, order.id)] = invoice
-        # Reset file pointer
-        invoice.seek(0)
 
     with tempfile.SpooledTemporaryFile() as tmp:
         with zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED) as archive:
             for id, invoice in invoices.items():
-                archive.writestr("order_{}.pdf".format(id), invoice.read())
-                invoice.close()
+                archive.writestr("order_{}.pdf".format(id), invoice.write_pdf())
 
         # Reset file pointer
         tmp.seek(0)

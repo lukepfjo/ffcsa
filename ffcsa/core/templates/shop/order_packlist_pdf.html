@@ -1,19 +1,26 @@
 {% load shop_tags i18n ffcsa_core_tags %}
 
 <style>
-    h2 {
-        margin-top: 8px;
-        margin-bottom: 8px;
+    @page {
+        size: Letter;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    h3 {
+        margin-top: 16px;
+        margin-bottom: 0;
     }
 
     table.items {
         border-collapse: collapse;
         color: #333;
         width: 75%;
+        margin-top: 0;
     }
 
     .items tr:nth-child(even) {
-        background: #eee;
+        background: #E1E1E1;
     }
 
     .items tr:first-child {
@@ -21,8 +28,8 @@
     }
 
     .items td, th {
-        border: 1px solid #ccc;
-        padding: 0.5em;
+        border: 1px solid #CFCFCF;
+        padding: 4px 8px;
     }
 
     .items th {
@@ -31,7 +38,12 @@
     }
 
     .items tbody {
-        border-bottom: 3px solid black;
+        border-bottom: 3px solid #3B3B3B;
+    }
+
+    .items .qty {
+        text-align: right;
+        padding-right: 8px;
     }
 </style>
 
@@ -47,52 +59,51 @@
     </table>
 {% endif %}
 
-<table style="border: none; width: 100%; margin-bottom: 0">
+<table style="border: none; width: 100%; margin-bottom: 8px">
     <tr>
-        <td>{% trans "Order ID:" %} {{ order.id }}</td>
+{#        <td>{% trans "Order ID:" %} {{ order.id }}</td>#}
         <td style="float:right;">{{ order.time }}</td>
     </tr>
 </table>
 
-<h2>{% trans "Your Details" %}</h2>
 <table style="width: 100%;">
     {% for row in details %}
         <tr>
             {% for key, value in row %}
-                <td style="padding: 5px; font-weight: 600">{{ key }}:&nbsp;&nbsp;&nbsp;</td>
+                <td style="padding: 5px; padding-left: 0; font-weight: 600">{{ key }}:&nbsp;&nbsp;&nbsp;</td>
                 <td style="padding: 5px;">{{ value }}</td>
             {% endfor %}
         </tr>
     {% endfor %}
     <tr>
-        <td style="padding: 5px; font-weight: 600">Drop Site</td>
+        <td style="padding: 5px; padding-left: 0; font-weight: 600">Drop Site</td>
         <td style="padding: 5px">{{ order.drop_site }}</td>
     </tr>
     {% if order.additional_instructions %}
         <tr>
-            <td style="padding: 5px; font-weight: 600">Notes</td>
-            <td style="padding: 5px">{% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
+            <td style="padding: 5px; padding-left: 0; font-weight: 600">Notes</td>
+            <td colspan="3" style="padding: 5px">{% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
         </tr>
     {% endif %}
 </table>
 
-<h2>{% trans "Items Ordered" %}</h2>
+<h3>{% trans "Items Ordered" %}</h3>
 <table class="items">
     <tr>
         <th>{% trans "Item" %}</th>
-        <th>{% trans "Qty" %}</th>
+        <th class="qty">{% trans "Qty" %}</th>
         <th>{% trans "Packed" %}</th>
     </tr>
 
     {% for key, group in grouped_items.items %}
         <tbody>
-            {% for item in group %}
-                <tr>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td><input type="checkbox"/></td>
-                </tr>
-            {% endfor %}
+        {% for item in group %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td class="qty">{{ item.quantity }}</td>
+                <td><input type="checkbox"/></td>
+            </tr>
+        {% endfor %}
         </tbody>
     {% endfor %}
 </table>
