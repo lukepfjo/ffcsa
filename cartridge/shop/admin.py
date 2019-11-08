@@ -4,7 +4,8 @@ from copy import deepcopy
 
 from django.contrib import admin
 from django.db import transaction
-from django.db.models import ImageField
+from django.db.models import ImageField, Q
+from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super, zip
 from mezzanine.conf import settings
@@ -167,6 +168,35 @@ product_list_display[9:9] = ["vendor"]
 product_list_editable.extend(extra_list_fields)
 
 
+class CategoryListFilter(admin.SimpleListFilter):
+    title = 'Category'
+
+    # Parameter for the filter that will be used in the URL query.
+    parameter_name = 'category'
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples. The first element in each
+        tuple is the coded value for the option that will
+        appear in the URL query. The second element is the
+        human-readable name for the option that will appear
+        in the right sidebar.
+        """
+        choices = [('-', '-')] + [
+            (c.pk, force_text(c)) for c in Category.objects.published().order_by('title')
+        ]
+
+        return sorted(choices, key=lambda c: c[1])
+
+    def queryset(self, request, queryset):
+        # Return all product in the category or any child categories
+        if self.value() == '-':
+            return queryset.filter(category=None)
+        if self.value():
+            return queryset.filter(Q(category=self.value()) | Q(category__parent=self.value()))
+        return queryset
+
+
 class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableAdmin):
     class Media:
         js = (static("cartridge/js/admin/product_variations.js"),
@@ -178,7 +208,7 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
     list_display = product_list_display
     list_display_links = ("admin_thumb", "title")
     list_editable = product_list_editable
-    list_filter = ("status", "available", "categories", "variations__vendors")
+    list_filter = ("status", "available", CategoryListFilter, "variations__vendors")
     filter_horizontal = ("categories",) + tuple(other_product_fields)
     search_fields = ("title", "content", "categories__title",
                      "variations__sku")
