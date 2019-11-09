@@ -3,11 +3,11 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-from cartridge.shop.models import Vendor
 import django.db.models.deletion
 
 
 def create_vendors(apps, schema_editor):
+    Vendor = apps.get_model("shop", "Vendor")
     ProductVariation = apps.get_model("shop", "ProductVariation")
     VendorProductVariation = apps.get_model("shop", "VendorProductVariations")
 
