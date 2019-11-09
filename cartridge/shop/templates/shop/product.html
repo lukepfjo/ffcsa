@@ -83,17 +83,16 @@
     {% endif %}
 
     {% editable product.content %}
-        {{ product.content|richtext_filters|safe }}
+        <div class="mb-2">{{ product.content|richtext_filters|safe }}</div>
     {% endeditable %}
 
-    <p>Farm: <span style="text-transform: lowercase;">{{ variations.0.vendor }}</span></p>
 
     {% if product.available and has_available_variations %}
-        {#    {% if product.available %}#}
         <ul id="variations" class="list-unstyled">
             {% for variation in variations %}
                 <li id="variation-{{ variation.sku }}"
                     {% if not variation.default %}style="display:none;"{% endif %}>
+                    <p class="mb-2">Producer: {{ variation.vendors.first }}</p>
                     {% if variation.has_price %}
                         {% if variation.on_sale %}
                             <span class="old-price">{{ variation.unit_price|currency }}</span>
