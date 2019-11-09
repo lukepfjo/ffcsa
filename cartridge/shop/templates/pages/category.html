@@ -46,7 +46,7 @@
                                     <img class="mx-auto" src="{{ MEDIA_URL }}{% thumbnail product.image 250 250 %}"></a>
                             {% else %}
                                 <a href="{{ product.get_absolute_url }}" class="w-full">
-                                    <div class="placeholder"></div>
+                                    <img class="placeholder" src="{% static 'img/logo.png' %}"/>
                                 </a>
                             {% endif %}
                             <form method="post"

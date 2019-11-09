@@ -1,6 +1,6 @@
 {% extends "pages/page.html" %}
 
-{% load mezzanine_tags shop_tags i18n %}
+{% load mezzanine_tags shop_tags i18n static %}
 {% block body_id %}recipe{% endblock %}
 
 
@@ -37,7 +37,7 @@
                                 {% if p.product.image %}
                                     <img src="{{ MEDIA_URL }}{% thumbnail p.product.image 148 148 %}">
                                 {% else %}
-                                    <div class="placeholder"></div>
+                                    <img class="placeholder" src="{% static 'img/logo.png' %}"/>
                                 {% endif %}
                                 <div class="caption">
                                     <h6>{{ p.product }}</h6>

@@ -1,4 +1,4 @@
-{% load mezzanine_tags shop_tags i18n %}
+{% load mezzanine_tags shop_tags i18n static %}
 
 <div class="row shop-category-list">
     {% if settings.SHOP_CATEGORY_USE_FEATURED_IMAGE %}
@@ -8,7 +8,7 @@
                     {% if category.featured_image %}
                         <img src="{{ MEDIA_URL }}{% thumbnail category.featured_image 148 148 %}"/>
                     {% else %}
-                        <div class="placeholder"></div>
+                        <img class="placeholder" src="{% static 'img/logo.png' %}"/>
                     {% endif %}
                     <div class="caption">
                         <h4>{{ category.title }}</h4>
