@@ -1,0 +1,10 @@
+.incrementor input[type="number"] {
+    -webkit-appearance: textfield;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.incrementor input[type=number]::-webkit-inner-spin-button,
+.incrementor input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}

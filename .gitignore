@@ -4,6 +4,8 @@ static/*
 *.iml
 *.ipynb
 
+node_modules
+
 credentials.json
 token.pickle
 

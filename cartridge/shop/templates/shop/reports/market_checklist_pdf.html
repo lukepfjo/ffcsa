@@ -1,0 +1,71 @@
+{% load ffcsa_core_tags %}
+<style>
+    @page {
+        size: Letter;
+    }
+
+    .items {
+        clear: both;
+        border-collapse: collapse;
+        color: #333;
+        width: 100%;
+    }
+
+
+    .items tr:nth-child(even) {
+        background: #eee;
+    }
+
+    .items tr:first-child {
+        background: white;
+    }
+
+    .items td, th {
+        border: 1px solid #ccc;
+        padding: 0.5em;
+    }
+
+    .items th {
+        border: none;
+        text-align: left;
+    }
+
+    .items tbody {
+        border-bottom: 3px solid black;
+    }
+
+    .items th.num,
+    .items .num {
+        text-align: right;
+        width: 50px;
+    }
+</style>
+
+<h3 style="float: left; margin-top:0">{{ drop_site }} FFCSA Checklist</h3>
+<p style="float: right; margin-top:0">{{ date }}</p>
+
+<table class="items">
+    <tr>
+        <th>Last Name</th>
+        {% for val in headers %}
+            {% if val != 'last_name' %}
+                <th class="num">{{ val }}</th>
+            {% endif %}
+        {% endfor %}
+    </tr>
+
+    <tbody>
+    {% for user in users %}
+        <tr>
+            <td>{{ user.last_name }}</td>
+            {% for val in headers %}
+                {% if val != 'last_name' %}
+                    <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+

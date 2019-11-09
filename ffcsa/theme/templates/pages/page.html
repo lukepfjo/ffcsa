@@ -20,4 +20,8 @@
 {% endblock %}
 
 {% block main %}
+    {% if not page.published %}
+        <div class="alert alert-warning">You are viewing a draft page. This page is only visible to admins</div>
+    {% endif %}
+
 {% endblock %}

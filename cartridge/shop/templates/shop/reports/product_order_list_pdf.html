@@ -1,0 +1,37 @@
+<style>
+    @page {
+        size: Letter;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    ul {
+        padding: 0;
+        list-style: none;
+        clear: both;
+    }
+
+    .header {
+        font-weight: bold;
+        border-bottom: 3px solid #9E9E9E;
+    }
+
+    .item {
+        padding: 2px 4px;
+        border: 1px solid #E1E1E1;
+    }
+</style>
+
+<h3 style="float: left; margin-top:0">Product Order List</h3>
+<p style="float: right; margin-top:0">{{ date }}</p>
+
+<ul>
+    <li class="header"></li>
+
+    {% for product in products %}
+        <li class="item">
+            {#        <li>#}
+            {{ product.title }}</li>
+    {% endfor %}
+</ul>
+

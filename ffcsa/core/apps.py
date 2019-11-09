@@ -22,7 +22,7 @@ class CoreConfig(AppConfig):
             return True
 
         # attempt to authenticate google client on startup
-        if not authenticate():
+        if getattr(settings, 'ENABLE_GOOGLE_INTEGRATION', True) and not authenticate():
             send_mail(
                 "Failed Google Authentication %s" % settings.SITE_TITLE,
                 "Failed to authenticate FFCSA google account. App most likely failed to start.",

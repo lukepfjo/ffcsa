@@ -1,8 +1,10 @@
-Order inventory has been updated for the week.
-
-Unfortunately, the following product in your order for the coming week is not available:
-
-{{ product }}
+{% if quantity %}
+    Our inventory has been updated and we do not have enough "{{ variation }}" available to fulfill your order. We have
+        reduced the quantity in your order to {{ quantity }}.
+{% else %}
+    Our inventory has been updated and the following product is no longer available.
+    {{ variation }}
+{% endif %}
 
 Feel free to add/change your order. You can view you current order here {{ cart_url }}
 

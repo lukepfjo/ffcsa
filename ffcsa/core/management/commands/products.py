@@ -173,7 +173,7 @@ def import_products(csv_file):
         image = _make_image(row[IMAGE], product)
         if image:
             variation.image = image
-        product.variations.manage_empty()
+        product.variations.ensure_default()
         product.variations.set_default_images([])
         product.copy_default_variation()
         product.save()

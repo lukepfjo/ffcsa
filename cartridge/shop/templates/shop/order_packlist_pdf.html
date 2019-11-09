@@ -1,0 +1,109 @@
+{% load shop_tags i18n ffcsa_core_tags %}
+
+<style>
+    @page {
+        size: Letter;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+
+    h3 {
+        margin-top: 16px;
+        margin-bottom: 0;
+    }
+
+    table.items {
+        border-collapse: collapse;
+        color: #333;
+        width: 75%;
+        margin-top: 0;
+    }
+
+    .items tr:nth-child(even) {
+        background: #E1E1E1;
+    }
+
+    .items tr:first-child {
+        background: white;
+    }
+
+    .items td, th {
+        border: 1px solid #CFCFCF;
+        padding: 4px 8px;
+    }
+
+    .items th {
+        border: none;
+        text-align: center;
+    }
+
+    .items tbody {
+        border-bottom: 3px solid #3B3B3B;
+    }
+
+    .items .qty {
+        text-align: right;
+        padding-right: 8px;
+    }
+</style>
+
+{% if order.no_plastic_bags or not order.allow_substitutions %}
+    <table style="border: 1px solid black; font-weight: bold; width: 100%; margin-bottom: 5px; padding: 5px 0;">
+        <tr>
+            <td>
+                {% if order.no_plastic_bags %}
+                    <span>NO PLASTIC BAGS</span>{% endif %}
+                {% if not order.allow_substitutions %}
+                    <span style="float: right">NO SUBSTITUTIONS</span>{% endif %}
+        </tr>
+    </table>
+{% endif %}
+
+<table style="border: none; width: 100%; margin-bottom: 8px">
+    <tr>
+{#        <td>{% trans "Order ID:" %} {{ order.id }}</td>#}
+        <td style="float:right;">{{ order.time }}</td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    {% for row in details %}
+        <tr>
+            {% for key, value in row %}
+                <td style="padding: 5px; padding-left: 0; font-weight: 600">{{ key }}:&nbsp;&nbsp;&nbsp;</td>
+                <td style="padding: 5px;">{{ value }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    <tr>
+        <td style="padding: 5px; padding-left: 0; font-weight: 600">Drop Site</td>
+        <td style="padding: 5px">{{ order.drop_site }}</td>
+    </tr>
+    {% if order.additional_instructions %}
+        <tr>
+            <td style="padding: 5px; padding-left: 0; font-weight: 600">Notes</td>
+            <td colspan="3" style="padding: 5px">{% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
+        </tr>
+    {% endif %}
+</table>
+
+<h3>{% trans "Items Ordered" %}</h3>
+<table class="items">
+    <tr>
+        <th>{% trans "Item" %}</th>
+        <th class="qty">{% trans "Qty" %}</th>
+        <th>{% trans "Packed" %}</th>
+    </tr>
+
+    {% for key, group in grouped_items.items %}
+        <tbody>
+        {% for item in group %}
+            <tr>
+                <td>{{ item.description }}</td>
+                <td class="qty">{{ item.quantity }}</td>
+                <td><input type="checkbox"/></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    {% endfor %}
+</table>

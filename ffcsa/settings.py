@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 import os
+from collections import OrderedDict
 
 from django import VERSION as DJANGO_VERSION
 from django.utils.translation import ugettext_lazy as _
@@ -7,6 +8,19 @@ from django.utils.translation import ugettext_lazy as _
 ##############################
 # FFCSA-CORE SETTINGS #
 ##############################
+FROZEN_PRODUCT_CATEGORIES = ['pasture raised meats']
+GRAIN_BEANS_CATEGORIES = ['grains & beans']
+PRODUCT_ORDER_CATEGORIES = ['vegetables', 'eggs', 'fruit', 'eggs', 'mushroom']
+MARKET_CHECKLISTS = ['LCFM', 'Hollywood', 'PSU', 'St Johns', 'Woodstock']
+MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
+    # checklist columns -> (category list, additional kwargs, default)
+    # if default is None, then we will sum the number of items
+    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {}, 1)),
+    ('Meat', (['meat', 'butter'], {'is_frozen': True}, 1)),
+    ('Dairy', (['dairy'], {}, None)),
+    ('Flowers', (['flowers'], {}, None)),
+])
+DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
@@ -38,6 +52,21 @@ GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",
     "MANAGED": "contactGroups/41aaae0b0f3d9da7",
+}
+
+# Rollbar settings
+
+ROLLBAR = {
+    'enabled': False,
+    'access_token': '',
+    'client_access_token': '',
+    'environment': 'development',
+    'branch': 'master',
+    'root': os.getcwd(),
+    # 'ignorable_404_urls': (
+    #     re.compile('/index\.php'),
+    #     re.compile('/foobar'),
+    # ),
 }
 
 ##############################
@@ -114,8 +143,7 @@ SHOP_OPTION_TYPE_CHOICES = ()
 # eg for "Colour" then "Size" given the above:
 # SHOP_OPTION_ADMIN_ORDER = (2, 1)
 
-SHOP_USE_WISHLIST = False
-SHOP_USE_VARIATIONS = False
+SHOP_USE_VARIATIONS = True
 SHOP_USE_UPSELL_PRODUCTS = False
 SHOP_USE_RELATED_PRODUCTS = False
 SHOP_USE_RATINGS = False
@@ -208,194 +236,7 @@ PAGE_MENU_TEMPLATES_DEFAULT = ()
 # ``django.models.db.`` can be omitted for regular Django model fields.
 #
 EXTRA_MODEL_FIELDS = (
-    (
-        "cartridge.shop.models.Cart.user_id",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "unique": True},
-    ),
-    (
-        "cartridge.shop.models.Cart.attending_dinner",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": 0},
-    ),
-    # can't perform field injection on abstract classes, so we need to do it for both CartItem and OrderItem
-    (
-        "cartridge.shop.models.CartItem.category",
-        "TextField",
-        (),
-        # Keyword args for field class.
-        {"blank": True},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.category",
-        "TextField",
-        (),
-        # Keyword args for field class.
-        {"blank": True},
-    ),
-    (
-        "cartridge.shop.models.Order.attending_dinner",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": 0},
-    ),
-    (
-        "cartridge.shop.models.Order.drop_site",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.Order.billing_detail_phone_2",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "Alt. Phone", "blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.Order.no_plastic_bags",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "No Plastic Bags", "default": False},
-    ),
-    (
-        "cartridge.shop.models.Order.allow_substitutions",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"verbose_name": "Allow product substitutions", "default": True},
-    ),
-    (
-        "cartridge.shop.models.CartItem.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.vendor",
-        "CharField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "max_length": 255},
-    ),
-    # add Vendor Price to ProductVariation & OrderItem
-    # change Unit Price to Member Price
-    (
-        "cartridge.shop.models.Category.order_on_invoice",
-        "IntegerField",
-        (),
-        # Keyword args for field class.
-        {"default": 0,
-         "help_text": "Order this category will be printed on invoices. If this is a sub-category, this is the order printed within the parent category. 0 will be printed last. And sub-categories will only be sorted if the parent category has this value set"},
-    ),
-    (
-        "cartridge.shop.models.Product.order_on_invoice",
-        "FloatField",
-        (),
-        # Keyword args for field class.
-        {"null": True, "blank": True,
-         "help_text": "Order this product will be printed on invoices. If set, this will override the product's category order_on_invoice setting. This is a float number for more fine grained control. (ex. '2.1' will be sorted the same as if the product's parent category order_on_invoice was 2 & the product's category order_on_invoice was 1)."
-         }
-    ),
-    (
-        "cartridge.shop.models.Product.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.weekly_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "default": True, "verbose_name": "Weekly Inventory"},
-    ),
-    # can't inject in abstract Priced model, so need to do both Product and ProductVariation
-    (
-        "cartridge.shop.models.Product.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.vendor_price",
-        "cartridge.shop.fields.MoneyField",
-        (),
-        # Keyword args for field class.
-        {"blank": True, "null": True, "verbose_name": "Vendor Price"},
-    ),
-    # add FFCSA Inventory to product
-    (
-        "cartridge.shop.models.Product.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.ProductVariation.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.CartItem.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
-    (
-        "cartridge.shop.models.OrderItem.in_inventory",
-        "BooleanField",
-        (),
-        # Keyword args for field class.
-        {"blank": False, "null": False, "default": False, "verbose_name": "FFCSA Inventory"},
-    ),
 )
-
-MIGRATION_MODULES = {
-    "shop": "ffcsa.core.migrations.shop",
-}
 
 # Setting to turn on featured images for blog posts. Defaults to False.
 #
@@ -517,6 +358,18 @@ STATIC_URL = "/static/"
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = os.path.join(PROJECT_ROOT, STATIC_URL.strip("/"))
 
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder'
+]
+
+COMPRESS_POSTCSS_BINARY = 'node_modules/postcss-cli/bin/postcss'
+
+COMPRESS_PRECOMPILERS = (
+    # type="text/css" must be set on stylesheet
+    ('text/css', 'compressor_postcss.PostCSSFilter'),
+)
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
@@ -592,6 +445,7 @@ INSTALLED_APPS = (
     "mezzanine.accounts",
     # "ffcsa.invites",
     "ffcsa.core",
+    'nested_admin',
     # "mezzanine.mobile",
 )
 
@@ -624,6 +478,8 @@ MIDDLEWARE_CLASSES = (
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
     "ffcsa.core.middleware.DiscountMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
+
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 )
 
 # Store these package names here as they may change in the future since
@@ -705,25 +561,42 @@ if not DEBUG:
                 'datefmt': '%Y-%m-%d %H:%M:%S'
             },
         },
+        'filters': {
+            'require_rollbar': {
+                '()': 'ffcsa.core.log.RequireRollbar',
+            }
+        },
         'handlers': {
             'console': {
                 'class': 'logging.StreamHandler',
                 'formatter': 'console',
             },
+            'rollbar': {
+                'level': 'WARNING',
+                'filters': ['require_rollbar'],
+                'access_token': ROLLBAR['access_token'],
+                'environment': 'production',
+                'class': 'rollbar.logger.RollbarHandler'
+            },
         },
         'loggers': {
             '': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
                 'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),
             },
             'ffcsa_core': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
                 'level': 'INFO',
                 # required to avoid double logging with root logger
                 'propagate': False,
             },
             'invites': {
-                'handlers': ['console'],
+                'handlers': ['console', 'rollbar'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+            'cartridge': {
+                'handlers': ['console', 'rollbar'],
                 'level': 'INFO',
                 'propagate': False,
             },
