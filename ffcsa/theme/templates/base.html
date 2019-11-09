@@ -11,9 +11,7 @@
         {% block meta_title %}{% endblock %}{% if settings.SITE_TITLE %} | {{ settings.SITE_TITLE }}{% endif %}</title>
     <link rel="shortcut icon" href="{% static "img/favicon.ico" %}">
 
-    {% compress js %}
-        {% include 'ffcsa_core/includes/rollbar.html' %}
-    {% endcompress %}
+    {% include 'ffcsa_core/includes/rollbar.html' %}
 
     {% ifinstalled mezzanine.blog %}
         <link rel="alternate" type="application/rss+xml" title="RSS" href="{% url "blog_post_feed" "rss" %}">
