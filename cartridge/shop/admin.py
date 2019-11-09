@@ -525,6 +525,8 @@ vendor_fieldsets[0][1]["fields"].extend(['featured_image', 'content', 'email', '
 
 class VendorAdmin(DisplayableAdmin):
     fieldsets = vendor_fieldsets
+    list_display = ("title", "email", "auto_send_order", "admin_link")
+    list_editable = ("email", "auto_send_order")
     form = OptionalContentAdminForm
 
 

@@ -23,7 +23,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--date',
             action='store',
-            type=datetime.date,
+            type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'),
             default=datetime.date.today(),
             help="Send orders to vendors"
         )
