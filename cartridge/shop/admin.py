@@ -520,7 +520,7 @@ class DiscountCodeAdmin(admin.ModelAdmin):
 
 vendor_fieldsets = deepcopy(DisplayableAdmin.fieldsets)
 vendor_fieldsets[0][1]["fields"][2] = ('publish_date',)
-vendor_fieldsets[0][1]["fields"].extend(['featured_image', 'content'])
+vendor_fieldsets[0][1]["fields"].extend(['featured_image', 'content', 'email', 'auto_send_order'])
 
 
 class VendorAdmin(DisplayableAdmin):

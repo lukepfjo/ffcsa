@@ -288,7 +288,7 @@ def rsync_upload():
     """
     excludes = ["*.pyc", "*.pyo", "*.db", ".DS_Store", ".coverage",
                 "local_settings.py", "/static", "/.git", "/.hg",
-                ".idea", "*.iml", ".python-version", ".gitignore", "original_t"]
+                ".idea", "*.iml", ".python-version", ".gitignore", "original_t", "node_modules", ".vscode"]
     local_dir = os.getcwd() + os.sep
     return rsync_project(remote_dir=env.proj_path, local_dir=local_dir,
                          exclude=excludes)
