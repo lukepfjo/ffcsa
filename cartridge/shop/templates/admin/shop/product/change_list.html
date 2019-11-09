@@ -1,12 +1,13 @@
 {% extends "admin/change_list.html" %}
-{% load shop_tags %}
+{% load shop_tags i18n %}
 
 {% block object-tools-items %}
+    <li><a href="{% url "admin_product_invoice_order" %}">{% trans "View Invoice Ordering" %}</a></li>
     {% if content_models|length >= 1 %}
         <li>
             {% include "admin/includes/content_typed_change_list.html" %}
         </li>
     {% else %}
-          {{ block.super }}
+        {{ block.super }}
     {% endif %}
 {% endblock %}

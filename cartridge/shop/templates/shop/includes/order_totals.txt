@@ -6,6 +6,6 @@
 {% if shipping_type %}{{ shipping_type }}{% else %}{% trans "Shipping" %}{% endif %}: {{ shipping_total|currency }}
 {% endif %} {% if tax_total %}
 {% if tax_type %}{{ tax_type }}{% else %}{% trans "Tax" %}{% endif %}: {{ tax_total|currency }}
-{% endif %}{% trans "Total" %}: {{ order_total|currency }}
+{% endif %}{% trans "Order Value" %}: {{ order_total|currency }}
 
 
