@@ -45,7 +45,7 @@
                             </a>
                             {% if request.user.is_authenticated and request.user.profile.can_order %}
                                 {% if p.product.variations.first.has_stock %}
-                                    <p class="price text-center">{{ p.product.price|currency }}</p>
+                                    <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
                                     <form method="post" class="product-quick-add-form form-group-sm">
                                         {% csrf_token %}
                                         <input type="number" class="form-control item-qty" placeholder="qty"
