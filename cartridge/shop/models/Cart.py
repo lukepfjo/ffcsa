@@ -177,7 +177,7 @@ class CartItem(models.Model):
 
     @property
     def is_frozen(self):
-        return self.variation.product.is_frozen
+        return self.variation.is_frozen
 
     @property
     def sku(self):

@@ -177,12 +177,17 @@ def readOnly(*args, **kwargs):
 
 class OrderItemManager(Manager):
     def create_from_cartitem(self, item):
+        if item.variation.product.categories.count() > 1:
+            category = ';'.join([str(c) for c in item.variation.product.categories.all()])
+        else:
+            category = item.category
+
         data = {
             'sku': item.sku,
             'description': item.description,
             'vendor_price': item.vendor_price,
             'unit_price': item.unit_price,
-            'category': item.category,
+            'category': category,
             'in_inventory': item.in_inventory,
             'is_frozen': item.is_frozen
         }

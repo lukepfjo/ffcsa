@@ -113,11 +113,9 @@ class Product(BaseProduct, Priced, RichText, ContentTyped, AdminThumbMixin):
     def get_category(self):
         """
         Returns the single category this product is associated with, or None
-        if the number of categories is not exactly 1. We exclude the weekly
-        example box category from this
+        if the number of categories is not exactly 1.
         """
         categories = self.categories.all()
-        # categories = self.categories.exclude(slug='weekly-box')
         if len(categories) == 1:
             return categories[0]
         return None
