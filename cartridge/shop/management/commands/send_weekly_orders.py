@@ -1,6 +1,5 @@
 import copy
 import datetime
-import tempfile
 
 from django.conf import settings
 from django.core.mail import EmailMessage
@@ -23,7 +22,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--date',
             action='store',
-            type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'),
+            type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d').date(),
             default=datetime.date.today(),
             help="Send orders to vendors"
         )
