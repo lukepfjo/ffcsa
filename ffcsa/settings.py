@@ -606,6 +606,12 @@ if not DEBUG:
                 'level': 'WARNING',
                 'propagate': False,
             },
+            'weasyprint': {
+                # don't send WARNING's to rollbar.
+                'handlers': ['console'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
             'googleapiclient': {
                 # don't send WARNING's to rollbar.
                 'handlers': ['console'],

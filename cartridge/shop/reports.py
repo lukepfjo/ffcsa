@@ -25,7 +25,7 @@ def generate_weekly_order_reports(date):
     docs = []
 
     # generate orders & pickup sheets
-    vendor_orders = get_vendor_orders(date, qs)
+    vendor_orders = list(get_vendor_orders(date, qs))
 
     for vo in vendor_orders:
         # send_order_to_vendor(order.write_pdf(), vendor, vendor_title, date)
