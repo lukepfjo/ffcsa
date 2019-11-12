@@ -605,6 +605,18 @@ if not DEBUG:
                 'handlers': ['console'],
                 'level': 'WARNING',
                 'propagate': False,
+            },
+            'multiurl': {
+                # don't send WARNING's to rollbar. These occur when 404s happen
+                'handlers': ['console'],
+                'level': 'WARNING',
+                'propagate': False,
+            },
+            'googleapiclient': {
+                # don't send WARNING's to rollbar.
+                'handlers': ['console'],
+                'level': 'WARNING',
+                'propagate': False,
             }
         }
     })
