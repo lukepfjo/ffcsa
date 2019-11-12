@@ -756,14 +756,18 @@ class ProductChangelistForm(forms.ModelForm):
             variation = obj.variations.first()
             vpv = None
             variation_fields = [f.name for f in variation._meta.fields]
+
+            if 'vendor' in self.cleaned_data:
+                vpv = variation.vendorproductvariation_set.first()
+
+                if not vpv:
+                    vpv = variation.vendorproductvariation_set.create(vendor=self.cleaned_data['vendor'])
+                else:
+                    vpv.vendor = self.cleaned_data['vendor']
+
             for key, value in self.cleaned_data.items():
                 if key is not 'id' and key in variation_fields:
                     setattr(variation, key, value)
-                elif key is 'vendor':
-                    # only allow modification if there is a single vendor
-                    if not vpv:
-                        vpv = variation.vendorproductvariation_set.first()
-                    vpv.vendor = value
                 elif key is 'num_in_stock':
                     # only allow modification if there is a single vendor
                     if not vpv:
