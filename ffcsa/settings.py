@@ -479,7 +479,7 @@ MIDDLEWARE_CLASSES = (
     "ffcsa.core.middleware.DiscountMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
 
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404',
 )
 
 # Store these package names here as they may change in the future since
@@ -601,12 +601,6 @@ if not DEBUG:
                 'propagate': False,
             },
             'django.request': {
-                # don't send WARNING's to rollbar. These occur when 404s happen
-                'handlers': ['console'],
-                'level': 'WARNING',
-                'propagate': False,
-            },
-            'multiurl': {
                 # don't send WARNING's to rollbar. These occur when 404s happen
                 'handlers': ['console'],
                 'level': 'WARNING',
