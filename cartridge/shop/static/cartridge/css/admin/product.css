@@ -53,8 +53,13 @@ fieldset .field-box {
 }
 
 /* django nested admin fixes */
+.djn-item.grp-predelete td,
 .djn-item.grp-predelete .djn-drag-handler {
     background-color: #f2d6d6;
+}
+
+.tabular .djn-delete-handler input[type="checkbox"] {
+    display: block !important;
 }
 
 .djn-drag-handler .remove,
