@@ -23,7 +23,7 @@ class Priced(models.Model):
                                        null=True)
 
     weekly_inventory = models.BooleanField(
-        _("Weekly Inventory"), blank=False, default=True)
+        _("Weekly Inventory"), blank=False, default=False)
     in_inventory = models.BooleanField(
         _("FFCSA Inventory"), default=False, blank=False, null=False)
     vendor_price = fields.MoneyField(_("Vendor price"), blank=False)
