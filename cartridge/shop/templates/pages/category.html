@@ -56,7 +56,6 @@
                                        class="flex flex-col flex-grow text-gray-900 hover:no-underline focus:text-gray-900 focus:outline-none hover:text-gray-900">
                                         <div class="font-bold text-xl mt-4 border-b border-dashed pb-10">{{ product }}</div>
                                         <ul id="variations" class="ml-0 my-4 text-center text-gray-800">
-                                            {#                                        {% if request.user.is_authenticated and request.user.profile.can_order %}#}
                                             {% for variation in product.variations.all %}
                                                 <li id="variation-{{ variation.sku }}"
                                                     {% if not variation.default %}style="display:none;"{% endif %}>
@@ -71,7 +70,7 @@
                                         <div class="flex-grow mb-6">{{ product.content|truncate:140 }}</div>
                                     </a>
                                     {% with has_stock=product|product_has_stock %}
-                                        {% if has_stock and request.user.is_authenticated and request.user.profile.can_order %}
+                                        {% if has_stock and can_order_dairy or has_stock and not product.is_dairy %}
                                             {% errors_for product.add_form %}
                                             {#                                        {% nevercache %}#}
                                             {#                                            <input type="hidden" name="referrer"#}
@@ -104,7 +103,7 @@
                                     {#                                        {% endif %}#}
                                 </div>
                                 <div>
-                                    {% if request.user.is_authenticated and request.user.profile.can_order %}
+                                    {% if can_order_dairy or not product.is_dairy %}
                                         {% if product|product_has_stock %}
                                             <input type="submit" class="btn btn-primary btn-sm form-control"
                                                    name="add_item" value="{% trans "Add to Order" %}">

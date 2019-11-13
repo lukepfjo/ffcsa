@@ -14,7 +14,7 @@
             {{ page.recipe.content|safe }}
         {% endeditable %}
 
-        {% if request.user.is_authenticated and request.user.profile.can_order %}
+        {% if request.user.is_authenticated %}
             <form method="post" class="add-recipe-form">
                 {% csrf_token %}
                 <div class="form-actions">
@@ -43,7 +43,7 @@
                                     <h6>{{ p.product }}</h6>
                                 </div>
                             </a>
-                            {% if request.user.is_authenticated and request.user.profile.can_order %}
+                            {% if can_order_dairy or not p.product.is_dairy %}
                                 {% if p.product.variations.first.has_stock %}
                                     <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
                                     <form method="post" class="product-quick-add-form form-group-sm">

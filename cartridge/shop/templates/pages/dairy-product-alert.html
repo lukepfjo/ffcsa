@@ -1,0 +1,7 @@
+{% if request.user.is_authenticated and not request.user.profile.can_order_dairy %}
+    <div class="alert alert-warning non-field-error"><strong>You are not yet able to order dairy products.</strong>
+        <br/> Our Dairy Manager will be reaching out soon to go over a few points about our Raw Dairy Program. After
+        that conversation, you will be add dairy products to your order.
+    </div>
+{% endif %}
+

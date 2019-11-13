@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from cartridge.shop.models import Product, Category, ProductVariation
 from cartridge.shop.forms import AddProductForm
 from cartridge.shop.utils import recalculate_cart
@@ -37,6 +39,13 @@ def recipe_processor(request, page):
     products = page.recipe.recipeproduct_set.filter(
         product__in=page.recipe.products.published())
 
+    if request.method == "POST" and request.POST.get('add_box_items'):
+        if not request.user.profile.can_order_dairy:
+            products = products.filter(product__is_dairy=False)
+
+        add_box_items([(p.product, p.quantity) for p in products], request)
+        return redirect("shop_cart")
+
     def prefix_product(field):
         return '-product__' + field[1:] if field.startswith('-') else 'product__' + field
 
@@ -50,14 +59,8 @@ def recipe_processor(request, page):
                         settings.MAX_PAGING_LINKS)
     products.sort_by = sort_by
 
-    if request.method == "POST" and request.POST.get('add_box_items'):
-        products = page.recipe.recipeproduct_set.filter(
-            product__in=page.recipe.products.published())
-
-        add_box_items([(p.product, p.quantity) for p in products], request)
-        return redirect("shop_cart")
-
-    return {"products": products}
+    can_order_dairy = request.user.is_authenticated() and request.user.profile.can_order_dairy
+    return {"products": products, "can_order_dairy": can_order_dairy}
 
 
 @processor_for("weekly-box", exact_page=True)
@@ -67,12 +70,15 @@ def weekly_box(request, page):
     """
     if request.method == "POST" and request.POST.get('add_box_items'):
         box_contents = Product.objects.published(for_user=request.user
-                                                 ).filter(page.category.filters()).distinct()
+                                                 ).filter(page.category.filters())
+        if not request.user.profile.can_order_dairy:
+            box_contents.filter(product__is_dairy=False)
 
-        add_box_items([(i, 1) for i in box_contents], request)
+        add_box_items([(i, 1) for i in box_contents.distinct()], request)
         return redirect("shop_cart")
 
-    return {}
+    can_order_dairy = request.user.is_authenticated() and request.user.profile.can_order_dairy
+    return {"can_order_dairy": can_order_dairy}
 
 
 def add_box_items(box_contents, request):

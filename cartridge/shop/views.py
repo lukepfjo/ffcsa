@@ -92,7 +92,8 @@ def product(request, slug, template="shop/product.html",
         "variations_json": variations_json,
         "has_available_variations": any([v.has_price() for v in variations]),
         "related_products": related,
-        "add_product_form": add_product_form
+        "add_product_form": add_product_form,
+        "can_order_dairy": request.user.is_authenticated() and request.user.profile.can_order_dairy
     }
     context.update(extra_context or {})
 

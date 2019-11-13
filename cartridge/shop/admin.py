@@ -141,7 +141,7 @@ class ProductImageAdmin(TabularDynamicInlineAdmin):
 product_fieldsets = deepcopy(DisplayableAdmin.fieldsets)
 product_fieldsets[0][1]["fields"].insert(2, "available")
 product_fieldsets[0][1]["fields"].extend(
-    ["content", "categories", "order_on_invoice"])
+    ["content", "categories", "order_on_invoice", "is_dairy"])
 product_fieldsets = list(product_fieldsets)
 
 other_product_fields = []

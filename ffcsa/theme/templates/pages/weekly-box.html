@@ -10,7 +10,7 @@
             {{ page.category.content|safe }}
         {% endeditable %}
 
-        {% if request.user.is_authenticated and request.user.profile.can_order %}
+        {% if request.user.is_authenticated %}
             <form method="post" class="add-weekly-box-form">
                 {% csrf_token %}
                 <div class="form-actions">

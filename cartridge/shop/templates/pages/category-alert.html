@@ -6,15 +6,10 @@
         <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
         type and value. Supporting small farms means you get to experience seasonal variations!
     </div>
-    {% if not request.user.profile.can_order %}
-        <div class="alert alert-warning non-field-error"><strong>You are not yet able to make an order.</strong>
-            <br/> Our Dairy Manager will
-            be reaching out soon to go over a few points about our Raw Dairy Program. After that conversation, you will
-            be able to make your first order.
-        </div>
-    {% endif %}
+    {% include 'pages/dairy-product-alert.html' %}
     <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
-        Dropsite:</b> {{ request.user.profile.drop_site }}  <a class="small" style="margin-left:5px" href="{% url "profile_update" %}">(Update)</a>
+        Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
+                                                              href="{% url "profile_update" %}">(Update)</a>
     </div>
 {% endif %}
 

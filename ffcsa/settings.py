@@ -8,6 +8,7 @@ from django.utils.translation import ugettext_lazy as _
 ##############################
 # FFCSA-CORE SETTINGS #
 ##############################
+DAIRY_CATEGORY = 'dairy'
 FROZEN_PRODUCT_CATEGORIES = ['pasture raised meats']
 GRAIN_BEANS_CATEGORIES = ['grains & beans']
 PRODUCT_ORDER_CATEGORIES = ['vegetables', 'eggs', 'fruit', 'eggs', 'mushroom']
@@ -176,7 +177,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "notes",
     "invoice_notes",
     "non_subscribing_member",
-    "can_order",
+    "can_order_dairy",
     "google_person_id"
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts

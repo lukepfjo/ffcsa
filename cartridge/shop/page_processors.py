@@ -70,4 +70,10 @@ def category_processor(request, page):
     products.sort_by = sort_by
     sub_categories = page.category.children.published()
     child_categories = Category.objects.filter(id__in=sub_categories)
-    return {"products": products, "child_categories": child_categories}
+
+    can_order_dairy = request.user.is_authenticated() and request.user.profile.can_order_dairy
+    return {
+        "products": products,
+        "child_categories": child_categories,
+        "can_order_dairy": can_order_dairy
+    }
