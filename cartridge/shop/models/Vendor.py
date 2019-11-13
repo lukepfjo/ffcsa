@@ -21,6 +21,9 @@ class Vendor(RichText, Orderable, Displayable):
 
     objects = DisplayableManager()
 
+    class Meta:
+        ordering = ('title',)
+
     def clean(self):
         if self.auto_send_order and not self.email:
             raise ValidationError("You must provide an email address if auto_send_order is True")
