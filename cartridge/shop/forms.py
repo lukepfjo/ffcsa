@@ -10,6 +10,7 @@ from re import match
 from django import forms
 from django.contrib.auth import get_user_model
 from django.forms import Widget
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import (BaseInlineFormSet, ModelFormMetaclass,
                                  inlineformset_factory)
 from django.utils.safestring import mark_safe
@@ -600,6 +601,14 @@ class VendorProductVariationAdminFormset(BaseInlineFormSet):
         super().__init__(*args, **kwargs)
         # not sure why this can't be a class attribute???
         self.validate_min = True
+
+    def full_clean(self):
+        # If parent form is being deleted, don't validate this form
+        if self.parent_form and \
+                self.parent_form.is_bound and \
+                self.parent_form.cleaned_data.get(DELETION_FIELD_NAME, False):
+            self.validate_min = False
+        return super().full_clean()
 
     def save(self, commit=True):
         items = super().save(commit)

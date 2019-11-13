@@ -364,7 +364,7 @@ def send_order_to_vendor(order, vendor, vendor_title, date):
         subject = "URGENT FAILED TO SEND TO VENDOR: " + subject
 
     msg = EmailMessage(subject,
-                       "Our order for {} is attached.\n Thanks,\nThe FFCSA team".format(date),
+                       "Our order for {} is attached.\n\nThanks,\nThe FFCSA team".format(date),
                        settings.DEFAULT_FROM_EMAIL, to, bcc=bcc)
     msg.attach("{}_ffcsa_order_{}".format(vendor_title, date), order, mimetype='application/pdf')
     try:
