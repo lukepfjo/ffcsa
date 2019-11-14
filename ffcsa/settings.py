@@ -31,8 +31,8 @@ DROP_SITE_CHOICES = (
     ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
-    ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
-    ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
+    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
     ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
