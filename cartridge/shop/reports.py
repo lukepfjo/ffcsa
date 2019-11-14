@@ -19,7 +19,7 @@ def generate_weekly_order_reports(date):
     qs = OrderItem.objects \
         .filter(order__time__date=date) \
         .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
-        .annotate(total_price=Sum('total_price'), quantity=Sum('quantity'))
+        .annotate(total_price=Sum(F('vendor_price') * F('quantity')), quantity=Sum('quantity'))
 
     # zip_files = []
     docs = []
@@ -198,7 +198,7 @@ def generate_frozen_items_report(date, qs):
         "items": items,
         "date": date,
     }
-    html = get_template("shop/reports/frozen_bulk_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/dff_order_ticket_pdf.html").render(context)
     return HTML(string=html).render()
 
 

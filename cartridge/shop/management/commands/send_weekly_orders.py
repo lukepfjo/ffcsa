@@ -70,5 +70,5 @@ class Command(BaseCommand):
 
         msg = EmailMessage("Weekly Order Files - {}".format(date), "Weekly Order Files are attached.",
                            settings.EMAIL_HOST_USER, (settings.EMAIL_HOST_USER,))
-        msg.attach("ffcsa_weekly_orders_{}".format(date), doc.write_pdf(), mimetype='application/pdf')
+        msg.attach("ffcsa_weekly_orders_{}.pdf".format(date), doc.write_pdf(), mimetype='application/pdf')
         msg.send()
