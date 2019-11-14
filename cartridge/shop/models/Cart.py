@@ -254,6 +254,9 @@ def update_cart_items(variation):
     When an item has changed, update any items that are already in the cart
     """
     from ffcsa.core.budgets import clear_cached_budget_for_user_id
+
+    CartItem.objects.handle_changed_variations([variation])
+
     carts = Cart.objects.filter(items__variation__sku=variation.sku)
     for cart in carts:
         clear_cached_budget_for_user_id(cart.user_id)

@@ -24,8 +24,9 @@ from cartridge.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
                                   ProductVariationAdminFormset, VendorProductVariationAdminFormset)
 from cartridge.shop.models import (Category, DiscountCode, Order, OrderItem,
                                    Product, ProductImage, ProductOption,
-                                   ProductVariation, Sale, Vendor)
+                                   ProductVariation, Sale, Vendor, VendorProductVariation)
 from cartridge.shop.models.Cart import update_cart_items, CartItem
+from cartridge.shop.models.Vendor import VendorCartItem
 from cartridge.shop.views import HAS_PDF
 
 """
@@ -280,6 +281,14 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
         else:
             super(ProductAdmin, self).save_formset(request, form, formset,
                                                    change)
+
+        if formset.model == VendorProductVariation:
+            for form in formset.forms:
+                if form.has_changed() and form.initial and form not in formset.deleted_forms and 'vendor' in form.changed_data:
+                    # update cart item vendors if vendor has changed
+                    VendorCartItem.objects \
+                        .filter(item__variation__id=form.instance.variation.id, vendor_id=form.initial['vendor']) \
+                        .update(vendor=form.cleaned_data['vendor'])
 
         # Run each of the variation manager methods if we're saving
         # the variations formset.

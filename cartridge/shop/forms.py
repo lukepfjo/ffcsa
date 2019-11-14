@@ -26,6 +26,7 @@ from cartridge.shop import checkout
 from cartridge.shop.models import (Cart, CartItem, DiscountCode, Order,
                                    Product, ProductVariation, Vendor)
 from cartridge.shop.models.Cart import update_cart_items
+from cartridge.shop.models.Vendor import VendorCartItem
 from cartridge.shop.utils import (clear_session, make_choices, set_locale,
                                   set_shipping)
 
@@ -772,7 +773,12 @@ class ProductChangelistForm(forms.ModelForm):
                 if not vpv:
                     vpv = variation.vendorproductvariation_set.create(vendor=self.cleaned_data['vendor'])
                 else:
+                    orig = vpv.vendor
                     vpv.vendor = self.cleaned_data['vendor']
+                    # update cart item vendors if vendor has changed
+                    VendorCartItem.objects \
+                        .filter(item__variation=variation, vendor=orig) \
+                        .update(vendor=vpv.vendor)
 
             for key, value in self.cleaned_data.items():
                 if key is not 'id' and key in variation_fields:

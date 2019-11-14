@@ -103,7 +103,7 @@ class CartItemManager(Manager):
                     continue
 
                 qty = i.quantity
-                updated_quantity = min(qty, stock)
+                updated_quantity = min(qty, stock if stock is not None else qty)
 
                 i.update_quantity(updated_quantity)
 
@@ -112,7 +112,8 @@ class CartItemManager(Manager):
                         affected_users[i.cart.user_id] = []
                     affected_users[i.cart.user_id].append((i.variation, updated_quantity))
 
-                stock = stock - updated_quantity
+                if stock is not None:
+                    stock = stock - updated_quantity
 
         if to_delete:
             self.filter(id__in=to_delete).delete()
