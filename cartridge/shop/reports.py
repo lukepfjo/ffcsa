@@ -39,6 +39,10 @@ def generate_weekly_order_reports(date):
 
     # generate packing lists
 
+    # Woven Roots pack sheet
+    # zip_files.append(("woven_roots_dairy_packlist_{}.pdf".format(date), generate_woven_roots_dairy_packlist(date)))
+    docs.append(generate_woven_roots_dairy_packlist(date))
+
     # frozen items bulk list
     # zip_files.append(("frozen_bulk_{}_packlist.pdf".format(date), generate_frozen_items_report(date, qs)))
     docs.append(generate_frozen_items_report(date, qs))
@@ -46,10 +50,6 @@ def generate_weekly_order_reports(date):
     # FFCSA Inventory Products
     # zip_files.append(("ffcsa_inventory_{}.pdf".format(date), generate_ffcsa_inventory_packlist(date, qs)))
     docs.append(generate_ffcsa_inventory_packlist(date, qs))
-
-    # Woven Roots pack sheet
-    # zip_files.append(("woven_roots_dairy_packlist_{}.pdf".format(date), generate_woven_roots_dairy_packlist(date)))
-    docs.append(generate_woven_roots_dairy_packlist(date))
 
     # DFF Dairy totals sheet
     # zip_files.append(("dff_dairy_packlist_{}.pdf".format(date), generate_dff_dairy_packlist(date)))
@@ -59,19 +59,22 @@ def generate_weekly_order_reports(date):
     # zip_files.append(("dairy_packlist_{}.pdf".format(date), generate_dairy_packlist(date)))
     docs.append(generate_dairy_packlist(date))
 
+    # Frozen items pack sheet
+    docs.append(generate_frozen_items_packlist(date, qs))
+
     # Grain & Bean Sheet
     # zip_files.append(("grain_and_bean_packlist_{}.pdf".format(date), generate_grain_and_bean_packlist(date)))
     docs.append(generate_grain_and_bean_packlist(date))
-
-    # Packing Order Sheet
-    # zip_files.append(("product_order_{}.pdf".format(date), generate_product_order(date)))
-    docs.append(generate_product_order(date))
 
     # Market Checklists
     checklist = generate_market_checklists(date)
     # zip_files.append(("market_checklists_{}.pdf".format(date), checklist))
     if checklist:
         docs.append(checklist)
+
+    # Packing Order Sheet
+    # zip_files.append(("product_order_{}.pdf".format(date), generate_product_order(date)))
+    docs.append(generate_product_order(date))
 
     doc = docs[0]
     doc = doc.copy([p for d in docs for p in d.pages])  # uses the metadata from doc
@@ -177,6 +180,16 @@ def generate_dairy_packlist(date):
 
 
 def generate_frozen_items_report(date, qs):
+    items = get_frozen_items(qs)
+    context = {
+        "items": items,
+        "date": date,
+    }
+    html = get_template("shop/reports/dff_order_ticket_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
+def get_frozen_items(qs):
     """
     This should include the following:
        - any is_frozen items
@@ -194,11 +207,26 @@ def generate_frozen_items_report(date, qs):
     filter = filter | Q(is_frozen=True)
     # we sort so we can use the django regroup filter
     items = qs.filter(filter).order_by('category', 'description')
+    return items
+
+
+def generate_frozen_items_packlist(date, qs):
+    items = get_frozen_items(qs)
+
+    order_items = OrderedDict()
+    for k, v in groupby(items, key=lambda x: x.order.drop_site):
+        i = OrderedDict()
+        for k2, v2 in groupby(v, key=lambda x: x.order.billing_detail_last_name):
+            i[k2] = list(v2)
+
+        order_items[k] = i
+
     context = {
-        "items": items,
-        "date": date,
+        'items': order_items,
+        'date': date
     }
-    html = get_template("shop/reports/dff_order_ticket_pdf.html").render(context)
+
+    html = get_template("shop/reports/frozen_item_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
