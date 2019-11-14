@@ -44,9 +44,13 @@ user_fieldsets = deepcopy(accounts_base.UserProfileAdmin.fieldsets)
 user_fieldsets[2][1]['classes'] = ('collapse', 'collapse-closed')
 SitePermissionInline.classes = ('collapse', 'collapse-closed')
 
+user_list_filter = list(deepcopy(accounts_base.UserProfileAdmin.list_filter))
+user_list_filter.append('profile__drop_site')
+
 
 class UserProfileAdmin(accounts_base.UserProfileAdmin):
     fieldsets = user_fieldsets
+    list_filter = tuple(user_list_filter)
 
     def save_model(self, request, obj, form, change):
         """
