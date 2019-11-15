@@ -3,6 +3,7 @@ import tempfile
 from collections import namedtuple, OrderedDict
 from itertools import groupby
 
+from cartridge.shop.fields import MoneyField
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.db.models import Sum, Q, Case, When, IntegerField, Value, Subquery, OuterRef, F
@@ -19,7 +20,8 @@ def generate_weekly_order_reports(date):
     qs = OrderItem.objects \
         .filter(order__time__date=date) \
         .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
-        .annotate(total_price=Sum(F('vendor_price') * F('quantity')), quantity=Sum('quantity'))
+        .annotate(total_price=Sum(F('vendor_price') * F('quantity'), output_field=MoneyField()),
+                  quantity=Sum('quantity'))
 
     # zip_files = []
     docs = []
@@ -211,12 +213,15 @@ def get_frozen_items(qs):
 
 
 def generate_frozen_items_packlist(date, qs):
-    items = get_frozen_items(qs)
+    items = get_frozen_items(
+        qs.values('description', 'category', 'vendor', 'vendor_price', 'in_inventory',
+                  'order__drop_site', 'order__billing_detail_last_name')
+    ).order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
 
     order_items = OrderedDict()
-    for k, v in groupby(items, key=lambda x: x.order.drop_site):
+    for k, v in groupby(items, key=lambda x: x['order__drop_site']):
         i = OrderedDict()
-        for k2, v2 in groupby(v, key=lambda x: x.order.billing_detail_last_name):
+        for k2, v2 in groupby(v, key=lambda x: x['order__billing_detail_last_name']):
             i[k2] = list(v2)
 
         order_items[k] = i
@@ -394,7 +399,7 @@ def send_order_to_vendor(order, vendor, vendor_title, date):
     msg = EmailMessage(subject,
                        "Our order for {} is attached.\n\nThanks,\nThe FFCSA team".format(date),
                        settings.DEFAULT_FROM_EMAIL, to, bcc=bcc)
-    msg.attach("{}_ffcsa_order_{}".format(vendor_title, date), order, mimetype='application/pdf')
+    msg.attach("{}_ffcsa_order_{}.pdf".format(vendor_title, date), order, mimetype='application/pdf')
     try:
         msg.send()
     except Exception as e:
