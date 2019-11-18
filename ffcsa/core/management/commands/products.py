@@ -1,6 +1,5 @@
 import csv
 import os
-import shutil
 import datetime
 
 from django.core.management.base import BaseCommand
@@ -9,11 +8,11 @@ from django.utils.translation import ugettext as _
 from django.db.utils import IntegrityError
 from mezzanine.conf import settings
 
-from cartridge.shop.models import Product
-from cartridge.shop.models import ProductOption
-from cartridge.shop.models import ProductImage
-from cartridge.shop.models import ProductVariation
-from cartridge.shop.models import Category
+from ffcsa.shop.models import Product
+from ffcsa.shop.models import ProductOption
+from ffcsa.shop.models import ProductImage
+from ffcsa.shop.models import ProductVariation
+from ffcsa.shop.models import Category
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 
 

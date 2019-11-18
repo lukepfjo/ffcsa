@@ -9,7 +9,7 @@ from mezzanine.core.models import RichText
 from mezzanine.pages.models import Page
 from mezzanine.utils.models import upload_to
 
-from cartridge.shop.fields import MoneyField
+from ffcsa.shop.fields import MoneyField
 from ffcsa.core.managers import PaymentManager
 
 User = get_user_model()

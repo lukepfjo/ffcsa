@@ -2,7 +2,7 @@ import datetime
 
 from django.db.models import Sum, OuterRef, Subquery, IntegerField
 
-from cartridge.shop.models import Cart, Order, ProductVariation, CartItem
+from ffcsa.shop.models import Cart, Order, ProductVariation, CartItem
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand

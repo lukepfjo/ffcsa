@@ -1,4 +1,4 @@
-from cartridge.shop.models import Cart, ProductVariation, Order, CartItem
+from ffcsa.shop.models import Cart, ProductVariation, Order, CartItem
 from django.test import TestCase
 from django.test import tag
 from django.utils.timezone import now

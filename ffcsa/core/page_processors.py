@@ -1,8 +1,5 @@
-from django.db.models import Q
-
-from cartridge.shop.models import Product, Category, ProductVariation
-from cartridge.shop.forms import AddProductForm
-from cartridge.shop.utils import recalculate_cart
+from ffcsa.shop.models import Product
+from ffcsa.shop.utils import recalculate_cart
 from django.contrib.messages import info, error
 from django.shortcuts import redirect
 from mezzanine.conf import settings

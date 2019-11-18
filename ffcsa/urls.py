@@ -7,7 +7,7 @@ from django.views.i18n import set_language
 from mezzanine.conf import settings
 
 import ffcsa.core.views as ffcsa_core
-import cartridge.shop.views as shop_ciews
+import ffcsa.shop.views as shop_ciews
 
 admin.autodiscover()
 
@@ -35,8 +35,8 @@ urlpatterns += [
     # ffcsainvites URLs
     # url("^", include("ffcsa.invites.urls")),
 
-    # Cartridge URLs.
-    url("^", include("cartridge.shop.urls")),
+    # Shop URLs.
+    url("^", include("ffcsa.shop.urls")),
     url("^account/orders/$", shop_ciews.order_history, name="shop_order_history"),
     url("^account/payments/$", ffcsa_core.payments, name="payments"),
     url("^account/payments/subscribe$", ffcsa_core.payments_subscribe, name="payments_subscribe"),

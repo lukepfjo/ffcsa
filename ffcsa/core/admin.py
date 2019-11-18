@@ -17,8 +17,8 @@ from mezzanine.core.admin import SitePermissionInline
 from mezzanine.generic.models import ThreadedComment
 from mezzanine.pages.admin import PageAdmin
 
-from cartridge.shop.models import Sale
-from cartridge.shop.forms import OptionalContentAdminForm, ImageWidget
+from ffcsa.shop.models import Sale
+from ffcsa.shop.forms import OptionalContentAdminForm, ImageWidget
 from ffcsa.core.subscriptions import update_stripe_subscription
 
 from .models import Payment, Recipe, RecipeProduct

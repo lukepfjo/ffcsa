@@ -79,10 +79,10 @@ INVITE_CODE_USAGE_WINDOW = 7
 INVITE_CODE_EXPIRY_DAYS = 0
 
 ######################
-# CARTRIDGE SETTINGS #
+# SHOP SETTINGS #
 ######################
 
-# The following settings are already defined in cartridge.shop.defaults
+# The following settings are already defined in ffcsa.shop.defaults
 # with default values, but are common enough to be put here, commented
 # out, for conveniently overriding. Please consult the settings
 # documentation for a full list of settings Cartridge implements:
@@ -95,7 +95,7 @@ INVITE_CODE_EXPIRY_DAYS = 0
 # SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 
 # Set an alternative OrderForm class for the checkout process.
-# SHOP_CHECKOUT_FORM_CLASS = 'cartridge.shop.forms.OrderForm'
+# SHOP_CHECKOUT_FORM_CLASS = 'ffcsa.shop.forms.OrderForm'
 
 # If True, the checkout process is split into separate
 # billing/shipping and payment steps.
@@ -113,20 +113,20 @@ INVITE_CODE_EXPIRY_DAYS = 0
 # Dotted package path and name of the function that
 # is called on submit of the billing/shipping checkout step. This
 # is where shipping calculation can be performed and set using the
-# function ``cartridge.shop.utils.set_shipping``.
+# function ``ffcsa.shop.utils.set_shipping``.
 # SHOP_HANDLER_BILLING_SHIPPING = \
-#                       "cartridge.shop.checkout.default_billship_handler"
+#                       "ffcsa.shop.checkout.default_billship_handler"
 
 # Dotted package path and name of the function that
 # is called once an order is successful and all of the order
 # object's data has been created. This is where any custom order
 # processing should be implemented.
-# SHOP_HANDLER_ORDER = "cartridge.shop.checkout.default_order_handler"
+# SHOP_HANDLER_ORDER = "ffcsa.shop.checkout.default_order_handler"
 
 # Dotted package path and name of the function that
 # is called on submit of the payment checkout step. This is where
 # integration with a payment gateway should be implemented.
-# SHOP_HANDLER_PAYMENT = "cartridge.shop.checkout.default_payment_handler"
+# SHOP_HANDLER_PAYMENT = "ffcsa.shop.checkout.default_payment_handler"
 
 # Sequence of value/name pairs for order statuses.
 # SHOP_ORDER_STATUS_CHOICES = (
@@ -438,7 +438,7 @@ INSTALLED_APPS = (
     "mezzanine.core",
     "mezzanine.generic",
     "mezzanine.pages",
-    "cartridge.shop",
+    "ffcsa.shop",
     # "mezzanine.blog",
     "mezzanine.forms",
     "mezzanine.galleries",
@@ -467,7 +467,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     "debug_toolbar.middleware.DebugToolbarMiddleware",
-    "cartridge.shop.middleware.ShopMiddleware",
+    "ffcsa.shop.middleware.ShopMiddleware",
     "mezzanine.core.request.CurrentRequestMiddleware",
     "mezzanine.core.middleware.RedirectFallbackMiddleware",
     "mezzanine.core.middleware.AdminLoginInterfaceSelectorMiddleware",
@@ -475,7 +475,7 @@ MIDDLEWARE_CLASSES = (
     # Uncomment the following if using any of the SSL settings:
     # "mezzanine.core.middleware.SSLRedirectMiddleware",
     # "mezzanine.pages.middleware.PageMiddleware",
-    "cartridge.shop.middleware.MultiurlPageMiddleware",
+    "ffcsa.shop.middleware.MultiurlPageMiddleware",
     "mezzanine.core.middleware.FetchFromCacheMiddleware",
     "ffcsa.core.middleware.DiscountMiddleware",
     "ffcsa.core.middleware.BudgetMiddleware",
@@ -596,7 +596,7 @@ if not DEBUG:
                 'level': 'INFO',
                 'propagate': False,
             },
-            'cartridge': {
+            'ffcsa.shop': {
                 'handlers': ['console', 'rollbar'],
                 'level': 'INFO',
                 'propagate': False,

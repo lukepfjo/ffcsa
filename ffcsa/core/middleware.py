@@ -1,5 +1,5 @@
 from ffcsa.core.budgets import clear_cached_budget
-from cartridge.shop.utils import recalculate_remaining_budget
+from ffcsa.shop.utils import recalculate_remaining_budget
 
 
 class BudgetMiddleware(object):

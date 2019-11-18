@@ -1,5 +1,4 @@
 import datetime
-from copy import deepcopy
 from decimal import Decimal
 
 import stripe
@@ -24,9 +23,8 @@ from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 
-from cartridge.shop import views as s_views
-from cartridge.shop.actions.order_actions import DEFAULT_GROUP_KEY
-from cartridge.shop.models import Category, Order, Product
+from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
+from ffcsa.shop.models import Category, Order, Product
 from ffcsa.core.forms import BasePaymentFormSet, ProfileForm
 from ffcsa.core.google import add_contact
 from ffcsa.core.models import Payment, Recipe
