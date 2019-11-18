@@ -202,6 +202,8 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
                               null=True, blank=True, on_delete=models.SET_NULL)
     num_in_stock = None
     is_frozen = models.BooleanField(default=False)
+    extra = models.IntegerField("% Extra", blank=True, null=True,
+                                help_text="The % extra to order. The extra ordered will be rounded to the nearest whole number.")
 
     vendors = models.ManyToManyField('shop.Vendor', verbose_name="Vendors", related_name="variations",
                                      through='shop.VendorProductVariation')
@@ -302,6 +304,9 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
             num_in_stock = self.number_in_stock
             if num_in_stock is not None:
+                extra = round(self.number_in_stock * self.extra / 100) if self.extra else 0
+                num_in_stock -= extra
+
                 carts = Cart.objects.current()
                 items = CartItem.objects.filter(variation=self, cart__in=carts)
                 aggregate = items.aggregate(quantity_sum=models.Sum("vendors__quantity"))

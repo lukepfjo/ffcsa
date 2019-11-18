@@ -1,6 +1,8 @@
 import datetime
 
-from cartridge.shop.models import Cart, Order, ProductVariation
+from django.db.models import Sum, OuterRef, Subquery, IntegerField
+
+from cartridge.shop.models import Cart, Order, ProductVariation, CartItem
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand
@@ -16,6 +18,52 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         carts = Cart.objects.all()
+
+        extra_items = ProductVariation.objects \
+            .filter(extra__gt=0, id__in=CartItem.objects.values('variation_id').distinct()) \
+            .annotate(total_ordered=Subquery(
+            CartItem.objects
+                .filter(variation_id=OuterRef('pk'))
+                .values('variation_id')  # provides group by variation_id
+                .annotate(total_ordered=Sum('vendors__quantity'))
+                .values('total_ordered'),
+            output_field=IntegerField(),
+        ))
+
+        extra_items = list(extra_items)
+        if len(extra_items) > 0:
+            order = Order(**{
+                # add 1 day since all billing is based off of Friday ordering, but orders close on Thursday
+                'time': now() + datetime.timedelta(days=1),
+                'site': Site.objects.get(id=1),
+                'billing_detail_first_name': 'FFCSA Extra Order',
+                'allow_substitutions': True
+            })
+            # order.save()
+
+            has_extra = False
+            total = 0
+            # We do the following b/c we want to use the logic in CartItem.update_quantity to
+            # determine which vendor to order the extra from
+            cart, created = Cart.objects.get_or_create(user_id=0)
+            cart.clear()
+            for variation in extra_items:
+                extra = round(variation.extra / 100 * variation.total_ordered)
+
+                if extra > 0:
+                    has_extra = True
+                    if not order.id:
+                        order.save()
+                    item = CartItem.objects.create(cart=cart, variation=variation)
+                    item.update_quantity(extra)
+                    order.items.create_from_cartitem(item)
+                    total += item.total_price
+
+            if has_extra:
+                order.item_total = total
+                order.total = total
+                order.save()
+            cart.delete()
 
         for cart in carts:
             if cart.has_items():
@@ -49,7 +97,6 @@ class Command(BaseCommand):
                 order = Order.objects.create(**order_dict)
                 order.save()
 
-                print("saved order")
                 for item in cart:
                     if not item.variation.weekly_inventory:
                         item.variation.reduce_stock(item.quantity)
@@ -58,6 +105,5 @@ class Command(BaseCommand):
 
                 order.save()
 
-            print("cart clear")
             cart.clear()
             cart.save()

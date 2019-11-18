@@ -198,6 +198,8 @@ class CartItem(models.Model):
             if 'vendors' not in getattr(self, '_prefetched_objects_cache', []) \
                     and not hasattr(self, self._meta.get_field('vendors').get_cache_name()):
                 quantity = self.vendors.aggregate(quantity=models.Sum("quantity"))['quantity']
+                if quantity is None:
+                    quantity = 0
             else:
                 quantity = sum([v.quantity for v in self.vendors.all()])
             self._cached_quantity = quantity

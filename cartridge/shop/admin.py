@@ -115,9 +115,10 @@ class ProductVariationAdmin(nested.NestedStackedInline):
     view_on_site = False
     fieldsets = (
         (None, {
-            "fields": ["_title", "in_inventory", "weekly_inventory", "default",
+            "fields": ["_title", "in_inventory", "weekly_inventory", "is_frozen", "extra",
                        ("vendor_price", "unit_price", "margin"),
                        "sku",
+                       "default",
                        "image"],
         }),
     )
