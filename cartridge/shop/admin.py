@@ -416,8 +416,7 @@ class OrderAdmin(admin.ModelAdmin):
     class Media:
         css = {"all": (static("cartridge/css/admin/order.css"),)}
 
-    actions = [order_actions.export_as_csv,
-               order_actions.download_invoices, order_actions.create_labels]
+    actions = [order_actions.export_as_csv, order_actions.download_invoices, order_actions.create_labels, order_actions.get_non_substitutable_products]
     ordering = ("status", "-id")
     list_display = order_list_display
     list_editable = ("status",)

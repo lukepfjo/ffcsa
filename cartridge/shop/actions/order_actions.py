@@ -1,11 +1,14 @@
 import csv
 import tempfile
 import zipfile
+from collections import OrderedDict
 from decimal import Decimal
+from itertools import groupby
 
 import labels
 from django import forms
 from django.contrib import admin, messages
+from django.db.models import OuterRef, Subquery, Sum, IntegerField
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from mezzanine.conf import settings
@@ -13,7 +16,7 @@ from reportlab.graphics import shapes
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
 from cartridge.shop.invoice import generate_invoices
-from cartridge.shop.models import Category, Product
+from cartridge.shop.models import Category, Product, OrderItem
 
 TWOPLACES = Decimal(10) ** -2
 
@@ -276,3 +279,22 @@ def download_invoices(self, request, queryset):
 
 
 download_invoices.short_description = "Download Invoices"
+
+
+def get_non_substitutable_products(self, request, queryset):
+    items = OrderItem.objects.filter(order__in=queryset) \
+        .select_related('order') \
+        .order_by('description')
+
+    order_items = OrderedDict()
+    for description, items in groupby(items, key=lambda x: x.description):
+        items = list(items)
+        order_items[description] = {
+            'total': sum(i.quantity for i in items),
+            'total_substitutable': sum(i.quantity for i in items if i.order.allow_substitutions)
+        }
+
+    return TemplateResponse(request, 'admin/non_substitutable_items.html', {'items': order_items})
+
+
+get_non_substitutable_products.short_description = 'View Ordered Items Summary'

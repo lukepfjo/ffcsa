@@ -1,0 +1,40 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n mezzanine_tags staticfiles %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static settings.MEZZANINE_ADMIN_PREFIX|add:"css/dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "mezzanine/css/admin/dashboard.css" %}">
+    <!--[if IE 7]><style>.dashboard #content {padding-top: 80px;}</style><![endif]-->
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">{% trans "Home" %}</div>{% endblock %}
+
+{% block content_title %}<h1>{% trans "Order Item Overview" %}</h1>{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Total Ordered</th>
+                <th>Total Substitutable</th>
+            </tr>
+
+            {% for description, d in items.items %}
+                <tr>
+                    <td>{{ description }}</td>
+                    <td>{{ d.total }}</td>
+                    <td>{{ d.total_substitutable }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+{% endblock %}
+
