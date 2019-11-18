@@ -703,7 +703,7 @@ class OrderAdminForm(forms.ModelForm):
 
 
 class DisplayWidget(Widget):
-    template_name = "forms/widgets/templates/forms/widgets/display.html"
+    template_name = "forms/widgets/display.html"
 
 
 class DisplayField(forms.Field):
