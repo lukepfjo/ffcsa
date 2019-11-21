@@ -5,7 +5,7 @@ from itertools import groupby
 from ffcsa.shop.fields import MoneyField
 from django.conf import settings
 from django.core.mail import EmailMessage
-from django.db.models import Sum, Q, Case, When, IntegerField, Value, Subquery, OuterRef, F
+from django.db.models import Sum, Q, Case, When, IntegerField, Value, Subquery, OuterRef, F, ExpressionWrapper
 from django.template.loader import select_template, get_template
 from weasyprint import HTML
 
@@ -19,8 +19,8 @@ def generate_weekly_order_reports(date):
     qs = OrderItem.objects \
         .filter(order__time__date=date) \
         .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
-        .annotate(total_price=Sum(F('vendor_price') * F('quantity'), output_field=MoneyField()),
-                  quantity=Sum('quantity'))
+        .annotate(vendor_total=Sum(ExpressionWrapper(F('vendor_price') * F('quantity'), output_field=MoneyField()))) \
+        .annotate(quantity=Sum('quantity'))
 
     # zip_files = []
     docs = []
@@ -154,7 +154,7 @@ def generate_ffcsa_inventory_packlist(date, qs):
         "items": items,
         "date": date,
     }
-    html = get_template("shop/reports/templates/shop/reports/ffcsa_inventory_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/ffcsa_inventory_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -176,7 +176,7 @@ def generate_dairy_packlist(date):
         'date': date
     }
 
-    html = get_template("shop/reports/templates/shop/reports/dairy_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/dairy_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -186,7 +186,7 @@ def generate_frozen_items_report(date, qs):
         "items": items,
         "date": date,
     }
-    html = get_template("shop/reports/templates/shop/reports/dff_order_ticket_pdf.html").render(context)
+    html = get_template("shop/reports/dff_order_ticket_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -230,7 +230,7 @@ def generate_frozen_items_packlist(date, qs):
         'date': date
     }
 
-    html = get_template("shop/reports/templates/shop/reports/frozen_item_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/frozen_item_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -250,7 +250,7 @@ def generate_dff_dairy_packlist(date):
         'items': order_items,
         'date': date
     }
-    html = get_template("shop/reports/templates/shop/reports/dff_dairy_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/dff_dairy_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -269,7 +269,7 @@ def generate_woven_roots_dairy_packlist(date):
         'items': order_items,
         'date': date
     }
-    html = get_template("shop/reports/templates/shop/reports/woven_roots_dairy_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/woven_roots_dairy_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -292,7 +292,7 @@ def generate_grain_and_bean_packlist(date):
         'items': order_items,
         'date': date
     }
-    html = get_template("shop/reports/templates/shop/reports/grain_and_bean_packlist_pdf.html").render(context)
+    html = get_template("shop/reports/grain_and_bean_packlist_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -310,7 +310,7 @@ def generate_product_order(date):
         'date': date,
     }
 
-    html = get_template("shop/reports/templates/shop/reports/product_order_list_pdf.html").render(context)
+    html = get_template("shop/reports/product_order_list_pdf.html").render(context)
     return HTML(string=html).render()
 
 
@@ -369,7 +369,7 @@ def generate_market_checklists(date):
             'date': date,
         }
 
-        html = get_template("shop/reports/templates/shop/reports/market_checklist_pdf.html").render(context)
+        html = get_template("shop/reports/market_checklist_pdf.html").render(context)
         checklists.append(HTML(string=html).render())
 
     if len(checklists) > 0:

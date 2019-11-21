@@ -10,7 +10,7 @@ OrderInvoice = namedtuple('OrderInvoice', ['invoice', 'order'])
 
 
 def generate_invoices(orders):
-    from ffcsa.shop.actions import order_sort, keySort
+    from ffcsa.shop.actions.order_actions import order_sort, keySort
     orders = list(orders)
 
     categories = Category.objects.exclude(slug='weekly-box')
@@ -42,6 +42,6 @@ def generate_invoices(orders):
              ("Alt. Phone", order.billing_detail_phone_2)],
         ]
 
-        html = get_template("shop/templates/shop/order_packlist_pdf.html").render(context)
+        html = get_template("shop/order_packlist_pdf.html").render(context)
 
         yield OrderInvoice(HTML(string=html).render(), order)
