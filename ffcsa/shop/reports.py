@@ -19,7 +19,7 @@ def generate_weekly_order_reports(date):
     qs = OrderItem.objects \
         .filter(order__time__date=date) \
         .values('description', 'category', 'vendor', 'vendor_price', 'in_inventory') \
-        .annotate(vendor_total=Sum(ExpressionWrapper(F('vendor_price') * F('quantity'), output_field=MoneyField()))) \
+        .annotate(total_price=Sum(ExpressionWrapper(F('vendor_price') * F('quantity'), output_field=MoneyField()))) \
         .annotate(quantity=Sum('quantity'))
 
     # zip_files = []
@@ -213,8 +213,7 @@ def get_frozen_items(qs):
 
 def generate_frozen_items_packlist(date, qs):
     items = get_frozen_items(
-        qs.values('description', 'category', 'vendor', 'vendor_price', 'in_inventory',
-                  'order__drop_site', 'order__billing_detail_last_name')
+        qs.values('description', 'quantity', 'order__drop_site', 'order__billing_detail_last_name')
     ).order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
 
     order_items = OrderedDict()

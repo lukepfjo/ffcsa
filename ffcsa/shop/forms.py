@@ -24,11 +24,11 @@ from mezzanine.pages.admin import PageAdminForm
 
 from ffcsa.shop import checkout
 from ffcsa.shop.models import (Cart, CartItem, DiscountCode, Order,
-                                   Product, ProductVariation, Vendor)
+                               Product, ProductVariation, Vendor)
 from ffcsa.shop.models.Cart import update_cart_items
 from ffcsa.shop.models.Vendor import VendorCartItem
 from ffcsa.shop.utils import (clear_session, make_choices, set_locale,
-                                  set_shipping)
+                              set_shipping)
 
 User = get_user_model()
 
@@ -744,6 +744,8 @@ class ProductChangelistForm(forms.ModelForm):
                         self.initial[field] = '-'
             elif self.instance.variations.count() == 1:
                 variation = self.instance.variations.first()
+                self.initial['num_in_stock'] = variation.number_in_stock
+
                 # If a variations has more then 1 vendor, we can't allow editing via this form
                 if variation.vendors.count() > 1:
                     # don't need to set actual_value b/c vendor is a calculated attribute
