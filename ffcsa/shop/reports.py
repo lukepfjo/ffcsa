@@ -132,7 +132,7 @@ def get_vendor_orders(date, qs):
 
         # generate a pickup list
         html = select_template([
-            "shop/reports/{}_vendor_pickup_list_pdf.html".format(vendor_title.lower()),
+            "shop/reports/{}_vendor_pickup_list_pdf.html".format(vendor_title.replace(' ', '_').lower()),
             "shop/reports/vendor_pickup_list_pdf.html"
         ]).render(context)
         pickuplist = HTML(string=html).render()

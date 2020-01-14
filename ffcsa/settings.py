@@ -10,13 +10,14 @@ from django.utils.translation import ugettext_lazy as _
 ##############################
 DAIRY_CATEGORY = 'dairy'
 FROZEN_PRODUCT_CATEGORIES = ['pasture raised meats']
+FROZEN_ITEM_PACKLIST_EXCLUDED_CATEGORIES = ['nuts & honey']
 GRAIN_BEANS_CATEGORIES = ['grains & beans']
 PRODUCT_ORDER_CATEGORIES = ['vegetables', 'eggs', 'fruit', 'eggs', 'mushroom']
 MARKET_CHECKLISTS = ['LCFM', 'Hollywood', 'PSU', 'St Johns', 'Woodstock']
 MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
     # checklist columns -> (category list, additional kwargs, default)
     # if default is None, then we will sum the number of items
-    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {}, 1)),
+    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {'is_frozen': False}, 1)),
     ('Meat', (['meat', 'butter'], {'is_frozen': True}, 1)),
     ('Dairy', (['dairy'], {}, None)),
     ('Flowers', (['flowers'], {}, None)),
@@ -27,8 +28,10 @@ SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
+    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
+    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
@@ -38,8 +41,10 @@ DROP_SITE_CHOICES = (
 
 DROP_SITE_COLORS = {
     'Farm': 'pink',
-    'Corner Market': 'white',
-    'LCFM': 'blue',
+    # 'Corner Market': 'white',
+    # 'LCFM': 'blue',
+    '19th St': 'blue',
+    'Roosevelt': 'white',
     'Hollywood': 'yellow',
     'PSU': 'green',
     'St Johns': 'purple',
@@ -47,7 +52,7 @@ DROP_SITE_COLORS = {
     'Banzhaf': 'orange',
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Corner Market', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
 
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
