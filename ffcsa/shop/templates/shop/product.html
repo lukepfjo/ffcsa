@@ -95,11 +95,21 @@
                     {% if not variation.default %}style="display:none;"{% endif %}>
                     <p class="mb-2">Producer: {{ variation.vendors.first }}</p>
                     {% if variation.has_price %}
-                        {% if variation.on_sale %}
+                        {% if request.user.profile.is_member %}
                             <span class="old-price">{{ variation.unit_price|currency }}</span>
-                            {% trans "On sale:" %}
+                            {% if variation.on_sale %}
+                                {% trans "On sale:" %}
+                            {% else %}
+                                {% trans "Member price:" %}
+                            {% endif %}
+                            <span class="price">{{ variation.member_price|currency }}</span>
+                        {% else %}
+                            {% if variation.on_sale %}
+                                <span class="old-price">{{ variation.unit_price|currency }}</span>
+                                {% trans "On sale:" %}
+                            {% endif %}
+                            <span class="price">{{ variation.price|currency }}</span>
                         {% endif %}
-                        <span class="price">{{ variation.price|currency }} value</span>
                     {% endif %}
                     {% if variation.has_stock and variation.live_num_in_stock is not None %}
                         <div style="margin-top: 10px; font-weight: 700">{{ variation.live_num_in_stock }} available
@@ -111,21 +121,17 @@
             {% endfor %}
         </ul>
 
-        {% if request.user.is_authenticated %}
-                {% errors_for add_product_form %}
+        {% errors_for add_product_form %}
+        <form method="post" id="add-cart" class="shop-form">
+            {% fields_for add_product_form %}
+            <div class="form-actions">
+                {% if can_order_dairy or not product.is_dairy %}
+                <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
+                       value="{% trans "Add to Order" %}">
+                {% endif %}
+            </div>
+        </form>
 
-            <form method="post" id="add-cart" class="shop-form">
-                {% fields_for add_product_form %}
-                <div class="form-actions">
-                    {% if can_order_dairy or not product.is_dairy %}
-                    <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
-                           value="{% trans "Add to Order" %}">
-                    {% endif %}
-                </div>
-            </form>
-        {% else %}
-            <p class="error-msg">{% trans "Log In to place an order." %}</p>
-        {% endif %}
     {% else %}
         <p class="error-msg">{% trans "This product is currently unavailable." %}</p>
     {% endif %}
@@ -149,11 +155,21 @@
                             <h6>{{ product }}</h6>
                             <div class="price-info">
                                 {% if product.has_price %}
-                                    {% if product.on_sale %}
-                                        <span class="old-price">{{ product.unit_price|currency }}</span>
-                                        {% trans "On sale:" %}
+                                    {% if request.user.profile.is_member %}
+                                        <span class="old-price">{{ variation.unit_price|currency }}</span>
+                                        {% if variation.on_sale %}
+                                            {% trans "On sale:" %}
+                                        {% else %}
+                                            {% trans "Member price:" %}
+                                        {% endif %}
+                                        <span class="price">{{ variation.member_price|currency }}</span>
+                                    {% else %}
+                                        {% if variation.on_sale %}
+                                            <span class="old-price">{{ variation.unit_price|currency }}</span>
+                                            {% trans "On sale:" %}
+                                        {% endif %}
+                                        <span class="price">{{ variation.price|currency }}</span>
                                     {% endif %}
-                                    <span class="price">{{ product.price|currency }}</span>
                                 {% else %}
                                     <span class="coming-soon">{% trans "Coming soon" %}</span>
                                 {% endif %}

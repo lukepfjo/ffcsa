@@ -54,6 +54,23 @@ DROP_SITE_COLORS = {
 
 DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
 
+# SETTINGS FOR ONE-TIME ORDERS
+MEMBER_ONE_TIME_ORDER_DISCOUNT = .05  # Percentage expressed as a decimal
+MINIMUM_ONE_TIME_ORDER_AMOUNT = 100  # Amount in dollars
+
+ONE_TIME_ORDER_DROP_SITE_CHOICES = (
+    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
+    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
+    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
+    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
+    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
+    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
+    ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
+)
+
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",

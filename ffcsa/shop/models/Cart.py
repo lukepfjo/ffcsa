@@ -16,7 +16,6 @@ from ffcsa.core.models import Payment
 class Cart(models.Model):
     last_updated = models.DateTimeField(_("Last updated"), null=True)
 
-    # TODO change to fk?
     user_id = models.IntegerField(blank=False, null=False, unique=True)
     attending_dinner = models.IntegerField(blank=False, null=False, default=0)
 
@@ -35,8 +34,7 @@ class Cart(models.Model):
         """
         Increase quantity of existing item if variation matches, otherwise create new.
         """
-        if not self.user_id:
-            raise Exception("You must be logged in to add products to your cart")
+
         if not self.pk:
             self.save()
         item, created = self.items.get_or_create(variation=variation)
@@ -51,10 +49,23 @@ class Cart(models.Model):
         self.items.all().delete()
 
     def over_budget(self, additional_total=0):
+        # User is not logged in
+        if self.user_id is None:
+            return False
+
+        # User is not a subscribing member
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+        if not user.profile.is_subscribing_member:
+            return False
+
         return self.remaining_budget() < additional_total
 
+    def under_one_time_order_minimum(self):
+        return self.total_price_after_discount() < settings.MINIMUM_ONE_TIME_ORDER_AMOUNT
+
     def remaining_budget(self):
-        if not self.user_id:
+        if self.user_id is None:
             return 0
 
         User = get_user_model()
@@ -66,16 +77,18 @@ class Cart(models.Model):
         return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
 
     def discount(self):
-        if not self.user_id:
+        # This will have to be changed to allow for public discount codes
+        if self.user_id is None:
             return 0
 
         User = get_user_model()
         user = User.objects.get(pk=self.user_id)
 
-        if not user or not user.profile.discount_code:
+        # Not logged in, or is a non-member without a discount code
+        if not user or (not user.profile.is_member and not user.profile.discount_code):
             return 0
 
-        return self.calculate_discount(user.profile.discount_code)
+        return self.calculate_discount(user.profile.discount_code, has_member_discount=user.profile.is_member)
 
     def total_price_after_discount(self):
         return self.total_price() - self.discount()
@@ -118,25 +131,42 @@ class Cart(models.Model):
         with_cart_excluded = for_cart.exclude(variations__sku__in=self.skus())
         return list(with_cart_excluded.distinct())
 
-    def calculate_discount(self, discount):
+    def calculate_discount(self, discount, has_member_discount=False):
         """
         Calculates the discount based on the items in a cart, some
         might have the discount, others might not.
         """
+
         from ffcsa.shop.models import ProductVariation
+
+        total = Decimal("0")
+
+        # Apply universal discount for members
+        if has_member_discount:
+            member_discount = Decimal(settings.MEMBER_ONE_TIME_ORDER_DISCOUNT)
+            for item in self:
+                total += (item.unit_price * member_discount) * item.quantity
+
+        # Exclusively applying either universal member discount or no discount
+        if discount is None:
+            return total
+
         # Discount applies to cart total if not product specific.
         products = discount.all_products()
         if products.count() == 0:
-            return discount.calculate(self.total_price())
-        total = Decimal("0")
+            return discount.calculate(self.total_price() - total)  # - total to account for discount
+
         # Create a list of skus in the cart that are applicable to
         # the discount, and total the discount for appllicable items.
         lookup = {"product__in": products, "sku__in": self.skus()}
         discount_variations = ProductVariation.objects.filter(**lookup)
         discount_skus = discount_variations.values_list("sku", flat=True)
+
         for item in self:
             if item.sku in discount_skus:
-                total += discount.calculate(item.unit_price) * item.quantity
+                relevant_discount = item.member_unit_price if has_member_discount else item.unit_price
+                total += discount.calculate(relevant_discount) * item.quantity
+
         return total
 
 
@@ -160,6 +190,7 @@ class CartItem(models.Model):
 
     @property
     def unit_price(self):
+        # TODO :: Does this need to account for membership discounts?
         return self.variation.price()
 
     @property

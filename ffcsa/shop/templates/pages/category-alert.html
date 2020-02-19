@@ -1,15 +1,17 @@
-{% if not request.user.is_authenticated %}
-    <div class="alert alert-warning non-field-error">FFCSA members please sign in to make your order</div>
-{% else %}
-    <div class="alert alert-warning non-field-error"><strong>Please place order between Monday 6PM and Wednesday
-        Midnight.</strong>
-        <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
-        type and value. Supporting small farms means you get to experience seasonal variations!
-    </div>
-    {% include 'pages/dairy-product-alert.html' %}
-    <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
-        Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
-                                                              href="{% url "profile_update" %}">(Update)</a>
-    </div>
+{% if request.cart.under_one_time_order_minimum and not request.user.profile.is_subscribing_member %}
+    <div class="alert alert-warning non-field-error">You are under the minimum order amount for a one-time order</div>
 {% endif %}
+
+<div class="alert alert-warning non-field-error"><strong>Please place order between Monday 6PM and Wednesday
+    Midnight.</strong>
+    <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
+    type and value. Supporting small farms means you get to experience seasonal variations!
+</div>
+
+{# TODO :: Modify this for users that are not logged in #}
+{% include 'pages/dairy-product-alert.html' %}
+<div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
+    Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
+                                                          href="{% url "profile_update" %}">(Update)</a>
+</div>
 

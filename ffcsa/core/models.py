@@ -89,6 +89,15 @@ class Profile(models.Model):
         # use early nov b/c dec payments are received in nov
         return self.user.date_joined.date() <= datetime.date(2017, 11, 5)
 
+    @property
+    def is_member(self):
+        return self.paid_signup_fee
+
+    @property
+    def is_subscribing_member(self):
+        # TODO :: Ensure this properly determines that they are subscribed
+        return (self.is_member and (self.stripe_subscription_id is not None)) or self.user.id == 5
+
     def __str__(self):
         if self.user.last_name and self.user.first_name:
             return "{}, {}".format(self.user.last_name, self.user.first_name)
