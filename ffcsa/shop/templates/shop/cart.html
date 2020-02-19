@@ -1,12 +1,12 @@
 {% extends "shop/base.html" %}
 {% load mezzanine_tags shop_tags i18n %}
 
-{% block meta_title %}{% trans "Weekly Order" %}{% endblock %}
+{% block meta_title %}{% trans request.user.profile.is_subscribing_member|yesno:"Weekly Order,Order" %}{% endblock %}
 
 {% block title %}
     {% nevercache %}
         {% load ffcsa_core_tags %}
-        {% pickup_date_text %}
+        {% pickup_date_text is_subscriber=request.user.profile.is_subscribing_member %}
     {% endnevercache %}
 {% endblock %}
 
@@ -14,7 +14,7 @@
 
 {% block breadcrumb_menu %}
     {{ block.super }}
-    <li>{% trans "Weekly Order" %}</li>
+    <li>{% trans request.user.profile.is_subscribing_member|yesno:"Weekly Order,Order" %}</li>
 {% endblock %}
 
 {% block topbar %}
@@ -94,7 +94,7 @@
 
             <div class="form-actions">
                 <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                       value="{% trans "Update Weekly Order" %}"/>
+                       value="{% trans request.user.profile.is_subscribing_member|yesno:'Update Weekly Order,Update Order' %}"/>
                 <input type="button" name="clear_cart" class="btn btn-primary btn-lg"
                        value="{% trans "Clear Cart" %}"/>
             </div>
