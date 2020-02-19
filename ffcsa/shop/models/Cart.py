@@ -16,7 +16,7 @@ from ffcsa.core.models import Payment
 class Cart(models.Model):
     last_updated = models.DateTimeField(_("Last updated"), null=True)
 
-    user_id = models.IntegerField(blank=False, null=False, unique=True)
+    user_id = models.IntegerField(null=True)
     attending_dinner = models.IntegerField(blank=False, null=False, default=0)
 
     objects = managers.PersistentCartManager()
