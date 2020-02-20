@@ -380,7 +380,6 @@ class PersistentCartManager(CartManager):
         """
 
         user_id = request.user.id
-        # TODO :: This is NOT secure
         session_id = request.COOKIES.get('sessionid', None)
         cart_query = None
 
