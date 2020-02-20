@@ -378,13 +378,21 @@ class PersistentCartManager(CartManager):
         value and removing old carts. A new cart will be created(but not
         persisted in the database) if the session cart is expired or missing.
         """
+
         user_id = request.user.id
-        cart_query = self.current().filter(user_id=user_id)
+        # TODO :: This is NOT secure
+        session_id = request.COOKIES.get('sessionid', None)
+        cart_query = None
+
+        if user_id is not None:
+            cart_query = self.current().filter(user_id=user_id)
+        elif session_id is not None:
+            cart_query = self.current().filter(session_id=session_id)
+
         cart_id = request.session.get("cart", None)
+        cart = None if cart_query is None else cart_query.first()
 
         last_updated = now()
-        cart = cart_query.first()
-
         # Update timestamp and clear out old carts and put the cart_id in the session
         if cart and cart_query.update(last_updated=last_updated):
             self.expired().delete()
@@ -404,4 +412,4 @@ class PersistentCartManager(CartManager):
         if cart:
             return cart
         else:
-            return self.model(id=cart_id, last_updated=last_updated, user_id=user_id)
+            return self.model(id=cart_id, last_updated=last_updated, user_id=user_id, session_id=session_id)

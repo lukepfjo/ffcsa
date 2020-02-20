@@ -17,6 +17,7 @@ class Cart(models.Model):
     last_updated = models.DateTimeField(_("Last updated"), null=True)
 
     user_id = models.IntegerField(null=True)
+    session_id = models.CharField(null=True, max_length=40)
     attending_dinner = models.IntegerField(blank=False, null=False, default=0)
 
     objects = managers.PersistentCartManager()
@@ -77,7 +78,7 @@ class Cart(models.Model):
         return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
 
     def discount(self):
-        # This will have to be changed to allow for public discount codes
+        # TODO :: This will have to be changed to allow for public discount codes
         if self.user_id is None:
             return 0
 

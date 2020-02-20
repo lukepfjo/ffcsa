@@ -5,11 +5,9 @@
             <table class="table table-condensed table-striped">
                 <thead>
                     <tr>
-                        {% if request.user.is_authenticated and request.user.profile.is_subscribing_member %}
-                            <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Weekly Order</a></th>
-                        {% else %}
-                            <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Order</a></th>
-                        {% endif %}
+                        {% with is_subscriber=request.user.profile.is_subscribing_member %}
+                            <th class="text-center" colspan="2"><a href="{% url 'shop_cart' %}">Edit {{is_subscriber|yesno:"Weekly ," }}Order</a></th>
+                        {% endwith %}
                     </tr>
                 </thead>
                 <tbody>
@@ -38,7 +36,7 @@
                             </tr>
                         {% endif %}
 
-                        {% if request.user.is_authenticated and request.user.profile.is_subscribing_member %}
+                        {% if request.user.profile.is_subscribing_member %}
                             <tr>
                                 <td><strong>Remaining Budget:</strong> ${{ budget }}</td>
                             </tr>
@@ -49,10 +47,10 @@
             </table>
 
             {% if request.user.is_authenticated %}
-                <a href="{% url "shop_order_history" %}" class="btn btn-sm btn-block btn-info btn-account">
+                <a href="{% url 'shop_order_history' %}" class="btn btn-sm btn-block btn-info btn-account">
                     <span class="glyphicon glyphicon-folder-open"></span> {% trans "View Order History" %}</a>
 
-                <a href="{% url "payments" %}" class="btn btn-sm btn-block btn-info btn-account">
+                <a href="{% url 'payments' %}" class="btn btn-sm btn-block btn-info btn-account">
                     <span class="glyphicon glyphicon-folder-open"></span> {% trans "Manage Payments " %}</a>
             {% endif %}
 
@@ -70,7 +68,7 @@
                         <h4 class="modal-title">Feed A Friend</h4>
                     </div>
                     <div class="modal-body">
-                        {% if request.user.is_authenticated and request.user.profile.is_subscribing_member %}
+                        {% if request.user.profile.is_subscribing_member %}
                             <p>If you have extra budget in you account this month, you can consider donating to the
                                 Feed-A-Friend FFCSA fund, which makes it possible for families in need to be able to afford
                                 membership in the FFCSA.</p>
