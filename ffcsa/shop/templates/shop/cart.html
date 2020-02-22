@@ -1,12 +1,14 @@
 {% extends "shop/base.html" %}
-{% load mezzanine_tags shop_tags i18n %}
+{% load mezzanine_tags shop_tags ffcsa_util_tags i18n %}
 
-{% block meta_title %}{% trans request.user.profile.is_subscribing_member|yesno:"Weekly Order,Order" %}{% endblock %}
+{% nevercache %}
+    {% block meta_title %}{% cond_trans request.user.profile.is_subscribing_member "Weekly Order" "Order" %}{% endblock %}
+{% endnevercache %}
 
 {% block title %}
     {% nevercache %}
         {% load ffcsa_core_tags %}
-        {% pickup_date_text is_subscriber=request.user.profile.is_subscribing_member %}
+        {% pickup_date_text request.user.profile.is_subscribing_member %}
     {% endnevercache %}
 {% endblock %}
 
@@ -14,7 +16,7 @@
 
 {% block breadcrumb_menu %}
     {{ block.super }}
-    <li>{% trans request.user.profile.is_subscribing_member|yesno:"Weekly Order,Order" %}</li>
+    <li>{% nevercache %}{% cond_trans request.user.profile.is_subscribing_member "Weekly Order" "Order" %}{% endnevercache %}</li>
 {% endblock %}
 
 {% block topbar %}
@@ -28,6 +30,8 @@
 {% endblock %}
 
 {% block main %}
+    <h2>{{ is_subscriber }}</h2>
+
     {% if cart_formset.errors %}
         {% for error in cart_formset.errors %}
             {% if error and not error.values.0 %}
@@ -94,16 +98,16 @@
 
             <div class="form-actions">
                 <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
-                       value="{% trans request.user.profile.is_subscribing_member|yesno:'Update Weekly Order,Update Order' %}"/>
+                       value="{% cond_trans request.user.profile.is_subscribing_member 'Update Weekly Order' 'Update Order' %}"/>
                 <input type="button" name="clear_cart" class="btn btn-primary btn-lg"
-                       value="{% trans "Clear Cart" %}"/>
+                       value="{% trans 'Clear Cart' %}"/>
             </div>
         </form>
 
 {#        {% if discount_form %}#}
 {#            <form method="post" class="discount-form col-md-12 text-right">#}
 {#                {% fields_for discount_form %}#}
-{#                <input type="submit" class="btn btn-default" value="{% trans "Apply" %}">#}
+{#                <input type="submit" class="btn btn-default" value="{% trans 'Apply' %}">#}
 {#            </form>#}
 {#        {% endif %}#}
 
@@ -155,4 +159,5 @@
         })
       })()
     </script>
+
 {% endblock %}

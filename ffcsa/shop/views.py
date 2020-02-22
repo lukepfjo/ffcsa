@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.messages import info
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
@@ -147,9 +147,11 @@ def cart(request, template="shop/cart.html",
     """
     Display cart and handle removing items from the cart.
     """
+
     cart_formset = cart_formset_class(instance=request.cart)
     discount_form = discount_form_class(request, request.POST or None)
     cart_dinner_form = CartDinnerForm(request, request.POST or None)
+
     if request.method == "POST":
         valid = True
         if request.POST.get("update_cart"):
@@ -200,6 +202,7 @@ def cart(request, template="shop/cart.html",
     if (settings.SHOP_DISCOUNT_FIELD_IN_CART and
             DiscountCode.objects.active().exists()):
         context["discount_form"] = discount_form
+
     return TemplateResponse(request, template, context)
 
 
@@ -439,3 +442,11 @@ def invoice_resend_email(request, order_id):
         else:
             redirect_to = reverse("shop_order_history")
     return redirect(redirect_to)
+
+
+@never_cache
+def csrf_failure(request, reason=""):
+    prev_url = request.META.get('HTTP_REFERER', '/shop')
+    reasons = {'CSRF cookie not set.': 'Cookies must be enabled to use this site.'}
+    default = 'Security Error: Your CSRF token failed to validate. Please try again.'
+    return HttpResponseForbidden(_(reasons.get(reason, default)) + '<br/><a href="{}">Back</a>'.format(prev_url))

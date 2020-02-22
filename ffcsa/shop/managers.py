@@ -380,13 +380,18 @@ class PersistentCartManager(CartManager):
         """
 
         user_id = request.user.id
-        session_id = request.COOKIES.get('sessionid', None)
+        session_id = request.session.get(settings.SESSION_COOKIE_NAME, None)
         cart_query = None
 
         if user_id is not None:
             cart_query = self.current().filter(user_id=user_id)
         elif session_id is not None:
             cart_query = self.current().filter(session_id=session_id)
+        else:
+            # Anonymous user does not have a session; create a new one
+            request.session.create()
+            session_id = request.session.session_key
+            request.session[settings.SESSION_COOKIE_NAME] = session_id
 
         cart_id = request.session.get("cart", None)
         cart = None if cart_query is None else cart_query.first()

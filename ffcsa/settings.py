@@ -321,11 +321,16 @@ DEBUG = False
 # Whether a user's session cookie expires when the Web browser is closed.
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# The age of session cookies, in seconds.
-# SESSION_COOKIE_AGE = 2419200
+# Session cookies are used for anonymous users
+# SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
+# SESSION_COOKIE_NAME = 'MnlYRc'
+SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
+SESSION_COOKIE_SECURE = True    # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
 
-# Prevent access to cookies from JavaScript.
-SESSION_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_NAME = 'osQiXg'
+CSRF_COOKIE_SECURE = True  # Prevent cookies from being sent over HTTP; only HTTPS
+CSRF_FAILURE_VIEW = 'ffcsa.shop.views.csrf_failure'
 
 SITE_ID = 1
 
