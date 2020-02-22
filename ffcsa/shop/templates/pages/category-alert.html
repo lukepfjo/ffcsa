@@ -1,4 +1,4 @@
-{% if request.cart.under_one_time_order_minimum and not request.user.profile.is_subscribing_member %}
+{% if request.cart.under_one_time_order_minimum %}
     <div class="alert alert-warning non-field-error">You are under the minimum order amount for a one-time order</div>
 {% endif %}
 
@@ -8,10 +8,12 @@
     type and value. Supporting small farms means you get to experience seasonal variations!
 </div>
 
-{# TODO :: Modify this for users that are not logged in #}
+{# TODO :: Modify dairy page for non-subscribing members and guests? #}
 {% include 'pages/dairy-product-alert.html' %}
-<div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
-    Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
-                                                          href="{% url 'profile_update' %}">(Update)</a>
-</div>
 
+{% if request.user.is_subscribing_member %}
+    <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
+        Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
+                                                              href="{% url 'profile_update' %}">(Update)</a>
+    </div>
+{% endif %}

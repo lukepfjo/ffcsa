@@ -55,6 +55,13 @@
 
         <button id="donate-button" class="btn btn-sm btn-block btn-info btn-account">
             <span class="glyphicon glyphicon-heart"></span> {% trans "Feed A Friend" %}</button>
+
+        {% if not request.user.profile.is_subscribing_member %}
+            {% with under_minimum=request.cart.under_one_time_order_minimum %}
+                <a href="{% url 'shop_checkout' %}" class="btn btn-sm btn-block btn-info btn-account {% if under_minimum %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-shopping-cart"></span> {% trans "Checkout" %}</a>
+            {% endwith %}
+        {% endif %}
     </div>
 
     <!-- Feed A Friend Modal -->

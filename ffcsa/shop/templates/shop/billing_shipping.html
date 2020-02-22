@@ -4,6 +4,9 @@
 {% block extra_head %}
 {{ block.super }}
 <script src="{% static "shop/js/shipping_fields.js" %}"></script>
+{% if not request.user.is_authenticated %}
+    <style>.form-group.input_id_remember { display: none; }</style>
+{% endif %}
 {% endblock %}
 
 {% block fields %}

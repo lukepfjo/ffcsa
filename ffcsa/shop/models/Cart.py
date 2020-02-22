@@ -63,7 +63,20 @@ class Cart(models.Model):
         return self.remaining_budget() < additional_total
 
     def under_one_time_order_minimum(self):
-        return self.total_price_after_discount() < settings.MINIMUM_ONE_TIME_ORDER_AMOUNT
+        is_under = self.total_price_after_discount() < settings.MINIMUM_ONE_TIME_ORDER_AMOUNT
+
+        # User is not logged in
+        if self.user_id is None:
+            return is_under
+
+        # User is not a subscribing member
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+        if not user.profile.is_subscribing_member:
+            return is_under
+
+        # User is a subscribing member; thus, they are never under the limit
+        return False
 
     def remaining_budget(self):
         if self.user_id is None:
