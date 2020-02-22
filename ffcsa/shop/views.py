@@ -446,7 +446,7 @@ def invoice_resend_email(request, order_id):
 
 @never_cache
 def csrf_failure(request, reason=""):
-    prev_url = request.META.get('HTTP_REFERER', '/shop')
+    prev_url = request.META.get('HTTP_REFERER', '/')
     reasons = {'CSRF cookie not set.': 'Cookies must be enabled to use this site.'}
     default = 'Security Error: Your CSRF token failed to validate. Please try again.'
     return HttpResponseForbidden(_(reasons.get(reason, default)) + '<br/><a href="{}">Back</a>'.format(prev_url))
