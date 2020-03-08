@@ -275,6 +275,7 @@ def checkout_steps(request, form_class=OrderForm, extra_context=None):
             except checkout.CheckoutError as e:
                 checkout_errors.append(e)
 
+            # TODO :: Modify this to use scheduled ordering
             # FINAL CHECKOUT STEP - run payment handler and process order.
             if step == checkout.CHECKOUT_STEP_LAST and not checkout_errors:
                 # Create and save the initial order object so that

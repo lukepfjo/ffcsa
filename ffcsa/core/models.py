@@ -95,7 +95,6 @@ class Profile(models.Model):
 
     @property
     def is_subscribing_member(self):
-        # TODO :: Ensure this properly determines that they are subscribed
         return (self.is_member and (self.stripe_subscription_id is not None)) or self.user.id == 5
 
     def __str__(self):
