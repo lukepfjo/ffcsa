@@ -28,10 +28,10 @@ SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
+    # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
     ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
     # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
@@ -42,8 +42,8 @@ DROP_SITE_CHOICES = (
 DROP_SITE_COLORS = {
     'Farm': 'pink',
     # 'Corner Market': 'white',
-    # 'LCFM': 'blue',
-    '19th St': 'blue',
+    'LCFM': 'blue',
+    # '19th St': 'blue',
     'Roosevelt': 'white',
     'Hollywood': 'yellow',
     'PSU': 'green',
