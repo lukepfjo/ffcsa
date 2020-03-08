@@ -8,7 +8,7 @@ from django.utils.html import escape
 
 _API_KEY = settings.SENDINBLUE_API_KEY
 if _API_KEY is None:
-    raise Exception('SEND_IN_BLUE_API_KEY is not defined in local_settings.py')
+    raise Exception('SENDINBLUE_API_KEY is not defined in local_settings.py')
 
 _DEFAULT_HEADERS = {
     'content-type': 'application/json',
