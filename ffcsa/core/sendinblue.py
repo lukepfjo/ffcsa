@@ -32,10 +32,11 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
 
     endpoint = _BASE_ENDPOINT + endpoint.lstrip('/')
+    data = json.dumps(data) if data is not None else None
     headers = {} if headers is None else headers
     headers.update(_DEFAULT_HEADERS)
 
-    response = requests.request(method, endpoint, headers=headers, data=json.dumps(data), params=query)
+    response = requests.request(method, endpoint, headers=headers, data=data, params=query)
 
     if response.status_code >= 400:
         if response.status_code < 500:
