@@ -2,7 +2,12 @@ import json
 
 import requests
 
-from django.conf import settings
+if __name__ == '__main__':
+    from ffcsa.ffcsa import settings
+    print('sendinblue.py :: loading settings.py directly')
+else:
+    from django.conf import settings
+
 from django.utils.html import escape
 
 
@@ -11,6 +16,7 @@ if _API_KEY is None:
     raise Exception('SENDINBLUE_API_KEY is not defined in local_settings.py')
 
 _DEFAULT_HEADERS = {
+    'accept': 'application/json',
     'content-type': 'application/json',
     'api-key': _API_KEY
 }
@@ -53,13 +59,31 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
         return response.text
 
 
-def _populate_dropsite_lists():
-    response = send_request('contacts/lists')
-    return {_list['name'].replace('Dropsite - ', ''): _list['id']
-            for _list in response['lists']
-            if _list['name'].startswith('Dropsite')}
+def _initialize_drop_site_lists():
+    # Create a dictionary of {drop_site_name: id} of the SIB drop site mailing lists
+    # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
-_DROPSITE_LISTS = _populate_dropsite_lists()
+    existing_lists = send_request('contacts/lists')
+    drop_site_ids = {_list['name'].replace('Dropsite - ', ''): _list['id']
+                     for _list in existing_lists['lists']
+                     if _list['name'].startswith('Dropsite')}
+
+    # Get the names of the drop_sites from settings.py and diff them with the folders on SIB
+    missing_on_sib = [d[0] for d in settings.DROP_SITE_CHOICES if d[0] not in drop_site_ids.keys()]
+
+    if len(missing_on_sib) > 0:
+        folders = send_request('contacts/folders')['folders']
+        drop_site_folder = [f['id'] for f in folders if f['name'] == settings.SENDINBLUE_DROP_SITE_FOLDER][0]
+
+        for missing_drop_site in missing_on_sib:
+            list_name = 'Dropsite - {}'.format(missing_drop_site)
+            response = send_request('contacts/lists', method='POST',
+                                    data={'name': list_name, 'folderId': drop_site_folder})
+            drop_site_ids[missing_drop_site] = response['id']
+
+    return drop_site_ids
+
+_DROP_SITE_IDS = _initialize_drop_site_lists()
 
 
 def _format_phone_number(phone_number):
@@ -80,23 +104,23 @@ def _format_phone_number(phone_number):
         return '+' + phone_number
 
 
-def add_new_user(email, firstname, lastname, dropsite, sms=None):
+def add_new_user(email, first_name, last_name, drop_site, sms=None):
     """
-    Add a new user to SIB. Adds user to the Weekly Newsletter, Weekly Reminder, Members, and provided dropsite list.
+    Add a new user to SIB. Adds user to the Weekly Newsletter, Weekly Reminder, Members, and provided drop site list
 
     @param email: Email of user to be added
-    @param firstname: User's first name
-    @param lastname: User's last name
-    @param dropsite: Dropsite name, ex: 'Hollywood'
+    @param first_name: User's first name
+    @param last_name: User's last name
+    @param drop_site: Drop site name, ex: 'Hollywood'
     @param sms: User's cellphone number, not required
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
 
-    dropsite = dropsite.capitalize()
-    dropsite_list_id = _DROPSITE_LISTS.get(dropsite, None)
-    if dropsite_list_id is None:
-        raise Exception('Sendinblue error: Dropsite list "Dropsite - {}" does not exist'.format(dropsite))
+    if drop_site not in (_[0] for _ in settings.DROP_SITE_CHOICES):
+        return False, 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+
+    drop_site_list_id = _DROP_SITE_IDS[drop_site]
 
     sms = _format_phone_number(sms) if sms is not None else None
     if sms is False:
@@ -106,11 +130,11 @@ def add_new_user(email, firstname, lastname, dropsite, sms=None):
         'updateEnabled': False,
         'email': email,
         'attributes': {
-            'FIRSTNAME': firstname,
-            'LASTNAME': lastname,
+            'FIRSTNAME': first_name,
+            'LASTNAME': last_name,
         },
         'listIds': [
-            dropsite_list_id,
+            drop_site_list_id,
             settings.SENDINBLUE_LISTS['WEEKLY_NEWSLETTER'],
             settings.SENDINBLUE_LISTS['WEEKLY_REMINDER'],
             settings.SENDINBLUE_LISTS['MEMBERS']

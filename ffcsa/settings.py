@@ -70,6 +70,7 @@ SENDINBLUE_LISTS = {
     'MEMBERS': '7',
     'FORMER_MEMBERS': '11'
 }
+SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 
 # Rollbar settings
