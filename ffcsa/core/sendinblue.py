@@ -1,4 +1,5 @@
 import json
+import logging
 
 import requests
 
@@ -8,8 +9,8 @@ if __name__ == '__main__':
 else:
     from django.conf import settings
 
-from django.utils.html import escape
 
+logger = logging.getLogger(__name__)
 
 _API_KEY = settings.SENDINBLUE_API_KEY
 if _API_KEY is None:
@@ -77,6 +78,7 @@ def _initialize_drop_site_lists():
 
         for missing_drop_site in missing_on_sib:
             list_name = 'Dropsite - {}'.format(missing_drop_site)
+            logger.info('Drop site list "{}" is missing on Sendinblue; creating...'.format(list_name))
             response = send_request('contacts/lists', method='POST',
                                     data={'name': list_name, 'folderId': drop_site_folder})
             drop_site_ids[missing_drop_site] = response['id']
@@ -124,7 +126,7 @@ def add_new_user(email, first_name, last_name, drop_site, sms=None):
 
     sms = _format_phone_number(sms) if sms is not None else None
     if sms is False:
-        return False, '{} is an invalid phone number'.format(escape(sms))
+        return False, 'Invalid phone number'
 
     body = {
         'updateEnabled': False,
