@@ -1,6 +1,8 @@
 import json
 import logging
 
+from urllib.parse import quote as make_url_safe
+
 import requests
 
 if __name__ == '__main__':
@@ -65,7 +67,7 @@ def _initialize_drop_site_lists():
     # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
     existing_lists = send_request('contacts/lists')
-    drop_site_ids = {_list['name'].replace('Dropsite - ', ''): _list['id']
+    drop_site_ids = {_list['name'].replace('Dropsite - ', ''): int(_list['id'])
                      for _list in existing_lists['lists']
                      if _list['name'].startswith('Dropsite')}
 
@@ -81,7 +83,7 @@ def _initialize_drop_site_lists():
             logger.info('Drop site list "{}" is missing on Sendinblue; creating...'.format(list_name))
             response = send_request('contacts/lists', method='POST',
                                     data={'name': list_name, 'folderId': drop_site_folder})
-            drop_site_ids[missing_drop_site] = response['id']
+            drop_site_ids[missing_drop_site] = int(response['id'])
 
     return drop_site_ids
 
@@ -106,7 +108,37 @@ def _format_phone_number(phone_number):
         return '+' + phone_number
 
 
-def add_new_user(email, first_name, last_name, drop_site, sms=None):
+def get_user(email=None, phone_number=None):
+    """
+    Returns user data from SIB; either email or phone_number must be provided
+
+    @param email: User's email
+    @param phone_number: User's cell phone number (optional; can be used instead of email)
+
+    @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids'
+    """
+
+    if email is None and phone_number is None:
+        raise Exception('Either email or phone_number must be provided')
+
+    identifier = email if email is not None else phone_number
+    user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+    attributes = user['attributes']
+    list_ids = user['listIds']
+    drop_site = [name for name, site_list_id in _DROP_SITE_IDS.items() if site_list_id in list_ids]
+    drop_site = drop_site if len(drop_site) != 0 else None
+
+    return {
+        'email': user['email'],
+        'first_name': attributes['FIRSTNAME'],
+        'last_name': attributes['LASTNAME'],
+        'phone_number': attributes['SMS'],
+        'drop_site': drop_site,
+        'list_ids': list_ids
+    }
+
+
+def add_new_user(email, first_name, last_name, drop_site, phone_number=None):
     """
     Add a new user to SIB. Adds user to the Weekly Newsletter, Weekly Reminder, Members, and provided drop site list
 
@@ -114,18 +146,18 @@ def add_new_user(email, first_name, last_name, drop_site, sms=None):
     @param first_name: User's first name
     @param last_name: User's last name
     @param drop_site: Drop site name, ex: 'Hollywood'
-    @param sms: User's cellphone number, not required
+    @param phone_number: User's cellphone number, not required
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
 
-    if drop_site not in (_[0] for _ in settings.DROP_SITE_CHOICES):
+    if drop_site not in _DROP_SITE_IDS.keys():
         return False, 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
 
-    drop_site_list_id = _DROP_SITE_IDS[drop_site]
+    drop_site_list_id = int(_DROP_SITE_IDS[drop_site])
 
-    sms = _format_phone_number(sms) if sms is not None else None
-    if sms is False:
+    phone_number = _format_phone_number(phone_number) if phone_number is not None else None
+    if phone_number is False:
         return False, 'Invalid phone number'
 
     body = {
@@ -143,8 +175,8 @@ def add_new_user(email, first_name, last_name, drop_site, sms=None):
         ]
     }
 
-    if sms is not None:
-        body['attributes']['sms'] = sms
+    if phone_number is not None:
+        body['attributes']['sms'] = phone_number
 
     try:
         send_request('contacts', 'POST', data=body)
@@ -155,3 +187,96 @@ def add_new_user(email, first_name, last_name, drop_site, sms=None):
         raise ex
 
     return True, ''
+
+
+def update_user(email, first_name, last_name, drop_site, desired_lists=None, unwanted_lists=None, phone_number=None):
+    """
+    Updates a user on SIB
+
+    @param email: Email of user to be added
+    @param first_name: User's first name
+    @param last_name: User's last name
+    @param drop_site: Drop site name, ex: 'Hollywood', or None to remove
+    @param desired_lists: List of list names that the user desires to be on (other than drop site)
+    @param unwanted_lists: List of list names the user does not want to be on (other than drop site)
+    @param phone_number: User's cellphone number, not required
+
+    @return: (True, '') on success, (False, '<some error message>') on failure
+    """
+
+    if drop_site is not None and drop_site not in (_[0] for _ in settings.DROP_SITE_CHOICES):
+        return False, 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+
+    phone_number = _format_phone_number(phone_number) if phone_number is not None else None
+    if phone_number is False:
+        return False, 'Invalid phone number'
+
+    body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
+
+    # Diff the old and new user info
+    old_user_info = get_user(email, phone_number)
+    new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
+                     'drop_site': drop_site, 'phone_number': phone_number}
+
+    to_set = [(k, v) for k, v in new_user_info.items() if old_user_info[k] != v]
+
+    # Nothing to update
+    if len(to_set) == 0 and desired_lists is None and unwanted_lists is None:
+        return True, ''
+
+    # Loop through and set attributes in query to their SIB equivalent
+    translate_table = {'email': 'EMAIL', 'first_name': 'FIRSTNAME', 'last_name': 'LASTNAME', 'phone_number': 'SMS'}
+    for attr_name, attr_value in to_set:
+        sib_attr_name = translate_table.get(attr_name, None)
+
+        if sib_attr_name is not None:  # Ignore drop site
+            if attr_name == 'phone_number' and attr_value is None:
+                body['attributes'][sib_attr_name] = ''
+            elif attr_value != '':
+                body['attributes'][sib_attr_name] = attr_value
+
+    # Swap drop sites or remove drop site
+    old_user_drop_site = old_user_info['drop_site']
+    if old_user_drop_site != drop_site:
+        if drop_site is not None:
+            body['listIds'].append(int(_DROP_SITE_IDS[drop_site]))
+        if old_user_drop_site is not None:
+            body['unlinkListIds'].append(int(_DROP_SITE_IDS[old_user_drop_site]))
+
+    # Add/remove lists
+    if desired_lists is not None:
+        body['listIds'].extend([int(settings.SENDINBLUE_LISTS[desired]) for desired in desired_lists])
+    if unwanted_lists is not None:
+        body['unlinkListIds'].extend([int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in unwanted_lists])
+
+    # Remove empty lists from query
+    if len(body['listIds']) == 0:
+        del body['listIds']
+    if len(body['unlinkListIds']) == 0:
+        del body['unlinkListIds']
+
+    try:
+        send_request('contacts/{}'.format(make_url_safe(email)), 'PUT', data=body)
+
+    except Exception as ex:
+        # if False:
+        #     return False, ''
+        raise ex
+
+    return True, ''
+
+
+def on_user_cancel_subscription(email):
+    user = get_user(email)
+    return update_user(email, user['first_name'], user['last_name'],
+                       drop_site=None,
+                       desired_lists=['FORMER_MEMBERS'],
+                       unwanted_lists=['MEMBERS', 'WEEKLY_REMINDER'])
+
+
+def on_user_resubscribe(email, drop_site):
+    user = get_user(email)
+    return update_user(email, user['first_name'], user['last_name'],
+                       drop_site=drop_site,
+                       desired_lists=['MEMBERS', 'WEEKLY_REMINDER'],
+                       unwanted_lists=['FORMER_MEMBERS'])
