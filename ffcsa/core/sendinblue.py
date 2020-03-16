@@ -122,6 +122,7 @@ def get_user(email=None, phone_number=None):
         raise Exception('Either email or phone_number must be provided')
 
     identifier = email if email is not None else phone_number
+    # TODO :: Handle user not existing
     user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     attributes = user['attributes']
     list_ids = user['listIds']
@@ -189,17 +190,17 @@ def add_new_user(email, first_name, last_name, drop_site, phone_number=None):
     return True, ''
 
 
-def update_user(email, first_name, last_name, drop_site, desired_lists=None, unwanted_lists=None, phone_number=None):
+def update_user(email, first_name, last_name, drop_site, phone_number=None, desired_lists=None, unwanted_lists=None):
     """
     Updates a user on SIB
 
-    @param email: Email of user to be added
+    @param email: Email of user to be updated
     @param first_name: User's first name
     @param last_name: User's last name
     @param drop_site: Drop site name, ex: 'Hollywood', or None to remove
+    @param phone_number: User's cellphone number, not required
     @param desired_lists: List of list names that the user desires to be on (other than drop site)
     @param unwanted_lists: List of list names the user does not want to be on (other than drop site)
-    @param phone_number: User's cellphone number, not required
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
@@ -266,17 +267,15 @@ def update_user(email, first_name, last_name, drop_site, desired_lists=None, unw
     return True, ''
 
 
-def on_user_cancel_subscription(email):
-    user = get_user(email)
-    return update_user(email, user['first_name'], user['last_name'],
+def on_user_cancel_subscription(email, first_name, last_name):
+    return update_user(email, first_name, last_name,
                        drop_site=None,
                        desired_lists=['FORMER_MEMBERS'],
                        unwanted_lists=['MEMBERS', 'WEEKLY_REMINDER'])
 
 
-def on_user_resubscribe(email, drop_site):
-    user = get_user(email)
-    return update_user(email, user['first_name'], user['last_name'],
+def on_user_resubscribe(email, first_name, last_name, drop_site):
+    return update_user(email, first_name, last_name,
                        drop_site=drop_site,
                        desired_lists=['MEMBERS', 'WEEKLY_REMINDER'],
                        unwanted_lists=['FORMER_MEMBERS'])

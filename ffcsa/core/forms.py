@@ -4,7 +4,8 @@ from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core.google import update_contact
+from ffcsa.core.google import update_contact as update_google_contact
+from ffcsa.core.sendinblue import update_user as update_sendinblue_contact
 
 
 class CartDinnerForm(forms.Form):
@@ -111,7 +112,10 @@ class ProfileForm(accounts_forms.ProfileForm):
         user.profile.save()
 
         if not self._signup:
-            update_contact(user)
+            update_google_contact(user)
+            update_sendinblue_contact(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                      self.cleaned_data['last_name'], self.cleaned_data['drop_site'],
+                                      self.cleaned_data['phone_number'])
 
         return user
 

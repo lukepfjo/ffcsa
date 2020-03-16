@@ -26,7 +26,8 @@ from mezzanine.utils.views import paginate
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
 from ffcsa.core.forms import BasePaymentFormSet, ProfileForm
-from ffcsa.core.google import add_contact
+from ffcsa.core.google import add_contact as add_google_contact
+from ffcsa.core import sendinblue
 from ffcsa.core.models import Payment, Recipe
 from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
                                       clear_ach_payment_source,
@@ -81,7 +82,9 @@ def signup(request, template="accounts/account_signup.html",
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
-        add_contact(new_user)
+        add_google_contact(new_user)
+        sendinblue.add_user(new_user.email, new_user.first_name, new_user.last_name,
+                            form.cleaned_data['drop_site'], form.cleaned_data['phone_number'])
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
@@ -377,6 +380,7 @@ def donate(request):
         feed_a_friend, created = User.objects.get_or_create(
             username=settings.FEED_A_FRIEND_USER)
 
+        # TODO :: Ensure this works for non-subscribing members
         order_dict = {
             'user_id': user.id,
             'time': datetime.datetime.now(),
@@ -519,7 +523,10 @@ def stripe_webhooks(request):
                     payments_url = request.build_absolute_uri(
                         reverse("payments"))
                     send_pending_payment_email(user, payments_url)
+
         elif event.type == 'charge.succeeded':
+            # TODO :: Non-users won't get an email when the payment processes
+
             user = User.objects.filter(
                 profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
@@ -543,13 +550,23 @@ def stripe_webhooks(request):
                         if payment is None:
                             payment = Payment.objects.create(
                                 user=user, amount=amount, date=date, charge_id=charge.id)
+
+                            # TODO :: Will this send monthly emails to all recurring payers?
+                            # TODO :: Perhaps use sendFirstPaymentEmail instead?
+                            # User is re-subscribing
+                            if user.profile.start_date is not None:
+                                sendinblue.on_user_resubscribe(user.email, user.first_name, user.last_name,
+                                                               user.profile.drop_site)
+
                         else:
                             payment.pending = False
                         payment.save()
+
                         if sendFirstPaymentEmail:
                             user.profile.start_date = date
                             user.profile.save()
                             send_first_payment_email(user)
+
         elif event.type == 'charge.failed':
             user = User.objects.filter(
                 profile__stripe_customer_id=event.data.object.customer).first()
@@ -560,17 +577,20 @@ def stripe_webhooks(request):
                 charge.created).strftime('%d-%m-%Y')
             send_failed_payment_email(
                 user, err, charge.amount / 100, created, payments_url)
+
         elif event.type == 'customer.source.updated' and event.data.object.object == 'bank_account':
             user = User.objects.filter(
                 profile__stripe_customer_id=event.data.object.customer).first()
             if user.profile.ach_status == 'NEW' and event.data.object.status == 'verification_failed':
                 # most likely wrong account info was entered
                 clear_ach_payment_source(user, event.data.object.id)
+
         elif event.type == 'customer.subscription.deleted':
             user = User.objects.filter(
                 profile__stripe_customer_id=event.data.object.customer).first()
             user.profile.stripe_subscription_id = None
             user.profile.save()
+            sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
             date = datetime.datetime.fromtimestamp(
                 event.data.object.canceled_at).strftime('%d-%m-%Y')
             payments_url = request.build_absolute_uri(reverse("payments"))
