@@ -69,25 +69,45 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if self._signup:
             self.fields['pickup_agreement'] = forms.BooleanField(
-                label="I agree to bring my own bags and coolers as needed to pick up my product as the containers the product arrives stay at the dropsite.")
+                label="I agree to bring my own bags and coolers as needed to pick up my product as the containers "
+                      "the product arrive in stay at the dropsite. I intend to maintain my membership with the FFCSA "
+                      "for 6 months, with a minimum payment of $172 per month.")
+            self.fields['email_product_agreement'] = forms.BooleanField(
+                label="Please email me the Product Liability Agreement to e-sign.",
+                required=False
+            )
+            self.fields['email_product_agreement'].widget = forms.HiddenInput()
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
                                                                 required=True)
             self.fields['communication_method'] = forms.ChoiceField(
                 label="What is your preferred method of communication?", required=True,
                 choices=(("Email", "Email"), ("Phone", "Phone"), ("Text", "Text")))
-            self.fields['family_stats'] = forms.CharField(label="How many adults and children are in your family?",
-                                                          required=True, widget=forms.Textarea(attrs={'rows': 3}))
+            self.fields['num_adults'] = forms.IntegerField(label="How many adults are in your family?", required=True,
+                                                           min_value=1)
+            self.fields['num_children'] = forms.IntegerField(label="How many children are in your family?",
+                                                             required=True, min_value=0)
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
-            self.fields['payment_agreement'].required = True
-            self.fields['product_agreement'].required = True
+            # self.fields['payment_agreement'].required = True
+            # self.fields['product_agreement'].required = True
         else:
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
 
     def get_profile_fields_form(self):
         return ProfileFieldsForm
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self._signup:
+            if not self.cleaned_data['product_agreement'] and not self.cleaned_data['email_product_agreement']:
+                self.fields['email_product_agreement'].widget = forms.CheckboxInput()
+                self.add_error('product_agreement',
+                               'Please upload your signed liability doc or check the "Email Product Agreement" field below')
+                self.add_error('email_product_agreement',
+                               'Please check this box or upload your signed liability doc above')
+        return cleaned_data
 
     def save(self, *args, **kwargs):
         user = super(ProfileForm, self).save(*args, **kwargs)
@@ -97,11 +117,13 @@ class ProfileForm(accounts_forms.ProfileForm):
         if self._signup:
             user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
                                  "<b>Preferred communication method:</b>  {}<br/>" \
-                                 "<b>Adults and children in family:</b>  {}<br/>" \
+                                 "<b>Adults in family:</b>  {}<br/>" \
+                                 "<b>Children in family:</b>  {}<br/>" \
                                  "<b>How did you hear about us:</b>  {}<br/>" \
                 .format(self.cleaned_data['best_time_to_reach'],
                         self.cleaned_data['communication_method'],
-                        self.cleaned_data['family_stats'],
+                        self.cleaned_data['num_adults'],
+                        self.cleaned_data['num_children'],
                         self.cleaned_data['hear_about_us'])
             # defaults
             user.profile.allow_substitutions = True

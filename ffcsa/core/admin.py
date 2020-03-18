@@ -31,7 +31,7 @@ accounts_base.ProfileInline.readonly_fields = [
 accounts_base.ProfileInline.fieldsets = (
     (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'invoice_notes')}),
     ('Payments', {'fields': (
-        'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_agreement', 'payment_method', 'ach_status',
+        'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_method', 'ach_status',
         'stripe_subscription_id', 'stripe_customer_id')}),
     ('Preferences', {'fields': ('drop_site', 'no_plastic_bags',
                                 'allow_substitutions', 'weekly_emails')}),

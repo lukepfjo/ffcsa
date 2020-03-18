@@ -64,7 +64,7 @@ class Profile(models.Model):
     paid_signup_fee = models.BooleanField(default=False)
     can_order_dairy = models.BooleanField("Has had dairy conversation", default=False)
     payment_agreement = models.BooleanField(
-        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 12 months, with a minimium of $172 per month. If I need to change my monthly payment amount, I will notify the FFCSA admin and keep changes to a maximum of two times per year.",
+        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 6 months, with a minimium of $172 per month.",
         default=False)
     product_agreement = models.FileField("Liability Agreement Form",
                                          upload_to='uploads/member_docs/',

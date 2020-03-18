@@ -76,7 +76,9 @@ def signup(request, template="accounts/account_signup.html",
             'phone_number_2': form.cleaned_data['phone_number_2'],
             'best_time_to_reach': form.cleaned_data['best_time_to_reach'],
             'communication_method': form.cleaned_data['communication_method'],
-            'family_stats': form.cleaned_data['family_stats'],
+            'num_adults': form.cleaned_data['num_adults'],
+            'num_children': form.cleaned_data['num_children'],
+            'email_product_agreement': form.cleaned_data['email_product_agreement'],
             'hear_about_us': form.cleaned_data['hear_about_us'],
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
@@ -96,6 +98,7 @@ def signup(request, template="accounts/account_signup.html",
             "ffcsa_core/send_new_user_email",
             settings.DEFAULT_FROM_EMAIL,
             new_user.email,
+            context=c,
             fail_silently=False,
             addr_bcc=[settings.EMAIL_HOST_USER]
         )
@@ -192,7 +195,7 @@ def payments_subscribe(request):
                 user.profile.payment_method = 'ACH'
                 user.profile.monthly_contribution = amount
                 user.profile.ach_status = 'VERIFIED' if customer.sources.data[
-                    0].status == 'verified' else 'NEW'
+                                                            0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request,
                         'Your subscription has been created. You will need to verify your bank account '
@@ -250,7 +253,7 @@ def payments_update(request):
                 customer.source = stripeToken
                 customer.save()
                 user.profile.ach_status = 'VERIFIED' if customer.sources.data[
-                    0].status == 'verified' else 'NEW'
+                                                            0].status == 'verified' else 'NEW'
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
             else:

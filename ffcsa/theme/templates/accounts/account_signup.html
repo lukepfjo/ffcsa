@@ -15,15 +15,16 @@
     {% if request.user.is_authenticated %}
         <p>{% trans "You're already logged in. If you'd like to create a new account, you'll need to log out first." %}</p>
     {% else %}
-        <p>Thanks for choosing the Full Farm CSA!</p>
-        <p>If you haven't done so already, you can check out our current selection of products <a href="/">here</a> and
-            find out more information about our CSA by visiting <a target="_blank"
-                                                                   href="https://deckfamilyfarm.com/full-farm-csa/">our
+        <h3 class="h3 text-center mb-5 mt-0 text-black">Thanks for choosing the Full Farm CSA!</h3>
+        <p class="mb-3">If you haven't done so already, you can check out our current selection of products <a href="/">here</a>
+            and find out more information about our CSA by visiting <a target="_blank"
+                                                                       href="https://deckfamilyfarm.com/full-farm-csa/">our
                 FAQs page</a>.</p>
-        <p>Please note that the commitment to our year-round CSA is 12 months, with a 1 month trial option available
-            once the $100 sign up fee has been paid. <strong>The $100 sign up fee is waived for members who pay for the
-                entire year in advance.</strong></p>
-        <p>We encourage all CSA members to visit the Deck Family Farm (in Junction City) at least once during or before
+        <p class="mb-3 ">Please note that we have a $100 sign up fee. <strong>This fee is waived for members who pay for
+            the entire
+            year in advance.</strong></p>
+        <p class="mb-3">We encourage all CSA members to visit the Deck Family Farm (in Junction City) at least once
+            during or before
             their time in the CSA, so come check us out! Our open gate policy is Monday - Saturday during business
             hours. Let us know when you may be coming and we can arrange a mini tour.</p>
 
@@ -32,36 +33,40 @@
         <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %} id="signup_form">
             {% csrf_token %}
             <fieldset>
-                {% render_field form.first_name %}
-                {% render_field form.last_name %}
-                {% render_field form.email %}
-                {% render_field form.password1 %}
-                {% render_field form.password2 %}
+                {% render_field form.first_name group_class="col-md-6" %}
+                {% render_field form.last_name group_class="col-md-6" %}
+                {% render_field form.email group_class="col-xs-12" %}
+                {% render_field form.password1 group_class="col-md-6" %}
+                {% render_field form.password2 group_class="col-md-6" %}
             </fieldset>
 
             <fieldset>
-                {% render_field form.drop_site show_required=False %}
-                {% render_field form.pickup_agreement show_required=False %}
-                {% render_field form.product_agreement %}
-                {% render_field form.payment_agreement show_required=False %}
+                {% render_field form.drop_site show_required=False group_class="col-xs-12" %}
+                {#                {% render_field form.payment_agreement show_required=False %}#}
+                {#            </fieldset>#}
+
+                {#            <fieldset>#}
+                {% render_field form.phone_number group_class="col-md-6" %}
+                {% render_field form.phone_number_2 group_class="col-md-6" %}
+                {% render_field form.num_adults group_class="col-md-6" %}
+                {% render_field form.num_children group_class="col-md-6" %}
+                {% render_field form.communication_method group_class="col-xs-12" %}
+                {% render_field form.best_time_to_reach group_class="col-xs-12" %}
+                {% render_field form.hear_about_us group_class="col-xs-12" %}
             </fieldset>
-
             <fieldset>
-                {% render_field form.best_time_to_reach %}
-                {% render_field form.phone_number %}
-                {% render_field form.phone_number_2 %}
-                {% render_field form.communication_method %}
-                {% render_field form.family_stats %}
-                {% render_field form.hear_about_us %}
+                {% render_field form.product_agreement group_class="col-xs-12 mb-0" %}
+                {% render_field form.email_product_agreement group_class="col-xs-12" %}
+                {% render_field form.pickup_agreement show_required=False group_class="col-xs-12 mb-5" %}
 
-                <p>After signing up, you can set up your payments and our Dairy Manager will reach out to go over a few
+                <p class="mb-3">After signing up, you can set up your payments and our Dairy Manager will reach out to go over a few
                     points regarding our Raw Dairy Program. After your conversation, your account will be approved and
                     you can make your first order!</p>
-                <p>If you do not see a confirmation email after signing up, check your spam folder, as it sometimes gets
+                <p class="mb-10">If you do not see a confirmation email after signing up, check your spam folder, as it sometimes gets
                     sent there.</p>
                 <div class="form-actions">
                     {% block account_form_actions %}
-                        <input class="btn btn-primary btn-lg pull-right" type="submit" value="{{ title }}">
+                        <input class="btn btn-primary btn-lg pull-right" type="submit" value="Submit!">
                     {% endblock %}
                 </div>
             </fieldset>
