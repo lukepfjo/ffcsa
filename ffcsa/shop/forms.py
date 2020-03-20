@@ -749,6 +749,7 @@ class ProductChangelistForm(forms.ModelForm):
                 # If a variations has more then 1 vendor, we can't allow editing via this form
                 if variation.vendors.count() > 1:
                     # don't need to set actual_value b/c vendor is a calculated attribute
+                    self.fields['num_in_stock'] = DisplayField(self.initial['num_in_stock'])
                     self.fields['vendor'] = DisplayField(None)
                     self.initial['vendor'] = '-- Multiple Vendors --'
                 elif variation.vendors.count() == 1:
@@ -769,7 +770,7 @@ class ProductChangelistForm(forms.ModelForm):
             vpv = None
             variation_fields = [f.name for f in variation._meta.fields]
 
-            if 'vendor' in self.cleaned_data:
+            if 'vendor' in self.cleaned_data and self.cleaned_data['vendor'] is not None:
                 vpv = variation.vendorproductvariation_set.first()
 
                 if not vpv:
@@ -785,7 +786,7 @@ class ProductChangelistForm(forms.ModelForm):
             for key, value in self.cleaned_data.items():
                 if key is not 'id' and key in variation_fields:
                     setattr(variation, key, value)
-                elif key is 'num_in_stock':
+                elif key is 'num_in_stock' and variation.vendors.count() == 1:
                     # only allow modification if there is a single vendor
                     if not vpv:
                         vpv = variation.vendorproductvariation_set.first()
