@@ -5,7 +5,7 @@ from mezzanine.conf import settings
 from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact as update_google_contact
-from ffcsa.core.sendinblue import update_user as update_sendinblue_contact
+from ffcsa.core import sendinblue
 
 
 class CartDinnerForm(forms.Form):
@@ -113,9 +113,13 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if not self._signup:
             update_google_contact(user)
-            update_sendinblue_contact(self.cleaned_data['email'], self.cleaned_data['first_name'],
-                                      self.cleaned_data['last_name'], self.cleaned_data['drop_site'],
-                                      self.cleaned_data['phone_number'])
+
+            weekly_email_lists = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER']
+            lists_to_add    = weekly_email_lists if user.profile.weekly_emails else None
+            lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
+            sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                          self.cleaned_data['last_name'], self.cleaned_data['drop_site'],
+                                          self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
 
         return user
 

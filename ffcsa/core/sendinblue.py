@@ -101,11 +101,13 @@ def _format_phone_number(phone_number):
 
     # Lacking country code; assume US
     elif len(phone_number) == 10:
-        return '+1' + phone_number
+        return '1' + phone_number
 
     # SIB requires a leading +
     elif len(phone_number) == 11:
-        return '+' + phone_number
+        return '' + phone_number
+
+    return phone_number
 
 
 def get_user(email=None, phone_number=None):
@@ -122,24 +124,23 @@ def get_user(email=None, phone_number=None):
         raise Exception('Either email or phone_number must be provided')
 
     identifier = email if email is not None else phone_number
-    # TODO :: Handle user not existing
     user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     attributes = user['attributes']
     list_ids = user['listIds']
     drop_site = [name for name, site_list_id in _DROP_SITE_IDS.items() if site_list_id in list_ids]
-    drop_site = drop_site if len(drop_site) != 0 else None
+    drop_site = drop_site[0] if len(drop_site) != 0 else None
 
     return {
         'email': user['email'],
         'first_name': attributes['FIRSTNAME'],
         'last_name': attributes['LASTNAME'],
-        'phone_number': attributes['SMS'],
+        'phone_number': attributes.get('sms', attributes).get('SMS', None),
         'drop_site': drop_site,
         'list_ids': list_ids
     }
 
 
-def add_new_user(email, first_name, last_name, drop_site, phone_number=None):
+def add_user(email, first_name, last_name, drop_site, phone_number=None):
     """
     Add a new user to SIB. Adds user to the Weekly Newsletter, Weekly Reminder, Members, and provided drop site list
 
@@ -177,7 +178,7 @@ def add_new_user(email, first_name, last_name, drop_site, phone_number=None):
     }
 
     if phone_number is not None:
-        body['attributes']['sms'] = phone_number
+        body['attributes']['SMS'] = phone_number
 
     try:
         send_request('contacts', 'POST', data=body)
@@ -190,17 +191,18 @@ def add_new_user(email, first_name, last_name, drop_site, phone_number=None):
     return True, ''
 
 
-def update_user(email, first_name, last_name, drop_site, phone_number=None, desired_lists=None, unwanted_lists=None):
+def update_or_add_user(email, first_name, last_name, drop_site, phone_number=None,
+                       lists_to_add=None, lists_to_remove=None):
     """
-    Updates a user on SIB
+    Updates a user on SIB, or creates a new one should they not exist
 
     @param email: Email of user to be updated
     @param first_name: User's first name
     @param last_name: User's last name
     @param drop_site: Drop site name, ex: 'Hollywood', or None to remove
     @param phone_number: User's cellphone number, not required
-    @param desired_lists: List of list names that the user desires to be on (other than drop site)
-    @param unwanted_lists: List of list names the user does not want to be on (other than drop site)
+    @param lists_to_add: List of list names that the user desires to be on (other than drop site)
+    @param lists_to_remove: List of list names the user does not want to be on (other than drop site)
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
@@ -215,14 +217,23 @@ def update_user(email, first_name, last_name, drop_site, phone_number=None, desi
     body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
 
     # Diff the old and new user info
-    old_user_info = get_user(email, phone_number)
+    try:
+        old_user_info = get_user(email, phone_number)
+
+    except Exception as ex:
+        if 'Contact does not exist' in str(ex):
+            add_user(email, first_name, last_name, drop_site, phone_number)
+            old_user_info = get_user(email, phone_number)
+        else:
+            raise ex
+
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
 
     to_set = [(k, v) for k, v in new_user_info.items() if old_user_info[k] != v]
 
     # Nothing to update
-    if len(to_set) == 0 and desired_lists is None and unwanted_lists is None:
+    if len(to_set) == 0 and lists_to_add is None and lists_to_remove is None:
         return True, ''
 
     # Loop through and set attributes in query to their SIB equivalent
@@ -245,10 +256,10 @@ def update_user(email, first_name, last_name, drop_site, phone_number=None, desi
             body['unlinkListIds'].append(int(_DROP_SITE_IDS[old_user_drop_site]))
 
     # Add/remove lists
-    if desired_lists is not None:
-        body['listIds'].extend([int(settings.SENDINBLUE_LISTS[desired]) for desired in desired_lists])
-    if unwanted_lists is not None:
-        body['unlinkListIds'].extend([int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in unwanted_lists])
+    if lists_to_add is not None:
+        body['listIds'].extend([int(settings.SENDINBLUE_LISTS[desired]) for desired in lists_to_add])
+    if lists_to_remove is not None:
+        body['unlinkListIds'].extend([int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in lists_to_remove])
 
     # Remove empty lists from query
     if len(body['listIds']) == 0:
@@ -260,22 +271,22 @@ def update_user(email, first_name, last_name, drop_site, phone_number=None, desi
         send_request('contacts/{}'.format(make_url_safe(email)), 'PUT', data=body)
 
     except Exception as ex:
-        # if False:
-        #     return False, ''
+        if 'Invalid phone number' in str(ex):
+            return False, 'Invalid phone number'
         raise ex
 
     return True, ''
 
 
 def on_user_cancel_subscription(email, first_name, last_name):
-    return update_user(email, first_name, last_name,
-                       drop_site=None,
-                       desired_lists=['FORMER_MEMBERS'],
-                       unwanted_lists=['MEMBERS', 'WEEKLY_REMINDER'])
+    return update_or_add_user(email, first_name, last_name,
+                              drop_site=None,
+                              lists_to_add=['FORMER_MEMBERS'],
+                              lists_to_remove=['MEMBERS', 'WEEKLY_REMINDER'])
 
 
 def on_user_resubscribe(email, first_name, last_name, drop_site):
-    return update_user(email, first_name, last_name,
-                       drop_site=drop_site,
-                       desired_lists=['MEMBERS', 'WEEKLY_REMINDER'],
-                       unwanted_lists=['FORMER_MEMBERS'])
+    return update_or_add_user(email, first_name, last_name,
+                              drop_site=drop_site,
+                              lists_to_add=['MEMBERS'],
+                              lists_to_remove=['FORMER_MEMBERS'])

@@ -57,11 +57,11 @@ def shop_home(request, template="shop_home.html"):
     return TemplateResponse(request, template, context)
 
 
-def signup(request, template="accounts/account_signup.html",
-           extra_context=None):
+def signup(request, template="accounts/account_signup.html", extra_context=None):
     """
     signup view.
     """
+
     form = ProfileForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST" and form.is_valid():
@@ -84,7 +84,7 @@ def signup(request, template="accounts/account_signup.html",
 
         add_google_contact(new_user)
         sendinblue.add_user(new_user.email, new_user.first_name, new_user.last_name,
-                            form.cleaned_data['drop_site'], form.cleaned_data['phone_number'])
+                            c['drop_site'], c['phone_number'])
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
@@ -111,16 +111,21 @@ def signup(request, template="accounts/account_signup.html",
 
 
 @login_required
-def payments(request, template="ffcsa_core/payments.html", extra_context={}):
+def payments(request, template="ffcsa_core/payments.html", extra_context=None):
     """
     Display a list of the currently logged-in user's past orders.
     """
+
+    extra_context = {} if extra_context is None else extra_context
+
     next_payment_date = None
     if request.user.profile.stripe_subscription_id:
-        subscription = stripe.Subscription.retrieve(
-            request.user.profile.stripe_subscription_id)
-        next_payment_date = datetime.date.fromtimestamp(
-            subscription.current_period_end + 1)
+        subscription = stripe.Subscription.retrieve(request.user.profile.stripe_subscription_id)
+        next_payment_date = datetime.date.fromtimestamp(subscription.current_period_end + 1)
+        next_payment_date = formats.date_format(next_payment_date, "D, F d")
+
+    elif settings.DEBUG:
+        next_payment_date = datetime.datetime.today() + datetime.timedelta(days=62)
         next_payment_date = formats.date_format(next_payment_date, "D, F d")
 
     all_payments = Payment.objects.filter(user__id=request.user.id)
@@ -133,7 +138,8 @@ def payments(request, template="ffcsa_core/payments.html", extra_context={}):
                "next_payment_date": next_payment_date,
                "subscribe_errors": request.GET.getlist('error'),
                "STRIPE_API_KEY": settings.STRIPE_API_KEY}
-    context.update(extra_context or {})
+    context.update(extra_context)
+
     return TemplateResponse(request, template, context)
 
 
@@ -157,6 +163,8 @@ def payments_subscribe(request):
 
     try:
         if not errors:
+            resubscribed = False
+
             if paymentType == 'CC':
                 if not user.profile.stripe_customer_id:
                     customer = stripe.Customer.create(
@@ -165,11 +173,14 @@ def payments_subscribe(request):
                         source=stripeToken,
                     )
                     user.profile.stripe_customer_id = customer.id
+
                 else:
-                    customer = stripe.Customer.retrieve(
-                        user.profile.stripe_customer_id)
+                    customer = stripe.Customer.retrieve(user.profile.stripe_customer_id)
                     customer.source = stripeToken
                     customer.save()
+
+                    resubscribed = True
+
                 user.profile.payment_method = 'CC'
                 user.profile.monthly_contribution = amount
                 user.profile.save()
@@ -179,6 +190,7 @@ def payments_subscribe(request):
                 success(request,
                         'Your subscription has been created and your first payment is pending. '
                         'You should see the payment credited to your account within the next few minutes')
+
             elif paymentType == 'ACH':
                 if not user.profile.stripe_customer_id:
                     customer = stripe.Customer.create(
@@ -187,11 +199,15 @@ def payments_subscribe(request):
                         source=stripeToken,
                     )
                     user.profile.stripe_customer_id = customer.id
+
                 else:
                     customer = stripe.Customer.retrieve(
                         user.profile.stripe_customer_id)
                     customer.source = stripeToken
                     customer.save()
+
+                    resubscribed = True
+
                 user.profile.payment_method = 'ACH'
                 user.profile.monthly_contribution = amount
                 user.profile.ach_status = 'VERIFIED' if customer.sources.data[
@@ -200,8 +216,14 @@ def payments_subscribe(request):
                 success(request,
                         'Your subscription has been created. You will need to verify your bank account '
                         'before your first payment is made.')
+
             else:
                 errors.append('Unknown Payment Type')
+
+            if resubscribed:
+                sendinblue.on_user_resubscribe(user.email, user.first_name, user.last_name,
+                                               user.profile.drop_site)
+
     except stripe.error.CardError as e:
         body = e.json_body
         err = body.get('error', {})
@@ -258,6 +280,7 @@ def payments_update(request):
                 success(request, 'Your payment method has been updated.')
             else:
                 errors.append('Unknown Payment Type')
+
     except stripe.error.CardError as e:
         body = e.json_body
         err = body.get('error', {})
@@ -350,6 +373,7 @@ def make_payment(request):
             )
             success(request, 'Your payment is pending.')
             # Payment will be created when the charge is successful
+
     except stripe.error.CardError as e:
         body = e.json_body
         err = body.get('error', {})
@@ -525,41 +549,35 @@ def stripe_webhooks(request):
                     send_pending_payment_email(user, payments_url)
 
         elif event.type == 'charge.succeeded':
-            # TODO :: Non-users won't get an email when the payment processes
+            # TODO :: Will non-users get an email when the payment processes?
+            # TODO :: Will non-users get processed at all?
 
-            user = User.objects.filter(
-                profile__stripe_customer_id=event.data.object.customer).first()
+            user = User.objects.filter(profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
+
             if user:
                 if charge.description == SIGNUP_DESCRIPTION:
                     user.profile.paid_signup_fee = True
                     user.profile.save()
+
                 else:
                     amount = charge.amount / 100  # amount is in cents
                     date = datetime.datetime.fromtimestamp(charge.created)
-                    existing_payments = Payment.objects.filter(
-                        charge_id=charge.id)
+                    existing_payments = Payment.objects.filter(charge_id=charge.id)
+
                     if existing_payments.filter(pending=False).exists():
                         raise AssertionError(
                             "That payment already exists: {}".format(existing_payments.filter(pending=False).first()))
+
                     else:
-                        sendFirstPaymentEmail = not Payment.objects.filter(
-                            user=user).exists()
-                        payment = existing_payments.filter(
-                            pending=True).first()
+                        sendFirstPaymentEmail = not Payment.objects.filter(user=user).exists()
+                        payment = existing_payments.filter(pending=True).first()
+
                         if payment is None:
-                            payment = Payment.objects.create(
-                                user=user, amount=amount, date=date, charge_id=charge.id)
-
-                            # TODO :: Will this send monthly emails to all recurring payers?
-                            # TODO :: Perhaps use sendFirstPaymentEmail instead?
-                            # User is re-subscribing
-                            if user.profile.start_date is not None:
-                                sendinblue.on_user_resubscribe(user.email, user.first_name, user.last_name,
-                                                               user.profile.drop_site)
-
+                            payment = Payment.objects.create(user=user, amount=amount, date=date, charge_id=charge.id)
                         else:
                             payment.pending = False
+
                         payment.save()
 
                         if sendFirstPaymentEmail:
@@ -590,11 +608,12 @@ def stripe_webhooks(request):
                 profile__stripe_customer_id=event.data.object.customer).first()
             user.profile.stripe_subscription_id = None
             user.profile.save()
-            sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
             date = datetime.datetime.fromtimestamp(
                 event.data.object.canceled_at).strftime('%d-%m-%Y')
             payments_url = request.build_absolute_uri(reverse("payments"))
             send_subscription_canceled_email(user, date, payments_url)
+
+            sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
 
     except ValueError as e:
         # Invalid payload
