@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+GOOGLE_API_KEY = "%(google_api_key)s";
+
 SENDINBLUE_ENABLED = True
 SENDINBLUE_API_KEY = "%(sendinblue_api_key)s";
 
