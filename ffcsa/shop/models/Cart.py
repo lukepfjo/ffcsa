@@ -7,6 +7,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super
 from mezzanine.conf import settings
+from mezzanine.utils.email import send_mail_template
 
 from ffcsa.shop import managers
 from ffcsa.shop.models.Order import Order
@@ -263,6 +264,19 @@ class CartItem(models.Model):
 
         if hasattr(self, '_cached_quantity') and self._cached_quantity is not None:
             self._cached_quantity = quantity
+
+        # live_num_in_stock is cached and not updated even though the CartItem
+        # quantity was already adjusted above
+        if self.variation.live_num_in_stock() - diff <= 0:
+            # notify admin that a product is out of stock
+            send_mail_template(
+                "Member Store -- Item Out Of Stock",
+                "shop/admin_out_of_stock_email",
+                settings.DEFAULT_FROM_EMAIL,
+                settings.DEFAULT_FROM_EMAIL,
+                context={'variation': self.variation},
+                fail_silently=True,
+            )
 
     def save(self, *args, **kwargs):
         super(CartItem, self).save(*args, **kwargs)
