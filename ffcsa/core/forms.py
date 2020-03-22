@@ -2,9 +2,11 @@ from django import forms
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
+from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact
+from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
 class CartDinnerForm(forms.Form):
@@ -56,8 +58,18 @@ class ProfileForm(accounts_forms.ProfileForm):
     # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
     username = None
 
+    class Media:
+        js = ('js/forms/profile/profile_form.js',)
+
     def __init__(self, *args, **kwargs):
         super(ProfileForm, self).__init__(*args, **kwargs)
+
+        del self.fields['first_name'].widget.attrs['autofocus']
+
+        self.fields['delivery_address'].widget.attrs['readonly'] = ''
+        self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
+        self.fields['delivery_notes'].widget.attrs = {'rows': 3, 'cols': 40,
+                                                      'placeholder': 'Any special notes to give to our delivery driver regarding your delivery/location.'}
 
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
@@ -77,6 +89,10 @@ class ProfileForm(accounts_forms.ProfileForm):
                 required=False
             )
             self.fields['email_product_agreement'].widget = forms.HiddenInput()
+
+            self.fields['has_submitted'] = forms.BooleanField(required=False)
+            self.fields['has_submitted'].widget = forms.HiddenInput()
+
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
                                                                 required=True)
@@ -90,23 +106,37 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
             # self.fields['payment_agreement'].required = True
-            # self.fields['product_agreement'].required = True
+            if 'has_submitted' not in self.data:
+                self.fields['product_agreement'].required = True
         else:
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
+
+        if not settings.HOME_DELIVERY_ENABLED:
+            del self.fields['home_delivery']
 
     def get_profile_fields_form(self):
         return ProfileFieldsForm
 
     def clean(self):
         cleaned_data = super().clean()
+
+        if cleaned_data['home_delivery']:
+            if not cleaned_data['delivery_address']:
+                self.add_error('delivery_address', 'Please provide an address for your delivery.')
+        elif not cleaned_data['drop_site']:
+            self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
+
         if self._signup:
-            if not self.cleaned_data['product_agreement'] and not self.cleaned_data['email_product_agreement']:
+            if ('product_agreement' not in self.cleaned_data or not self.cleaned_data['product_agreement']) and not self.cleaned_data['email_product_agreement']:
                 self.fields['email_product_agreement'].widget = forms.CheckboxInput()
+                d = self.data.copy()
+                d['has_submitted'] = 'on'
+                self.data = d
                 self.add_error('product_agreement',
-                               'Please upload your signed liability doc or check the "Email Product Agreement" field below')
+                               'Please upload your signed liability doc (preferred) or check the "Email Product Agreement" field below')
                 self.add_error('email_product_agreement',
-                               'Please check this box or upload your signed liability doc above')
+                               'Please check this box or upload your signed liability doc above (preferred)')
         return cleaned_data
 
     def save(self, *args, **kwargs):
@@ -132,7 +162,17 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         user.profile.save()
 
+        request = current_request()
+        # TODO test updating profile correctly sets the session variables
         if not self._signup:
+            # we can't set this on signup b/c the cart.user_id has not been set yet
+            if "home_delivery" in self.changed_data:
+                if user.profile.home_delivery:
+                    set_home_delivery(request)
+                else:
+                    clear_shipping(request)
+                recalculate_remaining_budget(request)
+
             update_contact(user)
 
         return user

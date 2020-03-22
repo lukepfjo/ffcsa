@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Untitled layer</name>
+    <Style id="poly-000000-1200-77-nodesc-normal">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <Style id="poly-000000-1200-77-nodesc-highlight">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.8</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <BalloonStyle>
+        <text><![CDATA[<h3>$[name]</h3>]]></text>
+      </BalloonStyle>
+    </Style>
+    <StyleMap id="poly-000000-1200-77-nodesc">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-000000-1200-77-nodesc-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-000000-1200-77-nodesc-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Placemark>
+      <name>Eugene Delivery Area</name>
+      <styleUrl>#poly-000000-1200-77-nodesc</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              -123.2086434,44.103483,0
+              -123.2079567,44.0294764,0
+              -123.1969704,44.0297232,0
+              -123.1753411,44.0336726,0
+              -123.1767144,44.0386089,0
+              -123.1640114,44.0388557,0
+              -123.1650414,44.0307106,0
+              -123.0812706,44.019355,0
+              -123.0575814,44.0297232,0
+              -122.9243721,44.0294764,0
+              -122.9381051,44.0682181,0
+              -122.9686608,44.0595836,0
+              -122.972094,44.066738,0
+              -122.9641976,44.0729048,0
+              -122.9734673,44.0825239,0
+              -123.0249657,44.075618,0
+              -123.0277123,44.0909084,0
+              -123.0441918,44.1098926,0
+              -123.0781807,44.1135901,0
+              -123.113543,44.1259134,0
+              -123.1255593,44.1389733,0
+              -123.1365456,44.1618828,0
+              -123.2309594,44.1594199,0
+              -123.2299294,44.1500597,0
+              -123.2083001,44.1498133,0
+              -123.2086434,44.103483,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

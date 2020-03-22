@@ -362,7 +362,7 @@ class DiscountCodeManager(Manager):
         that the given cart contains items that the code is valid for.
         """
         total_price_valid = (Q(min_purchase__isnull=True) |
-                             Q(min_purchase__lte=cart.total_price()))
+                             Q(min_purchase__lte=cart.item_total_price()))
         discount = self.active().get(total_price_valid, code=code)
         products = discount.all_products()
         if products.count() > 0:

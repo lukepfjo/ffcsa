@@ -1,4 +1,4 @@
-;(function ($) {
+(function ($) {
   $(function () {
     var variations = $('.product-quick-add-form select[name=variation]')
 
@@ -12,4 +12,4 @@
       $('#variation-' + sku).show()
     })
   })
-})(jQuery)
+})(jQuery);

@@ -22,6 +22,7 @@ from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
+from mezzanine.accounts import views
 
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
@@ -36,6 +37,7 @@ from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
                                       send_pending_payment_email,
                                       send_subscription_canceled_email,
                                       update_stripe_subscription)
+from ffcsa.shop.utils import set_home_delivery, clear_shipping
 
 from .utils import (ORDER_CUTOFF_DAY,
                     get_order_week_start, next_weekday)
@@ -812,6 +814,20 @@ def admin_product_invoice_order(request, template="admin/product_invoice_order.h
     }
 
     return TemplateResponse(request, template, context)
+
+
+@login_required
+def profile_update(request, template="accounts/account_profile_update.html",
+                   extra_context=None):
+    res = views.profile_update(request, template, extra_context)
+
+    # Since we don't have access to the request in the ProfileForm, we do this here
+    if request.user.profile.home_delivery:
+        set_home_delivery(request)
+    else:
+        clear_shipping(request)
+
+    return res
 
 
 class ProductAutocomplete(autocomplete.Select2QuerySetView):

@@ -1,7 +1,8 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
+@import "components/toggle-switch.css";
+@import "components/spinner.css";
 @import "tailwindcss/utilities";
-
 /* ==== Google font ==== */
 @import url('http://fonts.googleapis.com/css?family=Noto+Serif:400,400italic,700|Open+Sans:300,400,600,700');
 /* === prettify === */
@@ -681,6 +682,22 @@ form#commentform textarea {
 /* --- update profile form --- */
 .update-profile-form {
     margin-top: 16px;
+}
+
+#address-check-input {
+    max-width: 100%;
+}
+
+#id_delivery_address {
+    max-width: 100%;
+    display: inline-block;
+    background-color: #eee;
+}
+
+@media (min-width: 768px) {
+    #id_delivery_address {
+        max-width: 75%;
+    }
 }
 
 .update-profile-form legend {
@@ -2172,7 +2189,7 @@ article img.pull-right, article .align-right {
 ================================ */
 
 /*#signup_form .input_id_product_agreement {*/
-    /*margin: 20px 0;*/
+/*margin: 20px 0;*/
 /*}*/
 
 /*========================================
@@ -2193,4 +2210,12 @@ article img.pull-right, article .align-right {
     .callaction {
         display: block
     }
+}
+
+/*========================
+Google Maps AUtocomplete
+========================*/
+
+.pac-container {
+    z-index: 2000;
 }

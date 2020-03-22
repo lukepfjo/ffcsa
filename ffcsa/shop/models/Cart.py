@@ -63,7 +63,23 @@ class Cart(models.Model):
         ytd_order_total = Order.objects.total_for_user(user)
         ytd_payment_total = Payment.objects.total_for_user(user)
 
-        return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
+        return ytd_payment_total - (ytd_order_total + self.total_price())
+
+    def delivery_fee(self):
+        if not self.user_id or not settings.HOME_DELIVERY_ENABLED:
+            return 0
+
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        if not user or not user.profile.home_delivery:
+            return 0
+
+        order_total = self.total_price_after_discount()
+        if order_total >= settings.FREE_HOME_DELIVERY_ORDER_AMOUNT:
+            return 0
+
+        return settings.HOME_DELIVERY_CHARGE
 
     def discount(self):
         if not self.user_id:
@@ -78,7 +94,13 @@ class Cart(models.Model):
         return self.calculate_discount(user.profile.discount_code)
 
     def total_price_after_discount(self):
-        return self.total_price() - self.discount()
+        return self.item_total_price() - self.discount()
+
+    def total_price(self):
+        """
+        Cart total including discount & delivery fees
+        """
+        return self.item_total_price() - self.discount() + Decimal(self.delivery_fee())
 
     def has_items(self):
         """
@@ -92,7 +114,7 @@ class Cart(models.Model):
         """
         return sum([item.quantity for item in self])
 
-    def total_price(self):
+    def item_total_price(self):
         """
         Template helper function - sum of all costs of item quantities.
         """
@@ -127,7 +149,7 @@ class Cart(models.Model):
         # Discount applies to cart total if not product specific.
         products = discount.all_products()
         if products.count() == 0:
-            return discount.calculate(self.total_price())
+            return discount.calculate(self.item_total_price())
         total = Decimal("0")
         # Create a list of skus in the cart that are applicable to
         # the discount, and total the discount for appllicable items.
