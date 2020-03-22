@@ -5,7 +5,8 @@ from mezzanine.conf import settings
 from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core.google import update_contact
+from ffcsa.core.google import update_contact as update_google_contact
+from ffcsa.core import sendinblue
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
@@ -128,7 +129,8 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
         if self._signup:
-            if ('product_agreement' not in self.cleaned_data or not self.cleaned_data['product_agreement']) and not self.cleaned_data['email_product_agreement']:
+            if ('product_agreement' not in self.cleaned_data or not self.cleaned_data['product_agreement']) and not \
+            self.cleaned_data['email_product_agreement']:
                 self.fields['email_product_agreement'].widget = forms.CheckboxInput()
                 d = self.data.copy()
                 d['has_submitted'] = 'on'
@@ -173,7 +175,16 @@ class ProfileForm(accounts_forms.ProfileForm):
                     clear_shipping(request)
                 recalculate_remaining_budget(request)
 
-            update_contact(user)
+            update_google_contact(user)
+
+            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data['drop_site']
+
+            weekly_email_lists = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER']
+            lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
+            lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
+            sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                          self.cleaned_data['last_name'], drop_site_list,
+                                          self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
 
         return user
 
