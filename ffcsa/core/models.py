@@ -84,9 +84,9 @@ class Profile(models.Model):
         null=True, help_text="Google Person resource id", blank=True)
     discount_code = models.ForeignKey(
         'shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
-    _home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery", db_column="home_delivery",
-                                         help_text="Home delivery is available in select areas for a ${} fee. This fee is waived for all orders over ${}.".format(
-                                             settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
+    home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery",
+                                        help_text="Home delivery is available in select areas for a ${} fee. This fee is waived for all orders over ${}.".format(
+                                            settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
     delivery_address = models.CharField("Address", blank=True, max_length=100)
     delivery_notes = models.TextField("Special Delivery Notes", blank=True)
 
@@ -101,16 +101,16 @@ class Profile(models.Model):
 
         return self.user.get_username()
 
-    @property
-    def home_delivery(self):
+    def __getattr__(self, item):
+        if item == 'home_delivery':
+            return self._get_home_delivery()
+        return super().__getattribute__(item)
+
+    def _get_home_delivery(self):
         if settings.HOME_DELIVERY_ENABLED:
             return self._home_delivery
 
         return False
-
-    @home_delivery.setter
-    def home_delivery(self, val):
-        self._home_delivery = val
 
 
 ###################
