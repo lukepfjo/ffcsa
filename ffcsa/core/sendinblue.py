@@ -7,15 +7,15 @@ import requests
 
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
+
     print('sendinblue.py :: loading settings.py directly')
 else:
     from django.conf import settings
 
-
 logger = logging.getLogger(__name__)
 
 _API_KEY = settings.SENDINBLUE_API_KEY
-if _API_KEY is None:
+if settings.SENDINBLUE_ENABLED and _API_KEY is None:
     raise Exception('SENDINBLUE_API_KEY is not defined in local_settings.py')
 
 _DEFAULT_HEADERS = {
@@ -27,6 +27,7 @@ _DEFAULT_HEADERS = {
 _BASE_ENDPOINT = 'https://api.sendinblue.com/v3/'
 
 HOME_DELIVERY_LIST = 'Home Delivery'
+
 
 def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
@@ -91,7 +92,9 @@ def _initialize_drop_site_lists():
 
     return drop_site_ids
 
-_DROP_SITE_IDS = _initialize_drop_site_lists()
+
+if settings.SENDINBLUE_ENABLED:
+    _DROP_SITE_IDS = _initialize_drop_site_lists()
 
 
 def _format_phone_number(phone_number):
@@ -158,13 +161,17 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
     """
 
     if drop_site not in _DROP_SITE_IDS.keys():
-        return False, 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+        msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+        logger.error(msg)
+        return False, msg
 
     drop_site_list_id = int(_DROP_SITE_IDS[drop_site])
 
     phone_number = _format_phone_number(phone_number) if phone_number is not None else None
     if phone_number is False:
-        return False, 'Invalid phone number'
+        msg = 'Invalid phone number'
+        logger.error(msg)
+        return False, msg
 
     body = {
         'updateEnabled': False,
@@ -189,8 +196,11 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
 
     except Exception as ex:
         if 'Contact already exist' in str(ex):
-            return False, 'User already exists'
-        raise ex
+            msg = 'User already exists'
+            logger.error(msg)
+            return False, msg
+        logger.error(ex)
+        # raise ex
 
     return True, ''
 
@@ -210,13 +220,19 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+    if not settings.SENDINBLUE_ENABLED:
+        return True, ''
 
     if drop_site is not None and drop_site not in (_[0] for _ in settings.DROP_SITE_CHOICES):
-        return False, 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+        msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+        logger.error(msg)
+        return False, msg
 
     phone_number = _format_phone_number(phone_number) if phone_number is not None else None
     if phone_number is False:
-        return False, 'Invalid phone number'
+        msg = 'Invalid phone number'
+        logger.error(msg)
+        return False, msg
 
     body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
 
@@ -229,7 +245,8 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             add_user(email, first_name, last_name, drop_site, phone_number)
             old_user_info = get_user(email, phone_number)
         else:
-            raise ex
+            logger.error(ex)
+            # raise ex
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
@@ -276,8 +293,11 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     except Exception as ex:
         if 'Invalid phone number' in str(ex):
-            return False, 'Invalid phone number'
-        raise ex
+            msg = 'Invalid phone number'
+            logger.error(msg)
+            return False, msg
+        logger.error(ex)
+        # raise ex
 
     return True, ''
 
