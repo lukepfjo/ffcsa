@@ -159,6 +159,8 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+    if not settings.SENDINBLUE_ENABLED:
+        return True, ''
 
     if drop_site not in _DROP_SITE_IDS.keys():
         msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
