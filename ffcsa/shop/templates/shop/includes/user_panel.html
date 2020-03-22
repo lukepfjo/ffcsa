@@ -1,43 +1,50 @@
-{% load i18n shop_tags mezzanine_tags %}
+{% load i18n shop_tags mezzanine_tags ffcsa_core_tags %}
 {% if request.user.is_authenticated %}
     {% spaceless %}
         <div class="shop-panel">
             <table class="table table-condensed table-striped">
                 <thead>
-                    <tr>
-                        <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Weekly Order</a>
-                        </th>
-                    </tr>
+                <tr>
+                    <th class="text-center" colspan="2"><a href="{% url "shop_cart" %}">Edit Weekly Order</a>
+                    </th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% if not request.cart.items.exists %}
-                        <tr>
-                            <td class="text-center" colspan="2">no items</td>
-                        </tr>
-                    {% endif %}
-                    {% for item in request.cart.items.all %}
-                        <tr>
-                            <td>{{ item.quantity }}x</td>
-                            <td>{{ item.description }}</td>
-                        </tr>
-                    {% endfor %}
+                {% if not request.cart.items.exists %}
+                    <tr>
+                        <td class="text-center" colspan="2">no items</td>
+                    </tr>
+                {% endif %}
+                {% for item in request.cart.items.all %}
+                    <tr>
+                        <td>{{ item.quantity }}x</td>
+                        <td>{{ item.description }}</td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
             <table class="table table-condensed">
                 <tbody>
-                    {% with budget=request.session.remaining_budget order_total=request.cart.total_price discount=request.cart.discount %}
+                {% with budget=request.session.remaining_budget order_total=request.cart.item_total_price discount=request.cart.discount %}
+                    <tr>
+                        <td><strong>Item Total:</strong> {{ order_total|currency }}</td>
+                    </tr>
+                    {% if discount %}
                         <tr>
-                            <td><strong>Order Value:</strong> ${{ order_total }}</td>
+                            <td><strong>Discount:</strong> {{ discount|currency }}</td>
                         </tr>
-                        {% if discount %}
-                            <tr>
-                                <td><strong>Discount:</strong> ${{ discount|floatformat:2 }}</td>
-                            </tr>
-                        {% endif %}
+                    {% endif %}
+                    {% if request.session.shipping_type %}
                         <tr>
-                            <td><strong>Remaining Budget:</strong> ${{ budget }}</td>
+                            <td><strong>{{ request.session.shipping_type }}:</strong>
+                                {% if request.session.shipping_total == "0" %}FREE!{% else %}
+                                    {{ request.session.shipping_total|currency }}{% endif %}</td>
                         </tr>
-                    {% endwith %}
+                    {% endif %}
+                    <tr>
+                        <td><strong>Remaining Budget:</strong> {{ budget|currency }}</td>
+                    </tr>
+                {% endwith %}
                 </tbody>
             </table>
 

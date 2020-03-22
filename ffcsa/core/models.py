@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.db import models
@@ -83,6 +84,11 @@ class Profile(models.Model):
         null=True, help_text="Google Person resource id", blank=True)
     discount_code = models.ForeignKey(
         'shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
+    home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery",
+                                        help_text="Home delivery is available in select areas for a ${} fee. This fee is waived for all orders over ${}.".format(
+                                            settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
+    delivery_address = models.CharField("Address", blank=True, max_length=100)
+    delivery_notes = models.TextField("Special Delivery Notes", blank=True)
 
     @property
     def joined_before_dec_2017(self):

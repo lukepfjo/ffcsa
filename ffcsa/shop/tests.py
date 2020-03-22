@@ -229,7 +229,7 @@ class ShopTests(TestCase):
         cart = Cart.objects.from_request(self.client)
         self.assertFalse(cart.has_items())
         self.assertEqual(cart.total_quantity(), 0)
-        self.assertEqual(cart.total_price(), Decimal("0"))
+        self.assertEqual(cart.item_total_price(), Decimal("0"))
 
         # Add quantity and check stock levels / cart totals.
         self._reset_variations()
@@ -241,7 +241,7 @@ class ShopTests(TestCase):
         self.assertFalse(variation.has_stock(TEST_STOCK * 2))
         self.assertTrue(cart.has_items())
         self.assertEqual(cart.total_quantity(), TEST_STOCK)
-        self.assertEqual(cart.total_price(), TEST_PRICE * TEST_STOCK)
+        self.assertEqual(cart.item_total_price(), TEST_PRICE * TEST_STOCK)
 
         # Add remaining quantity and check again.
         self._add_to_cart(variation, TEST_STOCK)
@@ -250,7 +250,7 @@ class ShopTests(TestCase):
         self.assertFalse(variation.has_stock())
         self.assertTrue(cart.has_items())
         self.assertEqual(cart.total_quantity(), TEST_STOCK * 2)
-        self.assertEqual(cart.total_price(), TEST_PRICE * TEST_STOCK * 2)
+        self.assertEqual(cart.item_total_price(), TEST_PRICE * TEST_STOCK * 2)
 
         # Remove from cart.
         self._empty_cart(cart)
@@ -259,7 +259,7 @@ class ShopTests(TestCase):
         self.assertTrue(variation.has_stock(TEST_STOCK * 2))
         self.assertFalse(cart.has_items())
         self.assertEqual(cart.total_quantity(), 0)
-        self.assertEqual(cart.total_price(), Decimal("0"))
+        self.assertEqual(cart.item_total_price(), Decimal("0"))
 
     def test_discount_codes(self):
         """

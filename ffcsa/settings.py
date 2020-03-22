@@ -26,6 +26,9 @@ DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 10000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
+HOME_DELIVERY_ENABLED = True
+HOME_DELIVERY_CHARGE = 5
+FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
     # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
@@ -52,8 +55,10 @@ DROP_SITE_COLORS = {
     'Banzhaf': 'orange',
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU',
+                   'Hollywood']
 
+GOOGLE_API_KEY = "AIzaSyDnoUZB9Dxi-HcCIzZX5q8QuHWs7hnfXho"
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",

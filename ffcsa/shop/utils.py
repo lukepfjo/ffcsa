@@ -58,7 +58,7 @@ def recalculate_remaining_budget(request):
 
     # update remaining_budget
     request.session["remaining_budget"] = float(
-        "{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price_after_discount()))
+        "{0:.2f}".format(ytd_contrib - ytd_ordered - request.cart.total_price()))
 
 
 def recalculate_cart(request):
@@ -85,7 +85,16 @@ def recalculate_cart(request):
         if discount_form.is_valid():
             discount_form.set_discount()
 
-    def handler(s): return import_dotted_path(s) if s else lambda *args: None
+    # This has to happened after discount_form.set_discount() b/c that will clear the shipping variables
+    if request.user.is_authenticated:
+        if request.user.profile.home_delivery:
+            set_home_delivery(request)
+        else:
+            clear_shipping(request)
+
+    def handler(s):
+        return import_dotted_path(s) if s else lambda *args: None
+
     billship_handler = handler(settings.SHOP_HANDLER_BILLING_SHIPPING)
     tax_handler = handler(settings.SHOP_HANDLER_TAX)
     try:
@@ -95,6 +104,21 @@ def recalculate_cart(request):
     except (checkout.CheckoutError, ValueError, KeyError):
         pass
     recalculate_remaining_budget(request)
+
+
+def set_home_delivery(request):
+    if not settings.HOME_DELIVERY_ENABLED:
+        return
+    fee = 0 if 'free_shipping' in request.session and request.session[
+        "free_shipping"] is True else request.cart.delivery_fee()
+    set_shipping(request, "Home Delivery", fee)
+
+
+def clear_shipping(request):
+    if "shipping_type" in request.session:
+        del request.session["shipping_type"]
+    if "shipping_total" in request.session:
+        del request.session["shipping_total"]
 
 
 def set_shipping(request, shipping_type, shipping_total):

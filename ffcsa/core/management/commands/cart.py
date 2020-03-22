@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.db.models import Sum, OuterRef, Subquery, IntegerField
 
 from ffcsa.shop.models import Cart, Order, ProductVariation, CartItem
@@ -73,6 +74,12 @@ class Command(BaseCommand):
                 if not user.profile.start_date:
                     user.profile.start_date = now()
 
+                drop_site = user.profile.drop_site
+                if settings.HOME_DELIVERY_ENABLED and user.profile.home_delivery:
+                    drop_site = 'Home Delivery'
+                if cart.attending_dinner:
+                    drop_site = 'Farm'
+
                 order_dict = {
                     'user_id': user.id,
                     # add 1 day since all billing is based off of Friday ordering, but orders close on Thursday
@@ -83,16 +90,29 @@ class Command(BaseCommand):
                     'billing_detail_email': user.email,
                     'billing_detail_phone': user.profile.phone_number,
                     'billing_detail_phone_2': user.profile.phone_number_2,
-                    'item_total': cart.total_price(),
+                    'item_total': cart.item_total_price(),
                     'discount_code': user.profile.discount_code.code if user.profile.discount_code else "",
                     'discount_total': cart.discount(),
-                    'total': cart.total_price_after_discount(),
+                    'total': cart.total_price(),
                     'attending_dinner': cart.attending_dinner,
-                    'drop_site': 'Farm' if cart.attending_dinner else user.profile.drop_site,
+                    'drop_site': drop_site,
                     'additional_instructions': user.profile.invoice_notes,
                     'no_plastic_bags': user.profile.no_plastic_bags,
                     'allow_substitutions': user.profile.allow_substitutions,
                 }
+
+                if settings.HOME_DELIVERY_ENABLED and user.profile.home_delivery:
+                    # ex address: 2050 Goodpasture Loop, Eugene, OR 97401, USA
+                    address_components = user.profile.delivery_address.split(',')
+                    order_dict.update(**{
+                        'shipping_type': 'Home Delivery',
+                        'shipping_total': cart.delivery_fee(),
+                        'shipping_detail_street': address_components[0],
+                        'shipping_detail_city': address_components[1],
+                        'shipping_detail_state': 'OR',
+                        'shipping_detail_postcode': address_components[2].split(' ')[1],
+                        'shipping_instructions': user.profile.delivery_notes,
+                    })
 
                 order = Order.objects.create(**order_dict)
                 order.save()

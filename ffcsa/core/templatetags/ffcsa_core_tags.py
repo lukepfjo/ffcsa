@@ -78,13 +78,15 @@ def render_field(context, field, **kwargs):
     Renders a single form field
     """
     template = kwargs.get('template', "includes/form_field.html")
-    context["field"] = field
-    if 'show_required' not in context:
-        context["show_required"] = True
-    if 'show_label' not in context:
-        context["show_label"] = True
-    context.update(kwargs)
-    return get_template(template).render(context.flatten())
+    # This will make a copy of the context so it isn't globally modified
+    c = context.flatten()
+    c["field"] = field
+    if 'show_required' not in c:
+        c["show_required"] = True
+    if 'show_label' not in c:
+        c["show_label"] = True
+    c.update(kwargs)
+    return get_template(template).render(c)
 
 
 @register.filter

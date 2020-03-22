@@ -14,7 +14,7 @@ register_setting(
     name="TEMPLATE_ACCESSIBLE_SETTINGS",
     description=_("Sequence of setting names available within templates."),
     editable=False,
-    default=("ROLLBAR",),
+    default=("ROLLBAR", "GOOGLE_API_KEY", "HOME_DELIVERY_ENABLED"),
     append=True,
 )
 
