@@ -77,6 +77,8 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
             'drop_site': form.cleaned_data['drop_site'],
             'phone_number': form.cleaned_data['phone_number'],
             'phone_number_2': form.cleaned_data['phone_number_2'],
+            'email': form.cleaned_data.get('email', ''),
+            'join_dairy_program': new_user.profile.join_dairy_program,
             'best_time_to_reach': form.cleaned_data['best_time_to_reach'],
             'communication_method': form.cleaned_data['communication_method'],
             'num_adults': form.cleaned_data['num_adults'],
@@ -160,8 +162,9 @@ def payments_subscribe(request):
     stripeToken = request.POST.get('stripeToken')
 
     user = request.user
-    if not user.profile.paid_signup_fee and not request.POST.get('signupAcknowledgement') == 'True':
-        errors.append('You must acknowledge the 1 time signup fee')
+    if user.profile.join_dairy_program and not user.profile.paid_signup_fee and not request.POST.get(
+            'signupAcknowledgement') == 'True':
+        errors.append('You must acknowledge the 1 time Raw Dairy program fee')
 
     if not stripeToken:
         errors.append('Invalid Request')

@@ -8,20 +8,20 @@ from mezzanine.conf import settings
 from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start, next_weekday
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-SIGNUP_DESCRIPTION = 'FFCSA Signup Fee'
+SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Program Fee'
 
 
 def charge_signup_fee_if_needed(user):
-    if not user.profile.paid_signup_fee:
+    if user.join_dairy_program and not user.profile.paid_signup_fee:
         if not user.profile.stripe_customer_id:
-            raise AssertionError('Attempting to charge a signup fee, but user has no stripe customer id')
+            raise AssertionError('Attempting to charge a raw dairy program fee, but user has no stripe customer id')
 
         stripe.Charge.create(
             amount=settings.SIGNUP_FEE_IN_CENTS,
             currency='usd',
             description=SIGNUP_DESCRIPTION,
             customer=user.profile.stripe_customer_id,
-            statement_descriptor='FFCSA Signup Fee'
+            statement_descriptor='FFCSA Raw Dairy Program Fee'
         )
         # we update the user.profile.paid_signup_fee when the payment goes through
 

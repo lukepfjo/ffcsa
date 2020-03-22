@@ -35,7 +35,7 @@ accounts_base.ProfileInline.fieldsets = (
         'stripe_subscription_id', 'stripe_customer_id')}),
     ('Preferences', {'fields': ('drop_site', 'no_plastic_bags',
                                 'allow_substitutions', 'weekly_emails')}),
-    ('Other', {'fields': ('start_date', 'can_order_dairy',
+    ('Other', {'fields': ('start_date', 'join_dairy_program', 'can_order_dairy',
                           'product_agreement', 'non_subscribing_member')}),
 
 )

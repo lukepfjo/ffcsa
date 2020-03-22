@@ -64,6 +64,10 @@ class Profile(models.Model):
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
     can_order_dairy = models.BooleanField("Has had dairy conversation", default=False)
+    join_dairy_program = models.BooleanField(
+        "Join Raw Dairy Program",
+        help_text="I would like to join the Raw Dairy program. I understand that I will be charged a $50 herd-share fee when making my first payment to gain access to raw dairy products.",
+        default=False)
     payment_agreement = models.BooleanField(
         "I agree to make monthly payments in order to maintain my membership with the FFCSA for 6 months, with a minimium of $172 per month.",
         default=False)

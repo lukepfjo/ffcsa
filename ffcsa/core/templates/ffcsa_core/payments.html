@@ -50,12 +50,10 @@
                                     <div class="alert alert-warning">
                                         <p>
                                             Note: Because your default payment method is via ACH bank transfer, it will
-                                            take
-                                            3-5 business days before the payment is reflected in your account.
+                                            take 3-5 business days before the payment is reflected in your account.
                                         </p>
                                         <p>If you choose to pay with a credit card below your account will be updated
-                                            the
-                                            same day.</p>
+                                            the same day.</p>
                                     </div>
                                     <p>This is a one time payment that will be credited to your account.</p>
                                 {% endif %}
@@ -113,10 +111,8 @@
             <!-- ACH Bank Verification-->
             {% if user.profile.payment_method == 'ACH' and user.profile.ach_status == 'NEW' or user.profile.payment_method == 'ACH' and user.profile.ach_status == 'VERIFYING' %}
                 <p class="alert alert-warning">It looks like your ACH bank account has not been verified. Once you
-                    receive
-                    the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to verify
-                    your
-                    bank account. The deposits should show on your statement withing 1-2 business days.</p>
+                    receive the 2 small deposits with the descriptions "<strong>AMNTS:</strong>", enter them below to
+                    verify your bank account. The deposits should show on your statement withing 1-2 business days.</p>
                 {% for error in subscribe_errors %}
                     <div class="alert alert-danger">{{ error }}</div>
                 {% endfor %}
@@ -148,10 +144,11 @@
                     <p class="alert alert-warning">It looks like you have yet to setup a subscription.
                         <br/>
                         <br/>
-                        <strong>If you would like to skip the $100 sign up fee and pay for the entire year in
-                            advance</strong>, (minimum $172 / month, $2,080 total) send a personal check made out to
-                        "Full
-                        Farm CSA" by mail to: PO box 565 Junction City, OR 97448
+                        {% if user.profile.join_dairy_program %}
+                            <strong>If you would like to skip the $50 Raw Dairy program
+                                fee and pay for the entire year in advance</strong>{% else %}If you would like to pay
+                            for the year in advance{% endif %}, (minimum $172 / month, $2,080 total) send a personal
+                        check made out to "Full Farm CSA" by mail to: PO box 565 Junction City, OR 97448
                         <br/>
                         <br/>
                         <strong>Otherwise,</strong> please complete the following form to setup your subscription.</p>
@@ -164,11 +161,12 @@
                     {% include "ffcsa_core/payment_details.html" %}
 
 
-                    {% if not user.profile.paid_signup_fee %}
+                    {% if not user.profile.paid_signup_fee and user.profile.join_dairy_program %}
                         <div class="form-group checkbox">
                             <label>
                                 <input required type="checkbox" name="signupAcknowledgement" value="True"> I acknowledge
-                                that I will also be charged a one time sign up fee of <strong>$100</strong>
+                                that I will also be charged a one time fee of <strong>$50</strong> to join the Raw Dairy
+                                program
                             </label>
                         </div>
                     {% endif %}
@@ -251,25 +249,25 @@
 
         <table class="table table-striped order-history">
             <thead>
-                <th class="left">ID</th>
-                <th class="left">{% trans "Date" %}</th>
-                <th class="left">{% trans "Description" %}</th>
-                <th class="right">{% trans "Amount" %}</th>
+            <th class="left">ID</th>
+            <th class="left">{% trans "Date" %}</th>
+            <th class="left">{% trans "Description" %}</th>
+            <th class="right">{% trans "Amount" %}</th>
             </thead>
             <tbody>
-                {% for payment in payments.object_list %}
-                    <tr>
-                        <td class="left">{{ payment.id }}</td>
-                        <td class="left">{{ payment.date|date:"SHORT_DATE_FORMAT" }}</td>
-                        <td class="left">{{ payment.notes|default_if_none:"" }}</td>
-                        <td class="right">
-                            {% if payment.pending %}
-                                (pending)
-                            {% endif %}
-                            {{ payment.amount|currency }}
-                        </td>
-                    </tr>
-                {% endfor %}
+            {% for payment in payments.object_list %}
+                <tr>
+                    <td class="left">{{ payment.id }}</td>
+                    <td class="left">{{ payment.date|date:"SHORT_DATE_FORMAT" }}</td>
+                    <td class="left">{{ payment.notes|default_if_none:"" }}</td>
+                    <td class="right">
+                        {% if payment.pending %}
+                            (pending)
+                        {% endif %}
+                        {{ payment.amount|currency }}
+                    </td>
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
         {% pagination_for payments %}

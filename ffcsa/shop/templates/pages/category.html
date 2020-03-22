@@ -109,6 +109,9 @@
                                                    name="add_item" value="{% trans "Add to Order" %}">
                                         {% endif %}
                                     {% endif %}
+                                    {% if not request.user.profile.join_dairy_program %}
+                                        <p class="text-base text-center text-red-800">Ask us about our Raw Dairy program to order.</p>
+                                    {% endif %}
                                 </div>
                             </form>
                             {#                            </a>#}

@@ -112,14 +112,17 @@
         </ul>
 
         {% if request.user.is_authenticated %}
-                {% errors_for add_product_form %}
+            {% errors_for add_product_form %}
 
             <form method="post" id="add-cart" class="shop-form">
                 {% fields_for add_product_form %}
                 <div class="form-actions">
                     {% if can_order_dairy or not product.is_dairy %}
-                    <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
-                           value="{% trans "Add to Order" %}">
+                        <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
+                               value="{% trans "Add to Order" %}">
+                    {% endif %}
+                    {% if not request.user.profile.join_dairy_program %}
+                        <p class="text-base text-center text-red-800">Ask us about our Raw Dairy program to order.</p>
                     {% endif %}
                 </div>
             </form>

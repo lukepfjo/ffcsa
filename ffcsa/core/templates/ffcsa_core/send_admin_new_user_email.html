@@ -1,7 +1,9 @@
 <p>{{ user }} has just signed up.</p>
 
-<p>You will need to contact them to discuss the Raw Dairy Program. Then you will need to activate their account by
-    visiting <a href="{{ user_url }}">{{ user_url }}</a> before they can place an order.</p>
+{% if join_dairy_program %}
+    <p>You will need to contact them to discuss the Raw Dairy Program. Then you will need to activate their account by
+        visiting <a href="{{ user_url }}">{{ user_url }}</a> before they can place an order.</p>
+{% endif %}
 
 {% if email_product_agreement %}
     <p><b>You will need to email this user the product liability agreement to sign via SignRequest.</b></p>
@@ -9,28 +11,34 @@
     <p><b>Make sure to verify that they have signed the Product Liability Form.</b></p>
 {% endif %}
 
-<h5>Drop Site</h5>
+<h4>Drop Site</h4>
 <p>{{ drop_site }}</p>
 
-<h5>Phone Number</h5>
+<h4>Would like to join the Raw Dairy program?</h4>
+<p>{{ join_dairy_program }}</p>
+
+<h4>Phone Number</h4>
 <p>{{ phone_number }}</p>
 
 {% if phone_number_2 %}
-    <h5>Phone Number Alternate</h5>
+    <h4>Phone Number Alternate</h4>
     <p>{{ phone_number_2 }}</p>
 {% endif %}
 
-<h5>What is the best time to reach you?</h5>
+<h4>Email</h4>
+<p>{{ email }}</p>
+
+<h4>What is the best time to reach you?</h4>
 <p>{{ best_time_to_reach }}</p>
 
-<h5>What is your preferred method of communication?</h5>
+<h4>What is your preferred method of communication?</h4>
 <p>{{ communication_method }}</p>
 
-<h5>How many adults are in your family?</h5>
+<h4>How many adults are in your family?</h4>
 <p>{{ num_adults }}</p>
 
-<h5>How many children are in your family?</h5>
+<h4>How many children are in your family?</h4>
 <p>{{ num_children }}</p>
 
-<h5>How did you hear about us?</h5>
+<h4>How did you hear about us?</h4>
 <p>{{ hear_about_us }}</p>
