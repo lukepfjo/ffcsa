@@ -75,7 +75,7 @@ class Command(BaseCommand):
                     user.profile.start_date = now()
 
                 drop_site = user.profile.drop_site
-                if settings.HOME_DELIVERY_ENABLED and user.profile.home_delivery:
+                if user.profile.home_delivery:
                     drop_site = 'Home Delivery'
                 if cart.attending_dinner:
                     drop_site = 'Farm'
@@ -101,7 +101,7 @@ class Command(BaseCommand):
                     'allow_substitutions': user.profile.allow_substitutions,
                 }
 
-                if settings.HOME_DELIVERY_ENABLED and user.profile.home_delivery:
+                if user.profile.home_delivery:
                     # ex address: 2050 Goodpasture Loop, Eugene, OR 97401, USA
                     address_components = user.profile.delivery_address.split(',')
                     order_dict.update(**{

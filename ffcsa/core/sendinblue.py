@@ -26,6 +26,7 @@ _DEFAULT_HEADERS = {
 
 _BASE_ENDPOINT = 'https://api.sendinblue.com/v3/'
 
+HOME_DELIVERY_LIST = 'Home Delivery'
 
 def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
@@ -73,6 +74,9 @@ def _initialize_drop_site_lists():
 
     # Get the names of the drop_sites from settings.py and diff them with the folders on SIB
     missing_on_sib = [d[0] for d in settings.DROP_SITE_CHOICES if d[0] not in drop_site_ids.keys()]
+
+    if HOME_DELIVERY_LIST not in drop_site_ids.keys():
+        missing_on_sib.append(HOME_DELIVERY_LIST)
 
     if len(missing_on_sib) > 0:
         folders = send_request('contacts/folders')['folders']

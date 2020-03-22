@@ -227,7 +227,7 @@ def payments_subscribe(request):
 
             if resubscribed:
                 sendinblue.on_user_resubscribe(user.email, user.first_name, user.last_name,
-                                               user.profile.drop_site)
+                                               sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site)
 
     except stripe.error.CardError as e:
         body = e.json_body
