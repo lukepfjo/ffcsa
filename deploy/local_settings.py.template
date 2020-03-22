@@ -1,5 +1,8 @@
 from __future__ import unicode_literals
 
+SENDINBLUE_ENABLED = True
+SENDINBLUE_API_KEY = "%(sendinblue_api_key)s";
+
 EMAIL_HOST_USER = "%(email_host_user)s"
 EMAIL_USE_SSL = True
 EMAIL_HOST = "%(email_host)s"

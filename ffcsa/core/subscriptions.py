@@ -76,11 +76,11 @@ def create_stripe_subscription(user):
     amount = user.profile.monthly_contribution
 
     if amount is None:
-        raise ValueError('Attempting to create a subscription but user monthly_contribution hasnt been set')
+        raise ValueError('Attempting to create a subscription but user monthly_contribution hasn\'t been set')
     if user.profile.stripe_subscription_id:
         raise AssertionError('Attempting to create a subscription but user already has a subscription')
     if not user.profile.stripe_customer_id:
-        raise AssertionError('Attempting to create a subscription but user has not stripe customer id')
+        raise AssertionError('Attempting to create a subscription but user has no stripe customer id')
 
     plan = stripe.Plan.create(
         amount=(amount * 100).quantize(0),  # in cents
@@ -100,6 +100,7 @@ def create_stripe_subscription(user):
 
         # TODO integrate crypto
     )
+
     user.profile.stripe_subscription_id = subscription.id
     user.profile.save()
 

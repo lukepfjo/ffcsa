@@ -65,6 +65,20 @@ GOOGLE_GROUP_IDS = {
     "MANAGED": "contactGroups/41aaae0b0f3d9da7",
 }
 
+
+# Sendinblue settings
+
+SENDINBLUE_ENABLED = False
+SENDINBLUE_API_KEY = None
+SENDINBLUE_LISTS = {
+    'WEEKLY_NEWSLETTER': 9,
+    'WEEKLY_REMINDER': 10,
+    'MEMBERS': 7,
+    'FORMER_MEMBERS': 11
+}
+SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
+
+
 # Rollbar settings
 
 ROLLBAR = {
