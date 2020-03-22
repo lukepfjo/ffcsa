@@ -33,11 +33,11 @@
         <form method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %} id="signup_form">
             {% csrf_token %}
             <fieldset>
-                {% render_field form.first_name group_class="col-md-6" %}
-                {% render_field form.last_name group_class="col-md-6" %}
+                {% render_field form.first_name group_class="col-xs-12 col-md-6" %}
+                {% render_field form.last_name group_class="col-xs-12 col-md-6" %}
                 {% render_field form.email group_class="col-xs-12" %}
-                {% render_field form.password1 group_class="col-md-6" %}
-                {% render_field form.password2 group_class="col-md-6" %}
+                {% render_field form.password1 group_class="col-xs-12 col-md-6" %}
+                {% render_field form.password2 group_class="col-xs-12 col-md-6" %}
             </fieldset>
 
             <fieldset>
@@ -46,10 +46,10 @@
                 {#            </fieldset>#}
 
                 {#            <fieldset>#}
-                {% render_field form.phone_number group_class="col-md-6" %}
-                {% render_field form.phone_number_2 group_class="col-md-6" %}
-                {% render_field form.num_adults group_class="col-md-6" %}
-                {% render_field form.num_children group_class="col-md-6" %}
+                {% render_field form.phone_number group_class="col-xs-12 col-md-6" %}
+                {% render_field form.phone_number_2 group_class="col-xs-12 col-md-6" %}
+                {% render_field form.num_adults group_class="col-xs-12 col-md-6" %}
+                {% render_field form.num_children group_class="col-xs-12 col-md-6" %}
                 {% render_field form.communication_method group_class="col-xs-12" %}
                 {% render_field form.best_time_to_reach group_class="col-xs-12" %}
                 {% render_field form.hear_about_us group_class="col-xs-12" %}
