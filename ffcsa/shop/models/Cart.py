@@ -270,7 +270,7 @@ class CartItem(models.Model):
         if self.variation.live_num_in_stock() - diff <= 0:
             # notify admin that a product is out of stock
             send_mail_template(
-                "Member Store -- Item Out Of Stock",
+                "Member Store - Item Out Of Stock",
                 "shop/admin_out_of_stock_email",
                 settings.DEFAULT_FROM_EMAIL,
                 settings.DEFAULT_FROM_EMAIL,
