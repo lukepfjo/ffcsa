@@ -75,10 +75,11 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
 
             # Send critical alert if we have exceeded the limit for HTTP 5xx errors to notify admin if
             # Sendinblue is down or something is critically wrong
-            if HTTP_5XX_COUNT > settings.SENDINBLUE_5XX_COUNT_FOR_CRITICAL_ALERT:
+            if HTTP_5XX_COUNT == settings.SENDINBLUE_5XX_COUNT_FOR_CRITICAL_ALERT:
                 logger.critical('Sendinblue has sent HTTP 5xx for the past {} requests'.format(HTTP_5XX_COUNT))
+            else:
+                logger.error('Sendinblue internal server error: HTTP {}'.format(response.status_code))
 
-            logger.error('Sendinblue internal server error: HTTP {}'.format(response.status_code))
             return False
 
     HTTP_5XX_COUNT = 0
