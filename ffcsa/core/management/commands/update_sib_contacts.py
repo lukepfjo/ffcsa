@@ -8,7 +8,7 @@ class Command(BaseCommand):
     help = 'Add/Update all contacts in SIB'
 
     def handle(self, *args, **options):
-        for user in get_user_model().objects.filter(active=True):
+        for user in get_user_model().objects.filter(is_active=True):
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site
 
             weekly_email_lists = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER']
