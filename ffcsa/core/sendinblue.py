@@ -38,6 +38,8 @@ NEW_USER_LISTS_TO_REMOVE = [
 
 HOME_DELIVERY_LIST = 'Home Delivery'
 
+HTTP_5XX_COUNT = 0
+
 
 def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
@@ -52,6 +54,8 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     @return: Dictionary containing the JSON response; raises descriptive exceptions upon failure
     """
 
+    global HTTP_5XX_COUNT
+
     endpoint = _BASE_ENDPOINT + endpoint.lstrip('/')
     data = json.dumps(data) if data is not None else None
     headers = {} if headers is None else headers
@@ -63,10 +67,21 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
         if response.status_code < 500:
             response_json = response.json()
             response_error = response_json.get('error', response_json)['message']  # SIB error format is not consistent
-            raise Exception('Sendinblue error: HTTP {}: {}'.format(response.status_code, response_error))
+            logger.error('Sendinblue error: HTTP {}: {}'.format(response.status_code, response_error))
+            return False
 
         else:
-            raise Exception('Sendinblue internal server error: HTTP {}'.format(response.status_code))
+            HTTP_5XX_COUNT += 1
+
+            # Send critical alert if we have exceeded the limit for HTTP 5xx errors to notify admin if
+            # Sendinblue is down or something is critically wrong
+            if HTTP_5XX_COUNT > settings.SENDINBLUE_5XX_COUNT_FOR_CRITICAL_ALERT:
+                logger.critical('Sendinblue has sent HTTP 5xx for the past {} requests'.format(HTTP_5XX_COUNT))
+
+            logger.error('Sendinblue internal server error: HTTP {}'.format(response.status_code))
+            return False
+
+    HTTP_5XX_COUNT = 0
 
     try:
         return response.json()
@@ -79,6 +94,9 @@ def _initialize_drop_site_lists():
     # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
     existing_lists = send_request('contacts/lists')
+    if existing_lists is False:
+        raise Exception('Failed to initialize drop site lists due to HTTP error')
+
     drop_site_ids = {_list['name'].replace('Dropsite - ', ''): int(_list['id'])
                      for _list in existing_lists['lists']
                      if _list['name'].startswith('Dropsite')}
@@ -207,8 +225,9 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             msg = 'User already exists'
             logger.error(msg)
             return False, msg
+
         logger.error(ex)
-        # raise ex
+        return False, ''
 
     return True, ''
 
@@ -254,7 +273,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             old_user_info = get_user(email, phone_number)
         else:
             logger.error(ex)
-            # raise ex
+            return False, ''
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
@@ -304,8 +323,9 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             msg = 'Invalid phone number'
             logger.error(msg)
             return False, msg
+
         logger.error(ex)
-        # raise ex
+        return False, ''
 
     return True, ''
 

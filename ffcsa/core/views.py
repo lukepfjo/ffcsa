@@ -91,9 +91,11 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         }
 
         add_google_contact(new_user)
-        sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
-                                      c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
-                                      sendinblue.NEW_USER_LISTS_TO_REMOVE)
+
+        if settings.SENDINBLUE_ENABLED:
+            sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
+                                          c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
+                                          sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
@@ -624,7 +626,8 @@ def stripe_webhooks(request):
             payments_url = request.build_absolute_uri(reverse("payments"))
             send_subscription_canceled_email(user, date, payments_url)
 
-            sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
+            if settings.SENDINBLUE_ENABLED:
+                sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
 
     except ValueError as e:
         # Invalid payload
