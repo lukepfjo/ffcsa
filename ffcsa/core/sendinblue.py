@@ -26,6 +26,16 @@ _DEFAULT_HEADERS = {
 
 _BASE_ENDPOINT = 'https://api.sendinblue.com/v3/'
 
+NEW_USER_LISTS = [
+    settings.SENDINBLUE_LISTS['WEEKLY_NEWSLETTER'],
+    settings.SENDINBLUE_LISTS['WEEKLY_REMINDER'],
+    settings.SENDINBLUE_LISTS['MEMBERS']
+]
+
+NEW_USER_LISTS_TO_REMOVE = [
+    settings.SENDINBLUE_LISTS['PROSPECTIVE_MEMBERS']
+]
+
 HOME_DELIVERY_LIST = 'Home Delivery'
 
 
@@ -182,15 +192,8 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             'FIRSTNAME': first_name,
             'LASTNAME': last_name,
         },
-        'listIds': [
-            drop_site_list_id,
-            settings.SENDINBLUE_LISTS['WEEKLY_NEWSLETTER'],
-            settings.SENDINBLUE_LISTS['WEEKLY_REMINDER'],
-            settings.SENDINBLUE_LISTS['MEMBERS']
-        ],
-        'unlinkListIds': [
-            settings.SENDINBLUE_LISTS['PROSPECTIVE_MEMBERS']
-        ]
+        'listIds': [drop_site_list_id] + NEW_USER_LISTS,
+        'unlinkListIds': NEW_USER_LISTS_TO_REMOVE
     }
 
     if phone_number is not None:
