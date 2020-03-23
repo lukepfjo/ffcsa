@@ -71,10 +71,12 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         info(request, "Successfully signed up")
         auth_login(request, new_user)
 
+        drop_site = 'Home Delivery' if new_user.profile.home_delivery else form.cleaned_data.get('drop_site')
+
         c = {
             'user': "{} {}".format(new_user.first_name, new_user.last_name),
             'user_url': request.build_absolute_uri(reverse("admin:auth_user_change", args=(new_user.id,))),
-            'drop_site': form.cleaned_data['drop_site'],
+            'drop_site': drop_site,
             'phone_number': form.cleaned_data['phone_number'],
             'phone_number_2': form.cleaned_data['phone_number_2'],
             'email': form.cleaned_data.get('email', ''),

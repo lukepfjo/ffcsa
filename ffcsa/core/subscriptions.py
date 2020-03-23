@@ -118,7 +118,7 @@ def send_first_payment_email(user):
 
     context = {
         'pickup_date': formats.date_format(pickup, "D F d"),
-        'drop_site': user.profile.drop_site,
+        'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
         'can_order_now': can_order_now,
         'order_week_start': formats.date_format(week_start, "D F d"),
     }
