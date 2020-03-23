@@ -8,8 +8,9 @@
     </div>
     {% include 'pages/dairy-product-alert.html' %}
     <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
-        Dropsite:</b> {{ request.user.profile.drop_site }} <a class="small" style="margin-left:5px"
-                                                              href="{% url "profile_update" %}">(Update)</a>
+        Dropsite:</b> {% if request.user.profile.home_delivery %}Home Delivery -
+        {{ request.user.profile.delivery_address }}{% else %}{{ request.user.profile.drop_site }}{% endif %} <a
+            class="border-0 btn btn-xs btn-primary ml-4" href="{% url "profile_update" %}">Update</a>
     </div>
 {% endif %}
 
