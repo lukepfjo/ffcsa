@@ -8,7 +8,7 @@ from mezzanine.conf import settings
 from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start, next_weekday
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Program Fee'
+SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Fee'
 
 
 def charge_signup_fee_if_needed(user):

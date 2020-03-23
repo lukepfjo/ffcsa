@@ -89,8 +89,9 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         }
 
         add_google_contact(new_user)
-        sendinblue.add_user(new_user.email, new_user.first_name, new_user.last_name,
-                            c['drop_site'], c['phone_number'])
+        sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
+                                      c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
+                                      sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,
@@ -541,7 +542,7 @@ def stripe_webhooks(request):
                 profile__stripe_customer_id=event.data.object.customer).first()
             charge = event.data.object
             # only save pending ach transfers. cc payments are basically instant
-            if user and charge.source.object == 'bank_account':
+            if user and charge.source.object == 'bank_account' and charge.description != SIGNUP_DESCRIPTION:
                 amount = charge.amount / 100  # amount is in cents
                 date = datetime.datetime.fromtimestamp(charge.created)
                 existing_payments = Payment.objects.filter(charge_id=charge.id)
