@@ -16,7 +16,8 @@ class Command(BaseCommand):
         for user in get_user_model().objects.filter(is_active=True):
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site
 
-            is_active = user.profile.stripe_subscription_id or Order.objects.filter(user=user,
+            # TODO should be considered active if they are a new user and haven't yet setup a subscription
+            is_active = user.profile.stripe_subscription_id or Order.objects.filter(user_id=user.id,
                                                                                     time__gte=two_months_date).count() > 0
 
             lists_to_add = []

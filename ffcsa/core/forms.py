@@ -180,7 +180,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data[
                 'drop_site']
 
-            weekly_email_lists = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER']
+            weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
             lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
             sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],

@@ -187,6 +187,9 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             settings.SENDINBLUE_LISTS['WEEKLY_NEWSLETTER'],
             settings.SENDINBLUE_LISTS['WEEKLY_REMINDER'],
             settings.SENDINBLUE_LISTS['MEMBERS']
+        ],
+        'unlinkListIds': [
+            settings.SENDINBLUE_LISTS['PROSPECTIVE_MEMBERS']
         ]
     }
 
