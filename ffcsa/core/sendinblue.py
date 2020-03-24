@@ -231,7 +231,8 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
-    if drop_site is not None and drop_site not in (_[0] for _ in settings.DROP_SITE_CHOICES):
+    if drop_site is not None and drop_site is not HOME_DELIVERY_LIST and drop_site not in (_[0] for _ in
+                                                                                           settings.DROP_SITE_CHOICES):
         msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
         logger.error(msg)
         return False, msg
