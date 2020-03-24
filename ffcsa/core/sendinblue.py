@@ -5,6 +5,9 @@ from urllib.parse import quote as make_url_safe
 
 import requests
 
+from django.utils.html import format_html as make_html_safe
+
+
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
 
@@ -39,6 +42,9 @@ NEW_USER_LISTS_TO_REMOVE = [
 HOME_DELIVERY_LIST = 'Home Delivery'
 
 
+# --------
+# General helper functions
+
 def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
     Wrapper to simplify Sendinblue request handling
@@ -66,7 +72,9 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
             raise Exception('Sendinblue error: HTTP {}: {}'.format(response.status_code, response_error))
 
         else:
-            raise Exception('Sendinblue internal server error: HTTP {}'.format(response.status_code))
+            response_json = response.json()
+            response_error = response_json.get('error', response_json)['message']  # SIB error format is not consistent
+            raise Exception('Sendinblue internal server error: HTTP {}: {}'.format(response.status_code, response_error))
 
     try:
         return response.json()
@@ -106,6 +114,8 @@ def _initialize_drop_site_lists():
 if settings.SENDINBLUE_ENABLED:
     _DROP_SITE_IDS = _initialize_drop_site_lists()
 
+# --------
+# User (contact) management
 
 def _format_phone_number(phone_number):
     # Returns formatted phone number on success, False on failure
@@ -322,3 +332,60 @@ def on_user_resubscribe(email, first_name, last_name, drop_site):
                               drop_site=drop_site,
                               lists_to_add=['MEMBERS'],
                               lists_to_remove=['FORMER_MEMBERS'])
+
+# --------
+# Email management
+
+def _get_transactional_email_templates(pprint=True):
+    # Gets and pretty-prints the names and IDs of all transactional templates,
+    # mostly for easy reference while working in the back-end
+
+    templates = send_request('smtp/templates', query={"temmplateStatus": True})
+
+    templates = templates.get('templates', None)
+    if templates is None:
+        raise Exception('Sendinblue error: Could not get transactional email templates')
+
+    templates = {t['name']: t['id'] for t in templates}
+
+    if pprint:
+        print('Sendinblue Templates: <name>: <id>')
+        print(str(templates).replace('{', '{\n\t').replace('}', '\n}').replace(', ', '\n\t'))
+    else:
+        return templates
+
+
+def send_transactional_email(template_name, recipient_email):
+    """
+    Send a transactional email using the provided details
+
+    @param template_name: The name of a template as defined in settings.py
+    @param recipient_email: Email of recipient - NOTE: Must be contact on SIB, otherwise this will fail
+    @return: True upon success, False on failure
+    """
+
+    template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
+    if template_id is None:
+        logger.critical('Sendinblue error: Transactional template "{}" is missing in settings.py'.format(template_name))
+        return False
+
+    data = {
+        'templateId': template_id,
+        'replyTo': {'name': 'Full Farm CSA', 'email': settings.DEFAULT_FROM_EMAIL},
+        'to': [{'email': recipient_email}]
+    }
+
+    try:
+        response = send_request('smtp/email', 'POST', data=data)
+
+    except Exception as ex:
+        if 'Contact does not exist' in str(ex):
+            logger.error('Sendinblue error: Attempted to send email to non-contact "{}"'.format(recipient_email))
+        else:
+            logger.error(str(ex))
+
+        return False
+
+    return 'messageId' in response.keys()
+
+# print(str(send_transactional_email('Placeholder Drop Site Template', 'myemail@test.com')))
