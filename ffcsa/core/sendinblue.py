@@ -5,8 +5,6 @@ from urllib.parse import quote as make_url_safe
 
 import requests
 
-from django.utils.html import format_html as make_html_safe
-
 
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
