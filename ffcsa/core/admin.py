@@ -46,6 +46,8 @@ SitePermissionInline.classes = ('collapse', 'collapse-closed')
 
 user_list_filter = list(deepcopy(accounts_base.UserProfileAdmin.list_filter))
 user_list_filter.append('profile__drop_site')
+user_list_filter.append('profile__home_delivery')
+user_list_filter.append('profile__join_dairy_program')
 
 
 class UserProfileAdmin(accounts_base.UserProfileAdmin):
