@@ -186,8 +186,8 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             'FIRSTNAME': first_name,
             'LASTNAME': last_name,
         },
-        'listIds': [drop_site_list_id] + [int(settings.sendinblue_lists[desired]) for desired in NEW_USER_LISTS],
-        'unlinkListIds': [int(settings.sendinblue_lists[desired]) for desired in NEW_USER_LISTS_TO_REMOVE]
+        'listIds': [drop_site_list_id] + [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS],
+        'unlinkListIds': [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS_TO_REMOVE]
     }
 
     if phone_number is not None:
@@ -225,7 +225,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
-    if drop_site is not None and drop_site is not HOME_DELIVERY_LIST and drop_site not in (_[0] for _ in
+    if drop_site is not None and drop_site != HOME_DELIVERY_LIST and drop_site not in (_[0] for _ in
                                                                                            settings.DROP_SITE_CHOICES):
         msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
         logger.error(msg)
@@ -249,6 +249,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             old_user_info = get_user(email, phone_number)
         else:
             logger.error(ex)
+            return False, str(ex)
             # raise ex
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
@@ -300,6 +301,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             logger.error(msg)
             return False, msg
         logger.error(ex)
+        return False, str(ex)
         # raise ex
 
     return True, ''
