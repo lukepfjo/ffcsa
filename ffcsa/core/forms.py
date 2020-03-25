@@ -103,6 +103,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
+            # TODO does this get whiped out?
             del self.fields['num_adults']
 
         if not settings.HOME_DELIVERY_ENABLED:
