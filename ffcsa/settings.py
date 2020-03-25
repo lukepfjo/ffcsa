@@ -582,7 +582,7 @@ if DEBUG:
         'WEEKLY_REMINDER': 8,
         'MEMBERS': 5,
         'FORMER_MEMBERS': 6,
-        'PROSPECTIVE_MEMBERS': 11,
+        'PROSPECTIVE_MEMBERS': 20,
     }
 
 # This is here b/c fab file does string interpolationn & fails w/ the format string below
