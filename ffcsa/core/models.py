@@ -67,7 +67,7 @@ class Profile(models.Model):
     can_order_dairy = models.BooleanField("Has had dairy conversation", default=False)
     join_dairy_program = models.BooleanField(
         "Join Raw Dairy Program",
-        help_text="I would like to join the Raw Dairy program. I understand that I will be charged a $50 herd-share fee when making my first payment to gain access to raw dairy products.",
+        help_text="I would like to join the Raw Dairy program. I understand that I will be charged a $50 herd-share fee when making my first payment and will need to talk to the Dairy Manager before gaining access to raw dairy products. We'll be in touch soon.",
         default=False)
     payment_agreement = models.BooleanField(
         "I agree to make monthly payments in order to maintain my membership with the FFCSA for 6 months, with a minimium of $172 per month.",
@@ -96,7 +96,7 @@ class Profile(models.Model):
                                             settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
     delivery_address = models.CharField("Address", blank=True, max_length=100)
     delivery_notes = models.TextField("Special Delivery Notes", blank=True)
-    num_adults = models.IntegerField("How many adults are in your family?",
+    num_adults = models.IntegerField("How many adults are in your family?", default=0,
                                      validators=[validators.MinValueValidator(1)]
                                      )
 

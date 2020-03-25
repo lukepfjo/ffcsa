@@ -91,7 +91,6 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
             'communication_method': form.cleaned_data['communication_method'],
             'num_adults': form.cleaned_data['num_adults'],
             'num_children': form.cleaned_data['num_children'],
-            'email_product_agreement': form.cleaned_data['email_product_agreement'],
             'hear_about_us': form.cleaned_data['hear_about_us'],
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
@@ -102,7 +101,7 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
                                       c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
                                       sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
-        subject = "New User Signup %s" % settings.SITE_TITLE,
+        subject = "New User Signup"
         if new_user.profile.join_dairy_program:
             subject = subject + ' - Needs Dairy Conversation'
         send_mail_template(

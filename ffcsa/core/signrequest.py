@@ -43,9 +43,9 @@ def get_signrequest(user):
 
     response = api_instance.documents_search_list(
         limit=1,
-        q='liability',
-        subdomain=settings.SIGN_REQUEST_SUBDOMAIN,
-        signer_emails=user.email,
+        q=user.email,
+        # subdomain=settings.SIGN_REQUEST_SUBDOMAIN,
+        # signer_emails=user.email,
     )
 
     if response.count == 0:

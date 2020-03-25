@@ -82,8 +82,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if self._signup:
             self.fields['pickup_agreement'] = forms.BooleanField(
-                label="I agree to bring my own bags and coolers as needed to pick up my product as the containers "
-                      "the product arrive in stay at the dropsite. I intend to maintain my membership with the FFCSA "
+                label="I agree to bring my own bags and coolers as needed to pick up my product. The containers "
+                      "that the product arrives in stay at the dropsite. I intend to maintain my membership with the FFCSA "
                       "for 6 months, with a minimum payment of $172 per month.")
 
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
@@ -97,8 +97,6 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
             # self.fields['payment_agreement'].required = True
-            if 'has_submitted' not in self.data:
-                self.fields['product_agreement'].required = True
         else:
             # All fields (only checkboxes?) must be rendered in the form unless they are included in settings.ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
             # Otherwise they will be reset/overriden
