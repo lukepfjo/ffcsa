@@ -21,7 +21,7 @@ def charge_signup_fee_if_needed(user):
             currency='usd',
             description=SIGNUP_DESCRIPTION,
             customer=user.profile.stripe_customer_id,
-            statement_descriptor='FFCSA Raw Dairy Program Fee'
+            statement_descriptor='FFCSA Raw Dairy Fee'
         )
         # we update the user.profile.paid_signup_fee when the payment goes through
 
