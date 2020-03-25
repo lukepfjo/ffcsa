@@ -267,7 +267,8 @@ class CartItem(models.Model):
 
         # live_num_in_stock is cached and not updated even though the CartItem
         # quantity was already adjusted above
-        if self.variation.live_num_in_stock() - diff <= 0:
+        live_num_in_stock = self.variation.live_num_in_stock()
+        if live_num_in_stock is not None and live_num_in_stock - diff <= 0:
             # notify admin that a product is out of stock
             send_mail_template(
                 "Member Store - Item Out Of Stock",
