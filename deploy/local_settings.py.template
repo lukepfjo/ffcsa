@@ -2,6 +2,15 @@ from __future__ import unicode_literals
 
 GOOGLE_API_KEY = "%(google_api_key)s";
 
+# SignRequest settings
+SIGN_REQUEST_API_KEY = "%(sign_request_api_key)s"
+SIGN_REQUEST_TEMPLATES = {
+    1: 'df518316-a84c-45d9-a5c5-a26f92de932d',
+    2: '4b80e1ee-d5a8-4d41-b1fa-fdd6faebf792',
+    3: '23aa6d8d-2fdb-4ff3-a5e8-e9bee1c83715',
+    4: 'b0d05107-ad92-440e-a040-51fb0bf4f991'
+}
+
 SENDINBLUE_ENABLED = True
 SENDINBLUE_API_KEY = "%(sendinblue_api_key)s";
 
