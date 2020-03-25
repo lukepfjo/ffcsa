@@ -58,6 +58,17 @@ DROP_SITE_COLORS = {
 DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU',
                    'Hollywood', 'Home Delivery']
 
+# SignRequest settings
+SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
+SIGN_REQUEST_API_KEY = None
+SIGN_REQUEST_TEMPLATES = {
+    1: 'f3ad5564-60f9-4e99-99d3-c7b33e75bddb',
+    2: '22704e6b-4997-46c6-95df-a0cd4b64d6d8',
+    3: '',
+    4: ''
+}
+
+
 GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
@@ -202,6 +213,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "notes",
     "invoice_notes",
     "non_subscribing_member",
+    "signed_membership_agreement",
     "can_order_dairy",
     "google_person_id",
     "discount_code",

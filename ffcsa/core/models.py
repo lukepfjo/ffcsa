@@ -2,6 +2,7 @@ import datetime
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import validators
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.safestring import mark_safe
@@ -71,6 +72,8 @@ class Profile(models.Model):
     payment_agreement = models.BooleanField(
         "I agree to make monthly payments in order to maintain my membership with the FFCSA for 6 months, with a minimium of $172 per month.",
         default=False)
+    signed_membership_agreement = models.BooleanField(default=False,
+                                                      help_text="We have a signed Member Liability Document of file.")
     product_agreement = models.FileField("Liability Agreement Form",
                                          upload_to='uploads/member_docs/',
                                          blank=True,
@@ -93,6 +96,9 @@ class Profile(models.Model):
                                             settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
     delivery_address = models.CharField("Address", blank=True, max_length=100)
     delivery_notes = models.TextField("Special Delivery Notes", blank=True)
+    num_adults = models.IntegerField("How many adults are in your family?",
+                                     validators=[validators.MinValueValidator(1)]
+                                     )
 
     @property
     def joined_before_dec_2017(self):

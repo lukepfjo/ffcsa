@@ -85,14 +85,6 @@ class ProfileForm(accounts_forms.ProfileForm):
                 label="I agree to bring my own bags and coolers as needed to pick up my product as the containers "
                       "the product arrive in stay at the dropsite. I intend to maintain my membership with the FFCSA "
                       "for 6 months, with a minimum payment of $172 per month.")
-            self.fields['email_product_agreement'] = forms.BooleanField(
-                label="Please email me the Product Liability Agreement to e-sign.",
-                required=False
-            )
-            self.fields['email_product_agreement'].widget = forms.HiddenInput()
-
-            self.fields['has_submitted'] = forms.BooleanField(required=False)
-            self.fields['has_submitted'].widget = forms.HiddenInput()
 
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
@@ -100,8 +92,6 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['communication_method'] = forms.ChoiceField(
                 label="What is your preferred method of communication?", required=True,
                 choices=(("Email", "Email"), ("Phone", "Phone"), ("Text", "Text")))
-            self.fields['num_adults'] = forms.IntegerField(label="How many adults are in your family?", required=True,
-                                                           min_value=1)
             self.fields['num_children'] = forms.IntegerField(label="How many children are in your family?",
                                                              required=True, min_value=0)
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
@@ -115,6 +105,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
+            del self.fields['num_adults']
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']
@@ -131,17 +122,6 @@ class ProfileForm(accounts_forms.ProfileForm):
         elif not cleaned_data.get('drop_site', None):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
-        if self._signup:
-            if not self.cleaned_data.get('product_agreement', False) and not self.cleaned_data.get(
-                    'email_product_agreement', False):
-                self.fields['email_product_agreement'].widget = forms.CheckboxInput()
-                d = self.data.copy()
-                d['has_submitted'] = 'on'
-                self.data = d
-                self.add_error('product_agreement',
-                               'Please upload your signed liability doc (preferred) or check the "Email Product Agreement" field below')
-                self.add_error('email_product_agreement',
-                               'Please check this box or upload your signed liability doc above (preferred)')
         return cleaned_data
 
     def save(self, *args, **kwargs):
@@ -168,7 +148,6 @@ class ProfileForm(accounts_forms.ProfileForm):
         user.profile.save()
 
         request = current_request()
-        # TODO test updating profile correctly sets the session variables
         if not self._signup:
             # we can't set this on signup b/c the cart.user_id has not been set yet
             if "home_delivery" in self.changed_data:

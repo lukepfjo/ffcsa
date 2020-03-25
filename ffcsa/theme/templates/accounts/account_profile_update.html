@@ -26,6 +26,8 @@
 
     {% errors_for form %}
 
+    {% include 'ffcsa_core/includes/membership_agreement_alert.html' %}
+
     <form class="update-profile-form" method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
         {% nevercache %}
             {% csrf_token %}
@@ -37,7 +39,8 @@
                     <p class="alert alert-warning">If you would like to start ordering dairy products and join the Raw
                         Dairy Program, send us an email to <a href="mailto:fullfarmcsa@deckfamilyfarm.com">fullfarmcsa@deckfamilyfarm.com</a>
                         and we will get you setup.
-                    </p>{% endif %}
+                    </p>
+                {% endif %}
 
                 <fieldset>
                     <legend>Delivery Options</legend>

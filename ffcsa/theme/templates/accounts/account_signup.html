@@ -100,17 +100,16 @@
             </fieldset>
             <fieldset>
                 {% render_field form.join_dairy_program group_class="col-xs-12" %}
-                {% render_field form.has_submitted %}
-                {% render_field form.product_agreement group_class="col-xs-12 mb-0" %}
-                {% render_field form.email_product_agreement group_class="col-xs-12" %}
                 {% render_field form.pickup_agreement show_required=False group_class="col-xs-12 mb-5" %}
             </fieldset>
             <fieldset>
-                <p class="mb-3">After signing up, you can set up your payments and make your first order!</p>
-                <p class="mb-3">If you would like access to our Raw Dairy products, our Dairy Manager will reach out to
-                    go over a few points regarding our Raw Dairy Program.</p>
+                <p class="mb-3">After signing up, you will receive a welcome email and a Membership Agreement you will
+                    need to sign. Once you have signed the agreement and set up your payments, you will be ready to make
+                    your first order!</p>
                 <p class="mb-10">If you do not see a confirmation email after signing up, check your spam folder, as it
                     sometimes gets sent there.</p>
+                <p class="mb-3">If you would like access to our Raw Dairy products, our Dairy Manager will reach out to
+                    go over a few points regarding our Raw Dairy Program.</p>
                 <div class="form-actions">
                     {% block account_form_actions %}
                         <input class="btn btn-primary btn-lg pull-right" type="submit" value="Submit!">
