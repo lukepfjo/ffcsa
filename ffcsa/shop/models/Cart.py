@@ -32,7 +32,7 @@ class Cart(models.Model):
             self._cached_items = self.items.all()
         return iter(self._cached_items)
 
-    def add_item(self, variation, quantity):
+    def add_item(self, variation, quantity, record_action=True):
         """
         Increase quantity of existing item if variation matches, otherwise create new.
         """
@@ -41,7 +41,7 @@ class Cart(models.Model):
         if not self.pk:
             self.save()
         item, created = self.items.get_or_create(variation=variation)
-        if created:
+        if created and record_action:
             variation.product.actions.added_to_cart()
 
         item.update_quantity(quantity)
@@ -265,10 +265,12 @@ class CartItem(models.Model):
         if hasattr(self, '_cached_quantity') and self._cached_quantity is not None:
             self._cached_quantity = quantity
 
-        # live_num_in_stock is cached and not updated even though the CartItem
-        # quantity was already adjusted above
+        # we just made a change, so lets clear the cached value
+        if hasattr(self.variation, "_cached_num_in_stock"):
+            del self.variation._cached_num_in_stock
+
         live_num_in_stock = self.variation.live_num_in_stock()
-        if live_num_in_stock is not None and live_num_in_stock - diff <= 0:
+        if live_num_in_stock is not None and live_num_in_stock <= 0:
             # notify admin that a product is out of stock
             send_mail_template(
                 "Member Store - Item Out Of Stock",
@@ -285,16 +287,3 @@ class CartItem(models.Model):
         # Check if this is the last cart item being removed
         if self.quantity == 0 and not self.cart.items.exists():
             self.cart.delete()
-
-
-def update_cart_items(variation):
-    """
-    When an item has changed, update any items that are already in the cart
-    """
-    from ffcsa.core.budgets import clear_cached_budget_for_user_id
-
-    CartItem.objects.handle_changed_variations([variation])
-
-    carts = Cart.objects.filter(items__variation__sku=variation.sku)
-    for cart in carts:
-        clear_cached_budget_for_user_id(cart.user_id)

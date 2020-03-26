@@ -15,6 +15,7 @@ from mezzanine.pages.admin import PageAdmin
 from mezzanine.utils.static import static_lazy as static
 from nested_admin import nested
 
+from ffcsa.core.budgets import clear_cached_budget_for_variation
 from ffcsa.shop.actions import order_actions, product_actions
 from ffcsa.shop.fields import MoneyField
 from ffcsa.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
@@ -23,9 +24,9 @@ from ffcsa.shop.forms import (OptionalContentAdminForm, DiscountAdminForm,
                               ProductVariationAdminForm,
                               ProductVariationAdminFormset, VendorProductVariationAdminFormset)
 from ffcsa.shop.models import (Category, DiscountCode, Order, OrderItem,
-                        Product, ProductImage, ProductOption,
-                        ProductVariation, Sale, Vendor, VendorProductVariation)
-from ffcsa.shop.models.Cart import update_cart_items, CartItem
+                               Product, ProductImage, ProductOption,
+                               ProductVariation, Sale, Vendor, VendorProductVariation)
+from ffcsa.shop.models.Cart import CartItem
 from ffcsa.shop.models.Vendor import VendorCartItem
 from ffcsa.shop.views import HAS_PDF
 
@@ -284,12 +285,8 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
                                                    change)
 
         if formset.model == VendorProductVariation:
-            for form in formset.forms:
-                if form.has_changed() and form.initial and form not in formset.deleted_forms and 'vendor' in form.changed_data:
-                    # update cart item vendors if vendor has changed
-                    VendorCartItem.objects \
-                        .filter(item__variation__id=form.instance.variation.id, vendor_id=form.initial['vendor']) \
-                        .update(vendor=form.cleaned_data['vendor'])
+            if formset.has_changed():
+                CartItem.objects.handle_changed_variation(formset.instance)
 
         # Run each of the variation manager methods if we're saving
         # the variations formset.
@@ -306,9 +303,9 @@ class ProductAdmin(nested.NestedModelAdminMixin, ContentTypedAdmin, DisplayableA
             CartItem.objects.handle_unavailable_variations([form.instance for form in formset.deleted_forms])
 
             for form in formset.forms:
-                # if missing initial data, this is a new ProductVariation
-                if form.has_changed() and form.initial and form not in formset.deleted_forms:
-                    update_cart_items(form.instance)
+                # if missing initial data, this is a new ProductVariation   only need to call this if unit_price is changed
+                if 'unit_price' in form.changed_data and form.initial:
+                    clear_cached_budget_for_variation(form.instance)
 
             # Create new variations for selected options.
             # product.variations.create_from_options(options)
@@ -417,7 +414,8 @@ class OrderAdmin(admin.ModelAdmin):
     class Media:
         css = {"all": (static("shop/css/admin/order.css"),)}
 
-    actions = [order_actions.export_as_csv, order_actions.download_invoices, order_actions.create_labels, order_actions.get_non_substitutable_products]
+    actions = [order_actions.export_as_csv, order_actions.download_invoices, order_actions.create_labels,
+               order_actions.get_non_substitutable_products]
     ordering = ("status", "-id")
     list_display = order_list_display
     list_editable = ("status",)
