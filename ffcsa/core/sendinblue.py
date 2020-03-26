@@ -154,13 +154,20 @@ def get_user(email=None, phone_number=None):
         raise Exception('Either email or phone_number must be provided')
 
     identifier = email if email is not None else phone_number
-    user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+    try:
+        user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+    except Exception as ex:
+        if email is not None and 'Contact does not exist' in str(ex):
+            identifier = phone_number
+            user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+
     attributes = user['attributes']
     list_ids = user['listIds']
     drop_site = [name for name, site_list_id in _DROP_SITE_IDS.items() if site_list_id in list_ids]
     drop_site = drop_site[0] if len(drop_site) != 0 else None
 
     return {
+        'identifier': user['email'],
         'email': user['email'],
         'first_name': attributes['FIRSTNAME'],
         'last_name': attributes['LASTNAME'],
@@ -246,7 +253,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         return True, ''
 
     if drop_site is not None and drop_site != HOME_DELIVERY_LIST and drop_site not in (_[0] for _ in
-                                                                                           settings.DROP_SITE_CHOICES):
+                                                                                       settings.DROP_SITE_CHOICES):
         msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
         logger.error(msg)
         return False, msg
@@ -258,11 +265,12 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         return False, msg
 
     body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
+    identifier = email
 
     # Diff the old and new user info
     try:
         old_user_info = get_user(email, phone_number)
-
+        identifier = old_user_info.pop('identifier')
     except Exception as ex:
         if 'Contact does not exist' in str(ex):
             add_user(email, first_name, last_name, drop_site, phone_number)
@@ -312,7 +320,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         del body['unlinkListIds']
 
     try:
-        send_request('contacts/{}'.format(make_url_safe(email)), 'PUT', data=body)
+        send_request('contacts/{}'.format(make_url_safe(identifier)), 'PUT', data=body)
 
     except Exception as ex:
         if 'Invalid phone number' in str(ex):

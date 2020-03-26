@@ -110,7 +110,10 @@ class ProfileForm(accounts_forms.ProfileForm):
             if 'has_submitted' not in self.data:
                 self.fields['product_agreement'].required = True
         else:
+            # All fields (only checkboxes?) must be rendered in the form unless they are included in settings.ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
+            # Otherwise they will be reset/overriden
             self.fields['payment_agreement'].widget = forms.HiddenInput()
+            self.fields['join_dairy_program'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
 
         if not settings.HOME_DELIVERY_ENABLED:

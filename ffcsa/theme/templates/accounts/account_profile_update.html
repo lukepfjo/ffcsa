@@ -108,6 +108,11 @@
             </div>
         </div>
 
+
+        {# These are hidden fields that must be rendered so the field isn't reset upon save #}
+        {% render_field form.join_dairy_program %}
+        {% render_field form.payment_agreement %}
+
         <div class="form-actions">
             {% block account_form_actions %}
                 <input class="btn btn-primary btn-lg pull-right" type="submit" value="Save">
