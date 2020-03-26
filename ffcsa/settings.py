@@ -210,7 +210,8 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "invoice_notes",
     "non_subscribing_member",
     "can_order_dairy",
-    "google_person_id"
+    "google_person_id",
+    "discount_code",
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 
