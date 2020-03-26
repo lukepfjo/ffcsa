@@ -81,8 +81,6 @@ SENDINBLUE_LISTS = {
     'PROSPECTIVE_MEMBERS': 4,
 }
 
-SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
-
 SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     '19th St.': 1,
     'Banzhaf': 2,
@@ -95,6 +93,8 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     'St Johns': 9,
     'Woodstock': 10,
 }
+
+SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 # Rollbar settings
 
@@ -596,6 +596,19 @@ if DEBUG:
         'MEMBERS': 5,
         'FORMER_MEMBERS': 6,
         'PROSPECTIVE_MEMBERS': 20,
+    }
+
+    SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
+        '19th St.': 1,
+        'Banzhaf': 2,
+        'Corner Market': 3,
+        'Farm': 4,
+        'Hollywood': 5,
+        'LCFM': 6,
+        'PSU': 7,
+        'Roosevelt': 8,
+        'St Johns': 9,
+        'Woodstock': 10,
     }
 
 # This is here b/c fab file does string interpolationn & fails w/ the format string below
