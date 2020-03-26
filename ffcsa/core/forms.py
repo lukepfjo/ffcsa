@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
@@ -128,7 +130,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         if cleaned_data.get('home_delivery', False):
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
-        elif not cleaned_data.get('drop_site', None):
+        elif cleaned_data.get('drop_site', None) is None:
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
         if self._signup:
@@ -142,12 +144,15 @@ class ProfileForm(accounts_forms.ProfileForm):
                                'Please upload your signed liability doc (preferred) or check the "Email Product Agreement" field below')
                 self.add_error('email_product_agreement',
                                'Please check this box or upload your signed liability doc above (preferred)')
+
         return cleaned_data
 
     def save(self, *args, **kwargs):
         user = super(ProfileForm, self).save(*args, **kwargs)
 
-        user.profile.drop_site = self.cleaned_data['drop_site']
+        drop_site = self.cleaned_data['drop_site']
+        user.profile.drop_site = drop_site
+        transactional_template_name = drop_site
 
         if self._signup:
             user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
@@ -160,10 +165,21 @@ class ProfileForm(accounts_forms.ProfileForm):
                         self.cleaned_data['num_adults'],
                         self.cleaned_data['num_children'],
                         self.cleaned_data['hear_about_us'])
+
             # defaults
             user.profile.allow_substitutions = True
             user.profile.weekly_emails = True
             user.profile.no_plastic_bags = False
+
+            # user.profile.home_delivery may not work on signup
+            print(self.cleaned_data.join('\n'))
+
+            if self.cleaned_data.get('home_delivery', None) is None:
+                user.drop_site.name = None
+                transactional_template_name = 'Home Delivery'
+            else:
+                user.drop_site.name = drop_site
+                transactional_template_name = drop_site
 
         user.profile.save()
 
@@ -178,10 +194,16 @@ class ProfileForm(accounts_forms.ProfileForm):
                     clear_shipping(request)
                 recalculate_remaining_budget(request)
 
+                user.drop_site.name = None
+                transactional_template_name = 'Home Delivery'
+
+            if 'drop_site' in self.change_data:
+                user.drop_site.name = drop_site
+                transactional_template_name = drop_site
+
             update_google_contact(user)
 
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data[
-                'drop_site']
+            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data['drop_site']
 
             weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
@@ -189,6 +211,20 @@ class ProfileForm(accounts_forms.ProfileForm):
             sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
                                           self.cleaned_data['last_name'], drop_site_list,
                                           self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
+
+        # Send drop site information (or home delivery instructions) if
+        if self._signup or 'drop_site' in self.changed_data or 'home_delivery' in self.changed_data:
+            # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
+            #         future. Thus, update to compare hashes; if they differ, update stored hash and send new email.
+
+            if transactional_template_name not in user.drop_site.notifications_received.keys():
+                transactional_template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES[transactional_template_name]
+
+                if sendinblue.send_transactional_email(transactional_template_id, self.cleaned_data['email']):
+                    # This updates the log of notifications received rather than setting it
+                    user.drop_site.notifications_received = {transactional_template_name: {'last_hash': ''}}
+
+        user.drop_site.save()
 
         return user
 

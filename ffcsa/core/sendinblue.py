@@ -389,6 +389,7 @@ def send_transactional_email(template_name, recipient_email):
 
         return False
 
+    # TODO :: Return hash of transactional template instead
     return 'messageId' in response.keys()
 
 # print(str(send_transactional_email('Placeholder Drop Site Template', 'myemail@test.com')))
