@@ -84,7 +84,16 @@ SENDINBLUE_LISTS = {
 SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
-    'Placeholder Drop Site Template': 6
+    '19th St.': 1,
+    'Banzhaf': 2,
+    'Corner Market': 3,
+    'Farm': 4,
+    'Hollywood': 5,
+    'LCFM': 6,
+    'PSU': 7,
+    'Roosevelt': 8,
+    'St Johns': 9,
+    'Woodstock': 10,
 }
 
 # Rollbar settings
