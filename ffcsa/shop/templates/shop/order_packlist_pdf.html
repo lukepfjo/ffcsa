@@ -47,21 +47,17 @@
     }
 </style>
 
-{% if order.no_plastic_bags or not order.allow_substitutions %}
-    <table style="border: 1px solid black; font-weight: bold; width: 100%; margin-bottom: 5px; padding: 5px 0;">
-        <tr>
-            <td>
-                {% if order.no_plastic_bags %}
-                    <span>NO PLASTIC BAGS</span>{% endif %}
-                {% if not order.allow_substitutions %}
-                    <span style="float: right">NO SUBSTITUTIONS</span>{% endif %}
-        </tr>
-    </table>
+{% if order.no_plastic_bags or not order.allow_substitutions or order.shipping_detail_city %}
+    <div style="border: 1px solid black; font-weight: bold; margin-bottom: 5px; padding: 8px 5px; display: flex; justify-content: space-between">
+        <span>{% if order.no_plastic_bags %}NO PLASTIC BAGS{% endif %}</span>
+        <span>{% if order.shipping_detail_city %}CARDBOARD BOX ONLY{% endif %}</span>
+        <span>{% if not order.allow_substitutions %}NO SUBSTITUTIONS{% endif %}</span>
+    </div>
 {% endif %}
 
 <table style="border: none; width: 100%; margin-bottom: 8px">
     <tr>
-{#        <td>{% trans "Order ID:" %} {{ order.id }}</td>#}
+        {#        <td>{% trans "Order ID:" %} {{ order.id }}</td>#}
         <td style="float:right;">{{ order.time }}</td>
     </tr>
 </table>
@@ -82,7 +78,15 @@
     {% if order.additional_instructions %}
         <tr>
             <td style="padding: 5px; padding-left: 0; font-weight: 600">Notes</td>
-            <td colspan="3" style="padding: 5px">{% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
+            <td colspan="3" style="padding: 5px">
+                {% autoescape off %}{{ order.additional_instructions }}{% endautoescape %}</td>
+        </tr>
+    {% endif %}
+    {% if order.shipping_instructions %}
+        <tr>
+            <td style="padding: 5px; padding-left: 0; font-weight: 600">Shipping Instructions</td>
+            <td colspan="3" style="padding: 5px">
+                {% autoescape off %}{{ order.shipping_instructions }}{% endautoescape %}</td>
         </tr>
     {% endif %}
 </table>

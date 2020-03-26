@@ -56,7 +56,7 @@ DROP_SITE_COLORS = {
 }
 
 DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU',
-                   'Hollywood']
+                   'Hollywood', 'Home Delivery']
 
 GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {

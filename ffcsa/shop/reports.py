@@ -73,6 +73,10 @@ def generate_weekly_order_reports(date):
     if checklist:
         docs.append(checklist)
 
+    checklist = generate_home_delivery_checklists(date)
+    if checklist:
+        docs.append(checklist)
+
     # Packing Order Sheet
     # zip_files.append(("product_order_{}.pdf".format(date), generate_product_order(date)))
     docs.append(generate_product_order(date))
@@ -313,49 +317,43 @@ def generate_product_order(date):
     return HTML(string=html).render()
 
 
+def generate_home_delivery_checklists(date):
+    drop_site = 'Home Delivery'
+
+    annotations = {
+        'last_name': F('billing_detail_last_name'),
+        'shipping_street': F('shipping_detail_street'),
+        'shipping_city': F('shipping_detail_city'),
+    }
+    qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
+
+    qs = qs.values(*columns).order_by('shipping_city', 'shipping_street')
+    users = list(qs)
+
+    if len(users) == 0:
+        return
+
+    context = {
+        'users': users,
+        'headers': list(columns - annotations.keys()),
+        'drop_site': drop_site,
+        'date': date,
+    }
+
+    html = get_template("shop/reports/home_delivery_checklist_pdf.html").render(context)
+    return HTML(string=html).render()
+
+
 def generate_market_checklists(date):
-    #
-    # checklist columns -> (category list, additional kwargs, default)
     checklists = []
 
     for drop_site in settings.MARKET_CHECKLISTS:
-        values = ['last_name']
-        qs = Order.objects.filter(drop_site=drop_site, time__date=date).annotate(
-            last_name=F('billing_detail_last_name'))
-        for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
-            filter = Q()
-            for cat in categories:
-                filter = filter | Q(category__icontains=cat)
+        annotations = {
+            'last_name': F('billing_detail_last_name'),
+        }
+        qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
-            annotation = {}
-            if default is None:
-                annotation[column] = Subquery(
-                    OrderItem.objects
-                        .filter(filter, order_id=OuterRef('pk'))
-                        .values('order_id')  # This provides a group_by order_id clause
-                        .annotate(total=Sum('quantity'))
-                        .values('total'),
-                    output_field=IntegerField(),
-                )
-            else:
-                case = Case(
-                    When(total__gte=1, then=Value(default)),
-                    default=Value('0'),
-                    output_field=IntegerField())
-
-                annotation[column] = Subquery(
-                    OrderItem.objects
-                        .filter(filter, order_id=OuterRef('pk'))
-                        .values('order_id')  # This provides a group_by order_id clause
-                        .annotate(total=Sum('quantity'))
-                        .annotate(has=case)
-                        .values('has')
-                )
-
-            values.append(column)
-            qs = qs.annotate(**annotation)
-
-        qs = qs.values(*values).order_by('last_name')
+        qs = qs.values(*columns).order_by('last_name')
         users = list(qs)
 
         if len(users) == 0:
@@ -363,7 +361,7 @@ def generate_market_checklists(date):
 
         context = {
             'users': users,
-            'headers': values,
+            'headers': list(columns - annotations.keys()),
             'drop_site': drop_site,
             'date': date,
         }
@@ -376,6 +374,47 @@ def generate_market_checklists(date):
 
         pages = [p for doc in checklists for p in doc.pages]
         return doc.copy(pages)  # uses the metadata from doc
+
+
+def _get_market_checklist_qs(date, drop_site, annotations):
+    # checklist columns -> (category list, additional kwargs, default)
+    qs = Order.objects.filter(drop_site=drop_site, time__date=date).annotate(**annotations)
+    columns = list(annotations.keys())
+
+    for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
+        filter = Q()
+        for cat in categories:
+            filter = filter | Q(category__icontains=cat)
+
+        annotation = {}
+        if default is None:
+            annotation[column] = Subquery(
+                OrderItem.objects
+                    .filter(filter, order_id=OuterRef('pk'))
+                    .values('order_id')  # This provides a group_by order_id clause
+                    .annotate(total=Sum('quantity'))
+                    .values('total'),
+                output_field=IntegerField(),
+            )
+        else:
+            case = Case(
+                When(total__gte=1, then=Value(default)),
+                default=Value('0'),
+                output_field=IntegerField())
+
+            annotation[column] = Subquery(
+                OrderItem.objects
+                    .filter(filter, order_id=OuterRef('pk'))
+                    .values('order_id')  # This provides a group_by order_id clause
+                    .annotate(total=Sum('quantity'))
+                    .annotate(has=case)
+                    .values('has')
+            )
+
+        columns.append(column)
+        qs = qs.annotate(**annotation)
+
+    return qs, columns
 
 
 def send_order_to_vendor(order, vendor, vendor_title, date):
