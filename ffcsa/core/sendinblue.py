@@ -343,7 +343,7 @@ def _get_transactional_email_templates(pprint=True):
     # Gets and pretty-prints the names and IDs of all transactional templates,
     # mostly for easy reference while working in the back-end
 
-    templates = send_request('smtp/templates', query={"temmplateStatus": True})
+    templates = send_request('smtp/templates', query={"templateStatus": True})
 
     templates = templates.get('templates', None)
     if templates is None:
