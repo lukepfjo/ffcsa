@@ -123,9 +123,8 @@ class Profile(models.Model):
 ###################
 
 
-class DropSite(models.Model):
-    user = models.OneToOneField('auth.User')
-    name = models.CharField('Name', null=True, blank=True, max_length=255)  # NULL if home delivery
+class DropSiteHistory(models.Model):
+    profile = models.OneToOneField(Profile, primary_key=True, on_delete=models.CASCADE)
 
     # JSON in format {'Drop site name': {'last_hash': ''}, ...} for all drop sites user has previously selected
     _notifications_received = models.TextField('Notifications Received', default='{}')
@@ -136,13 +135,14 @@ class DropSite(models.Model):
 
     @notifications_received.setter
     def notifications_received(self, dropsite_info):
-        updated_info = self.notifications_received
+        updated_info = json.loads(self._notifications_received)
         updated_info.update(dropsite_info)
         self._notifications_received = json.dumps(updated_info)
 
     def __str__(self):
-        return '{} - {} {}, Has received: {}'.format(self.name, self.user.first_name, self.user.last_name,
-                                                     self.notifications_received.keys())
+        return '{} {} - Has received: {}'.format(self.profile.user.first_name,
+                                                 self.profile.user.last_name,
+                                                 self.notifications_received.keys())
 
 
 ###################

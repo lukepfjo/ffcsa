@@ -152,7 +152,7 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         drop_site = self.cleaned_data['drop_site']
         user.profile.drop_site = drop_site
-        transactional_template_name = drop_site
+        sib_template_name = drop_site
 
         if self._signup:
             user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
@@ -171,15 +171,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             user.profile.weekly_emails = True
             user.profile.no_plastic_bags = False
 
-            # user.profile.home_delivery may not work on signup
-            print(self.cleaned_data.join('\n'))
-
-            if self.cleaned_data.get('home_delivery', None) is None:
-                user.drop_site.name = None
-                transactional_template_name = 'Home Delivery'
-            else:
-                user.drop_site.name = drop_site
-                transactional_template_name = drop_site
+            sib_template_name = 'Home Delivery' if self.cleaned_data.get('home_delivery', None) is None else drop_site
 
         user.profile.save()
 
@@ -194,12 +186,10 @@ class ProfileForm(accounts_forms.ProfileForm):
                     clear_shipping(request)
                 recalculate_remaining_budget(request)
 
-                user.drop_site.name = None
-                transactional_template_name = 'Home Delivery'
+                sib_template_name = 'Home Delivery'
 
-            if 'drop_site' in self.change_data:
-                user.drop_site.name = drop_site
-                transactional_template_name = drop_site
+            elif 'drop_site' in self.changed_data:
+                sib_template_name = drop_site
 
             update_google_contact(user)
 
@@ -217,14 +207,19 @@ class ProfileForm(accounts_forms.ProfileForm):
             # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
             #         future. Thus, update to compare hashes; if they differ, update stored hash and send new email.
 
-            if transactional_template_name not in user.drop_site.notifications_received.keys():
-                transactional_template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES[transactional_template_name]
+            # notification_received = user.profile.drop_site_history.notifications_received.get(sib_template_name, None)
+            # last_drop_site_hash = None if notification_received is None else notification_received['last_hash']
+            # latest_drop_site_hash = sendinblue.get_template_hash(sib_template_name)
+            # if notification_received is not None and last_drop_site_hash != latest_drop_site_hash:
 
-                if sendinblue.send_transactional_email(transactional_template_id, self.cleaned_data['email']):
+            if sib_template_name not in user.profile.drop_site_history.notifications_received.keys():
+                sib_template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES[sib_template_name]
+
+                if sendinblue.send_transactional_email(sib_template_id, self.cleaned_data['email']):
                     # This updates the log of notifications received rather than setting it
-                    user.drop_site.notifications_received = {transactional_template_name: {'last_hash': ''}}
+                    user.profile.drop_site_history.notifications_received = {sib_template_name: {'last_hash': ''}}
 
-        user.drop_site.save()
+        user.profile.drop_site_history.save()
 
         return user
 
