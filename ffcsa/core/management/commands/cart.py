@@ -107,10 +107,10 @@ class Command(BaseCommand):
                     order_dict.update(**{
                         'shipping_type': 'Home Delivery',
                         'shipping_total': cart.delivery_fee(),
-                        'shipping_detail_street': address_components[0],
-                        'shipping_detail_city': address_components[1],
+                        'shipping_detail_street': address_components[0].trim(),
+                        'shipping_detail_city': address_components[1].trim(),
                         'shipping_detail_state': 'OR',
-                        'shipping_detail_postcode': address_components[2].split(' ')[1],
+                        'shipping_detail_postcode': address_components[2].trim().split(' ')[1],
                         'shipping_instructions': user.profile.delivery_notes,
                     })
 

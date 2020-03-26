@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from ffcsa.shop.models import Order
+from ffcsa.shop.models import Order, Cart
 from mezzanine.conf import settings
 
 from ffcsa.core.sessions import UserSession
@@ -17,6 +17,12 @@ engine = import_module(settings.SESSION_ENGINE)
 SessionStore = engine.SessionStore
 
 User = get_user_model()
+
+
+def clear_cached_budget_for_variation(variation):
+    carts = Cart.objects.filter(items__variation__sku=variation.sku)
+    for cart in carts:
+        clear_cached_budget_for_user_id(cart.user_id)
 
 
 def clear_cached_budget_for_user_id(id):
