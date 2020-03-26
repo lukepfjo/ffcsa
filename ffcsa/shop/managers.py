@@ -82,41 +82,54 @@ class CartItemManager(Manager):
             if users:
                 transaction.on_commit(lambda: send_unavailable_email(variation, bcc_addresses=[u.email for u in users]))
 
-    def handle_changed_variations(self, variations):
-        """ Update the vendor and quantity for each CartItem. If we don't have enough, inform the cart owner"""
+    def handle_changed_variation(self, variation):
+        """
+        Re-add the items to the cart for each variation.
+
+        This will correctly update any vendor & quantities for existing CartItems
+        This should be called whenever a ProductVariationVendor instance changes b/c
+        the changes to quantity and/or vendor need to be reflected in the current CartItems
+        """
         from ffcsa.shop.models import Cart
         from ffcsa.core.budgets import clear_cached_budget_for_user_id
 
         User = get_user_model()
-        to_delete = []
         affected_users = {}
 
-        for v in variations:
-            stock = v.number_in_stock
+        stock = variation.number_in_stock
 
-            for i in self.filter(variation=v, cart__in=Cart.objects.current()).order_by('time'):
-                if stock == 0:
-                    to_delete.append(i.id)
-                    if i.cart.user_id not in affected_users:
-                        affected_users[i.cart.user_id] = []
-                    affected_users[i.cart.user_id].append((i.variation, None))
-                    continue
+        cart_items = self.filter(variation=variation, cart__in=Cart.objects.current()).order_by('time')
+        # we need to capture this here b/c once we delete the cart_items,
+        # the quantity information is lost and will return 0
+        ci = [{'quantity': i.quantity, 'cart': i.cart} for i in cart_items]
 
-                qty = i.quantity
-                updated_quantity = min(qty, stock if stock is not None else qty)
+        # delete existing items and start adding one-by-one while we still have stock available
+        # We do this b/c there is logic when adding an item to determine which vendor to purchase
+        # that product from.
+        cart_items.delete()
 
-                i.update_quantity(updated_quantity)
+        for i in ci:
+            cart = i['cart']
+            user = cart.user_id
 
-                if updated_quantity < qty:
-                    if i.cart.user_id not in affected_users:
-                        affected_users[i.cart.user_id] = []
-                    affected_users[i.cart.user_id].append((i.variation, updated_quantity))
+            if stock == 0:
+                if user not in affected_users:
+                    affected_users[user] = []
+                affected_users[user].append((variation, None))
+                continue
 
-                if stock is not None:
-                    stock = stock - updated_quantity
+            qty = i['quantity']
+            updated_quantity = min(qty, stock if stock is not None else qty)
 
-        if to_delete:
-            self.filter(id__in=to_delete).delete()
+            cart.add_item(variation, updated_quantity, False)
+
+            if updated_quantity < qty:
+                if user not in affected_users:
+                    affected_users[user] = []
+                    affected_users[user].append((variation, updated_quantity))
+
+            if stock is not None:
+                stock = stock - updated_quantity
 
         if affected_users:
             for user in User.objects.filter(id__in=affected_users.keys()):
