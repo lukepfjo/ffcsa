@@ -61,13 +61,14 @@ def get_signrequest(user):
         return document.signrequest.uuid
 
 
-def send_sign_request(user):
+def send_sign_request(user, send_new=False):
     # check if we've already sent a SignRequest
-    signrequest = get_signrequest(user)
+    if not send_new:
+        signrequest = get_signrequest(user)
 
-    if signrequest:
-        signrequest_client.SignrequestsApi().signrequests_resend_signrequest_email(signrequest)
-        return
+        if signrequest:
+            signrequest_client.SignrequestsApi().signrequests_resend_signrequest_email(signrequest)
+            return
 
     # create a new one
     if user.profile.num_adults <= 4:
@@ -75,7 +76,8 @@ def send_sign_request(user):
     else:
         template_uuid = settings.SIGN_REQUEST_TEMPLATES[4]
 
-    redirect_url = current_request().build_absolute_uri(reverse("home"))
+    redirect_url = current_request().build_absolute_uri(reverse("signrequest-success"))
+    redirect_url_declined = current_request().build_absolute_uri(reverse("signrequest-declined"))
 
     data = signrequest_client.SignRequestQuickCreate(
         template='https://signrequest.com/api/v1/templates/{}/'.format(template_uuid),
@@ -88,6 +90,7 @@ def send_sign_request(user):
         ],
         from_email=settings.DEFAULT_FROM_EMAIL,
         redirect_url=redirect_url,
+        redirect_url_declined=redirect_url_declined,
         who='o',
         send_reminders=True
     )

@@ -1,6 +1,6 @@
 {% if not request.user.is_authenticated %}
     <div class="alert alert-warning non-field-error">FFCSA members please sign in to make your order</div>
-{% else %}
+{% elif request.user.profile.signed_membership_agreement %}
     <div class="alert alert-warning non-field-error"><strong>Please place order between Monday 6PM and Wednesday
         Midnight.</strong>
         <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar

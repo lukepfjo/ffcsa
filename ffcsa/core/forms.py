@@ -97,14 +97,14 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
             # self.fields['payment_agreement'].required = True
+            self.initial['num_adults'] = None
         else:
             # All fields (only checkboxes?) must be rendered in the form unless they are included in settings.ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
-            # Otherwise they will be reset/overriden
+            # Otherwise they will be reset/overridden
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
+            self.fields['num_adults'].widget = forms.HiddenInput()
             del self.fields['product_agreement']
-            # TODO does this get whiped out?
-            del self.fields['num_adults']
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']

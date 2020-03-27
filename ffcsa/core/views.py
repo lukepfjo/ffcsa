@@ -95,7 +95,7 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
-        signrequest.send_sign_request(new_user)
+        signrequest.send_sign_request(new_user, True)
         add_google_contact(new_user)
         sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
                                       c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
