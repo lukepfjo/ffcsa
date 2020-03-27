@@ -74,11 +74,6 @@ class Profile(models.Model):
         default=False)
     signed_membership_agreement = models.BooleanField(default=False,
                                                       help_text="We have a signed Member Liability Document of file.")
-    product_agreement = models.FileField("Liability Agreement Form",
-                                         upload_to='uploads/member_docs/',
-                                         blank=True,
-                                         help_text=mark_safe(
-                                             "Please <a target='_blank' href='/static/docs/Product Liability Agreement.pdf'>download this form</a> and have all adult members in your household sign. Then upload here."))
     non_subscribing_member = models.BooleanField(default=False,
                                                  help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
     no_plastic_bags = models.BooleanField(default=False,

@@ -104,7 +104,6 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             self.fields['num_adults'].widget = forms.HiddenInput()
-            del self.fields['product_agreement']
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']

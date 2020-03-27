@@ -35,7 +35,7 @@ accounts_base.ProfileInline.fieldsets = (
     ('Preferences', {'fields': ('home_delivery', 'delivery_address', 'delivery_notes', 'drop_site', 'no_plastic_bags',
                                 'allow_substitutions', 'weekly_emails')}),
     ('Other', {'fields': ('start_date', 'join_dairy_program', 'can_order_dairy',
-                          'product_agreement', 'signed_membership_agreement', 'non_subscribing_member')}),
+                          'signed_membership_agreement', 'non_subscribing_member')}),
 
 )
 
