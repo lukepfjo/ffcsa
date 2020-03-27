@@ -9,6 +9,7 @@ from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
+from ffcsa.core.models import DropSiteHistory
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
@@ -175,6 +176,11 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         user.profile.save()
 
+        # Instantiate a new DropSiteHistory model for the user if one doesn't already exist
+        if not hasattr(user.profile, 'dropsitehistory'):
+            drop_site_history = DropSiteHistory.objects.create(profile=user.profile)
+            drop_site_history.save()
+
         request = current_request()
         # TODO test updating profile correctly sets the session variables
         if not self._signup:
@@ -202,8 +208,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                                           self.cleaned_data['last_name'], drop_site_list,
                                           self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
 
-        # Send drop site information (or home delivery instructions) if
-        if self._signup or 'drop_site' in self.changed_data or 'home_delivery' in self.changed_data:
+        # Send drop site information (or home delivery instructions)
+        if self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data):
             # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
             #         future. Thus, update to compare hashes; if they differ, update stored hash and send new email.
 
@@ -212,14 +218,14 @@ class ProfileForm(accounts_forms.ProfileForm):
             # latest_drop_site_hash = sendinblue.get_template_hash(sib_template_name)
             # if notification_received is not None and last_drop_site_hash != latest_drop_site_hash:
 
-            if sib_template_name not in user.profile.drop_site_history.notifications_received.keys():
-                sib_template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES[sib_template_name]
-
-                if sendinblue.send_transactional_email(sib_template_id, self.cleaned_data['email']):
+            # User has not received the notification before
+            if sib_template_name not in user.profile.dropsitehistory.notifications_received.keys():
+                if sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email']) is True:
                     # This updates the log of notifications received rather than setting it
-                    user.profile.drop_site_history.notifications_received = {sib_template_name: {'last_hash': ''}}
+                    user.profile.dropsitehistory.notifications_received = {sib_template_name: {'last_hash': ''}}
 
-        user.profile.drop_site_history.save()
+        user.profile.dropsitehistory.save()
+        user.profile.save()
 
         return user
 
