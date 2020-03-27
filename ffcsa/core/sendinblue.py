@@ -147,8 +147,7 @@ def get_user(email=None, phone_number=None):
         user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     except Exception as ex:
         if email is not None and 'Contact does not exist' in str(ex):
-            identifier = phone_number
-            user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+            user = send_request('contacts/{}'.format(make_url_safe(phone_number)))
 
     attributes = user['attributes']
     list_ids = user['listIds']

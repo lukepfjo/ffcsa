@@ -172,7 +172,12 @@ class ProfileForm(accounts_forms.ProfileForm):
             user.profile.weekly_emails = True
             user.profile.no_plastic_bags = False
 
-            sib_template_name = 'Home Delivery' if self.cleaned_data.get('home_delivery', None) is None else drop_site
+            home_delivery = self.cleaned_data.get('home_delivery', None)
+            sib_template_name = 'Home Delivery' if home_delivery is None else drop_site
+            drop_site_list = sendinblue.HOME_DELIVERY_LIST if home_delivery is None else drop_site
+
+            sendinblue.add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                self.cleaned_data['last_name'], drop_site_list, self.cleaned_data['phone_number'])
 
         user.profile.save()
 
@@ -199,7 +204,7 @@ class ProfileForm(accounts_forms.ProfileForm):
 
             update_google_contact(user)
 
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data['drop_site']
+            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
 
             weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
@@ -225,7 +230,6 @@ class ProfileForm(accounts_forms.ProfileForm):
                     user.profile.dropsitehistory.notifications_received = {sib_template_name: {'last_hash': ''}}
 
         user.profile.dropsitehistory.save()
-        user.profile.save()
 
         return user
 
