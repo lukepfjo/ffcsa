@@ -113,7 +113,7 @@ def handle_webhook(event):
     if event['status'] != 'ok' or event_type in (
             'convert_error', 'sending_error', 'declined', 'cancelled', 'expired', 'signer_email_bounced'):
         send_error_email(event)
-    elif event_type == 'signed':
+    elif event_type == 'signer_signed':
         User = get_user_model()
         email = event['signer']['email']
 
