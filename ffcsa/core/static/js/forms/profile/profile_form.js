@@ -1,8 +1,7 @@
 (function ($) {
   $(function () {
     geoXml = new geoXML3.parser()
-    // TODO this may break is static url was ever changed
-    geoXml.parse('/static/docs/delivery_area.kml')
+    geoXml.parse(static_url + 'docs/delivery_area.kml')
 
     var defaultBounds = new google.maps.LatLngBounds(
       new google.maps.LatLng(44.222193, -123.207548))

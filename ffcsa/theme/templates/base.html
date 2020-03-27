@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
-{% load pages_tags mezzanine_tags i18n staticfiles %}
+{% load pages_tags mezzanine_tags i18n staticfiles static %}
 
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
@@ -196,6 +196,11 @@
     <script src="{% static "js/jquery.flexslider.js" %}"></script>
     <script src="{% static "js/animate.js" %}"></script>
     <script src="{% static "js/custom.js" %}"></script>
+
+    <script>
+      var static_url = "{% get_static_prefix %}";
+      var media_url = "{% get_media_prefix %}";
+    </script>
 {% endcompress %}
 
 {% block footer_js %}
