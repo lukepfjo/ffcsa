@@ -14,7 +14,7 @@
             {{ page.recipe.content|safe }}
         {% endeditable %}
 
-        {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated and request.user.profile.signed_membership_agreement %}
             <form method="post" id="add-all-recipe-form" class="add-recipe-form">
                 {% csrf_token %}
                 <div class="form-actions">
@@ -45,6 +45,7 @@
                                     <h6>{{ p.product }}</h6>
                                 </div>
                             </a>
+                        {% if request.user.profile.signed_membership_agreement %}
                             {% if can_order_dairy or not p.product.is_dairy %}
                                 {% if p.product.variations.first.has_stock %}
                                     <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
@@ -60,6 +61,10 @@
                                     <p class="text-danger text-center">Out of Stock</p>
                                 {% endif %}
                             {% endif %}
+                            {% else %}
+                            <p class="text-base text-center text-red-800">Please sign our member
+                                agreement</p>
+                        {% endif %}
                         </div>
                     </div>
                 {% endif %}

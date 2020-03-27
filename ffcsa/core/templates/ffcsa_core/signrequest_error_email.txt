@@ -1,0 +1,11 @@
+An error occurred with a SignRequest. Need to investigate.
+
+Event UUID: {{ event.uuid }}
+Event Status: {{ event.status }}
+Event Type: {{ event.event_type }}
+Event Timestamp: {{ event.timestamp }}
+Team: {{ event.team }}
+Document UUID: {{ event.document.uuid }}
+User Email: {{ event.signer.email }}
+
+

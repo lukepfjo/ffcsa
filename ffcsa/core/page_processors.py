@@ -37,6 +37,9 @@ def recipe_processor(request, page):
         product__in=page.recipe.products.published())
 
     if request.method == "POST" and request.POST.get('add_box_items'):
+        if not request.user.profile.signed_membership_agreement:
+            raise Exception(
+                "You must sign our membership agreement before you can make an order")
         if not request.user.profile.can_order_dairy:
             products = products.filter(product__is_dairy=False)
 
@@ -66,6 +69,9 @@ def weekly_box(request, page):
     Add all products in the weekly-box category to the users cart
     """
     if request.method == "POST" and request.POST.get('add_box_items'):
+        if not request.user.profile.signed_membership_agreement:
+            raise Exception(
+                "You must sign our membership agreement before you can make an order")
         box_contents = Product.objects.published(for_user=request.user
                                                  ).filter(page.category.filters())
         if not request.user.profile.can_order_dairy:
