@@ -183,8 +183,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         # Instantiate a new DropSiteHistory model for the user if one doesn't already exist
         if not hasattr(user.profile, 'dropsitehistory'):
-            drop_site_history = DropSiteHistory.objects.create(profile=user.profile)
-            drop_site_history.save()
+            _drop_site_history_obj = DropSiteHistory.objects.create(profile=user.profile)
+            _drop_site_history_obj.save()
 
         request = current_request()
         # TODO test updating profile correctly sets the session variables
