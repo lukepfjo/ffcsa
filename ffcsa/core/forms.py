@@ -1,4 +1,5 @@
 from django import forms
+from django.db import transaction
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
@@ -123,27 +124,28 @@ class ProfileForm(accounts_forms.ProfileForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        user = super(ProfileForm, self).save(*args, **kwargs)
+        with transaction.atomic():
+            user = super(ProfileForm, self).save(*args, **kwargs)
 
-        user.profile.drop_site = self.cleaned_data['drop_site']
+            user.profile.drop_site = self.cleaned_data['drop_site']
 
-        if self._signup:
-            user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
-                                 "<b>Preferred communication method:</b>  {}<br/>" \
-                                 "<b>Adults in family:</b>  {}<br/>" \
-                                 "<b>Children in family:</b>  {}<br/>" \
-                                 "<b>How did you hear about us:</b>  {}<br/>" \
-                .format(self.cleaned_data['best_time_to_reach'],
-                        self.cleaned_data['communication_method'],
-                        self.cleaned_data['num_adults'],
-                        self.cleaned_data['num_children'],
-                        self.cleaned_data['hear_about_us'])
-            # defaults
-            user.profile.allow_substitutions = True
-            user.profile.weekly_emails = True
-            user.profile.no_plastic_bags = False
+            if self._signup:
+                user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
+                                     "<b>Preferred communication method:</b>  {}<br/>" \
+                                     "<b>Adults in family:</b>  {}<br/>" \
+                                     "<b>Children in family:</b>  {}<br/>" \
+                                     "<b>How did you hear about us:</b>  {}<br/>" \
+                    .format(self.cleaned_data['best_time_to_reach'],
+                            self.cleaned_data['communication_method'],
+                            self.cleaned_data['num_adults'],
+                            self.cleaned_data['num_children'],
+                            self.cleaned_data['hear_about_us'])
+                # defaults
+                user.profile.allow_substitutions = True
+                user.profile.weekly_emails = True
+                user.profile.no_plastic_bags = False
 
-        user.profile.save()
+            user.profile.save()
 
         request = current_request()
         if not self._signup:
