@@ -109,11 +109,11 @@ def create_stripe_subscription(user):
 
 def send_first_payment_email(user):
     now = datetime.datetime.now()
-    can_order_now = 1 <= now.weekday() <= ORDER_CUTOFF_DAY
+    can_order_now = 1 <= now.weekday() < ORDER_CUTOFF_DAY
     week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
 
     pickup = get_friday_pickup_date()
-    if user.profile.drop_site and user.profile.drop_site.lower().strip() != 'farm':
+    if not user.profile.home_delivery and user.profile.drop_site.lower().strip() != 'farm':
         pickup = pickup + datetime.timedelta(1)
 
     context = {
