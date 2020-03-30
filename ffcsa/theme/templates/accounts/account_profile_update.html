@@ -74,6 +74,9 @@
                                     <button id="change_address" class="btn btn-default btn-medium mb-3">Change</button>
                                 </div>
                             {% endwith %}
+                            <div class="alert alert-warning hidden" id="save-alert">Click "Save" at the bottom of the
+                                page to save your changes.
+                            </div>
                             {% render_field form.delivery_notes %}
                         </div>
                     {% endif %}
