@@ -419,7 +419,7 @@ class OrderAdmin(admin.ModelAdmin):
     ordering = ("status", "-id")
     list_display = order_list_display
     list_editable = ("status",)
-    list_filter = ("status", "time")
+    list_filter = ("status", "time", "drop_site")
     list_display_links = ("id", "billing_name",)
     search_fields = (["id", "status", "transaction_id"] +
                      billing_fields + shipping_fields)
