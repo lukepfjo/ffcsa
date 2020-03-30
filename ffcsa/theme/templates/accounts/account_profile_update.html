@@ -35,6 +35,16 @@
 
         <div class="panel panel-default">
             <div class="panel-body">
+                {% is_order_cycle as is_order_cycle %}
+                {% if not is_order_cycle %}
+                    <p class="alert alert-warning">Any changes you make will not take affect until the next order
+                        cycle.
+                        If you have an urgent drop site change, send us an email to <a
+                                href="mailto:fullfarmcsa@deckfamilyfarm.com">fullfarmcsa@deckfamilyfarm.com</a>
+                        and we will see if we can accommodate your request. However, we greatly appreciate if you
+                        are able to pickup at your selected drop site this week.
+                    </p>
+                {% endif %}
                 {% if not request.user.profile.join_dairy_program %}
                     <p class="alert alert-warning">If you would like to start ordering dairy products and join the Raw
                         Dairy Program, send us an email to <a href="mailto:fullfarmcsa@deckfamilyfarm.com">fullfarmcsa@deckfamilyfarm.com</a>

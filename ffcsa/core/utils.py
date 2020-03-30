@@ -1,6 +1,5 @@
 import datetime
 from mezzanine.conf import settings
-from . import models as ffcsa_models
 
 ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
 
@@ -31,6 +30,17 @@ def get_order_week_start():
         week_start = now - datetime.timedelta(delta)
 
     return week_start
+
+
+def get_order_week_end():
+    now = datetime.datetime.now()
+
+    if now.weekday() < ORDER_CUTOFF_DAY:
+        delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day
+        return now + datetime.timedelta(delta)
+    else:
+        delta = now.weekday() - ORDER_CUTOFF_DAY
+        return now + datetime.timedelta(DAYS_IN_WEEK - delta)
 
 
 def next_weekday(d, weekday):
