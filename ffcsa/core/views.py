@@ -91,7 +91,9 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         }
 
         add_google_contact(new_user)
-        sendinblue.add_user(new_user.email, new_user.first_name, new_user.last_name, c['drop_site'], c['phone_number'])
+        sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
+                                      c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
+                                      sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         send_mail_template(
             "New User Signup %s" % settings.SITE_TITLE,

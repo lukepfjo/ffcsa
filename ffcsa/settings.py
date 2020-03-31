@@ -71,8 +71,6 @@ GOOGLE_GROUP_IDS = {
 SENDINBLUE_ENABLED = False
 SENDINBLUE_API_KEY = None
 
-# These are for production, debug are set in the dynamic settings
-# area at the bottom of the file
 SENDINBLUE_LISTS = {
     'WEEKLY_NEWSLETTER': 9,
     'WEEKLY_REMINDER': 10,
@@ -588,29 +586,6 @@ import sys
 
 if 'test' in sys.argv or 'test_coverage' in sys.argv:  # Covers regular testing and django-coverage
     DATABASES['default']['ENGINE'] = 'django.db.backends.sqlite3'
-
-# Use development account lists if we're in debug mode
-if DEBUG:
-    SENDINBLUE_LISTS = {
-        'WEEKLY_NEWSLETTER': 4,
-        'WEEKLY_REMINDER': 8,
-        'MEMBERS': 5,
-        'FORMER_MEMBERS': 6,
-        'PROSPECTIVE_MEMBERS': 20,
-    }
-
-    SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
-        '19th St.': 1,
-        'Banzhaf': 2,
-        'Corner Market': 3,
-        'Farm': 4,
-        'Hollywood': 5,
-        'LCFM': 6,
-        'PSU': 7,
-        'Roosevelt': 8,
-        'St Johns': 9,
-        'Woodstock': 10,
-    }
 
 # This is here b/c fab file does string interpolationn & fails w/ the format string below
 if not DEBUG:

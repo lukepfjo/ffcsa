@@ -201,7 +201,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             'LASTNAME': last_name,
         },
         'listIds': [drop_site_list_id] + [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS],
-        'unlinkListIds': [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS_TO_REMOVE]
+        'unlinkListIds': [int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in NEW_USER_LISTS_TO_REMOVE]
     }
 
     if phone_number is not None:
@@ -362,11 +362,12 @@ def send_transactional_email(template_name, recipient_email):
     Send a transactional email using the provided details
 
     @param template_name: The name of a template as defined in settings.py
-    @param recipient_email: Email of recipient - NOTE: Must be contact on SIB, otherwise this will fail
+    @param recipient_email: Email of recipient
     @return: True upon success, False on failure
     """
 
     template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
+
     if template_id is None:
         logger.critical('Sendinblue error: Transactional template "{}" is missing in settings.py'.format(template_name))
         return False
@@ -381,14 +382,9 @@ def send_transactional_email(template_name, recipient_email):
         response = send_request('smtp/email', 'POST', data=data)
 
     except Exception as ex:
-        if 'Contact does not exist' in str(ex):
-            logger.error('Sendinblue error: Attempted to send email to non-contact "{}"'.format(recipient_email))
-        else:
-            logger.error(str(ex))
-
+        logger.error(str(ex))
         return False
 
     # TODO :: Return hash of transactional template instead
     return 'messageId' in response.keys()
 
-# print(str(send_transactional_email('Placeholder Drop Site Template', 'myemail@test.com')))
