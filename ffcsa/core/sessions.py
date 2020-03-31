@@ -5,7 +5,7 @@ from mezzanine.conf import settings
 
 
 class UserSession(AbstractBaseSession):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, db_index=True, on_delete=models.CASCADE)
 
     @classmethod
     def get_session_store_class(cls):

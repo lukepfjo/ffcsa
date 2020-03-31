@@ -1,6 +1,7 @@
 import json
 
 from django import forms
+from django.db import transaction
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
@@ -85,17 +86,9 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if self._signup:
             self.fields['pickup_agreement'] = forms.BooleanField(
-                label="I agree to bring my own bags and coolers as needed to pick up my product as the containers "
-                      "the product arrive in stay at the dropsite. I intend to maintain my membership with the FFCSA "
+                label="I agree to bring my own bags and coolers as needed to pick up my product. The containers "
+                      "that the product arrives in stay at the dropsite. I intend to maintain my membership with the FFCSA "
                       "for 6 months, with a minimum payment of $172 per month.")
-            self.fields['email_product_agreement'] = forms.BooleanField(
-                label="Please email me the Product Liability Agreement to e-sign.",
-                required=False
-            )
-            self.fields['email_product_agreement'].widget = forms.HiddenInput()
-
-            self.fields['has_submitted'] = forms.BooleanField(required=False)
-            self.fields['has_submitted'].widget = forms.HiddenInput()
 
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
@@ -103,21 +96,18 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['communication_method'] = forms.ChoiceField(
                 label="What is your preferred method of communication?", required=True,
                 choices=(("Email", "Email"), ("Phone", "Phone"), ("Text", "Text")))
-            self.fields['num_adults'] = forms.IntegerField(label="How many adults are in your family?", required=True,
-                                                           min_value=1)
             self.fields['num_children'] = forms.IntegerField(label="How many children are in your family?",
                                                              required=True, min_value=0)
             self.fields['hear_about_us'] = forms.CharField(label="How did you hear about us?", required=True,
                                                            widget=forms.Textarea(attrs={'rows': 3}))
             # self.fields['payment_agreement'].required = True
-            if 'has_submitted' not in self.data:
-                self.fields['product_agreement'].required = True
+            self.initial['num_adults'] = None
         else:
             # All fields (only checkboxes?) must be rendered in the form unless they are included in settings.ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
-            # Otherwise they will be reset/overriden
+            # Otherwise they will be reset/overridden
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
-            del self.fields['product_agreement']
+            self.fields['num_adults'].widget = forms.HiddenInput()
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']
@@ -176,8 +166,10 @@ class ProfileForm(accounts_forms.ProfileForm):
             sib_template_name = 'Home Delivery' if home_delivery is None else drop_site
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if home_delivery is None else drop_site
 
-            sendinblue.add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
-                                self.cleaned_data['last_name'], drop_site_list, self.cleaned_data['phone_number'])
+            sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                          self.cleaned_data['last_name'], drop_site_list,
+                                          self.cleaned_data['phone_number'], sendinblue.NEW_USER_LISTS,
+                                          sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         user.profile.save()
 
@@ -187,7 +179,6 @@ class ProfileForm(accounts_forms.ProfileForm):
             _drop_site_history_obj.save()
 
         request = current_request()
-        # TODO test updating profile correctly sets the session variables
         if not self._signup:
             # we can't set this on signup b/c the cart.user_id has not been set yet
             if "home_delivery" in self.changed_data:

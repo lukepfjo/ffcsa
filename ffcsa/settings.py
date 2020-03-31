@@ -58,13 +58,22 @@ DROP_SITE_COLORS = {
 DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU',
                    'Hollywood', 'Home Delivery']
 
+# SignRequest settings
+SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
+SIGN_REQUEST_API_KEY = None
+SIGN_REQUEST_TEMPLATES = {
+    1: 'f3ad5564-60f9-4e99-99d3-c7b33e75bddb',
+    2: '22704e6b-4997-46c6-95df-a0cd4b64d6d8',
+    3: '',
+    4: ''
+}
+
 GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",
     "MANAGED": "contactGroups/41aaae0b0f3d9da7",
 }
-
 
 # Sendinblue settings
 
@@ -104,6 +113,10 @@ ROLLBAR = {
     'environment': 'development',
     'branch': 'master',
     'root': os.getcwd(),
+    'scrub_fields': ['pw', 'passwd', 'password', 'password2', 'secret', 'confirm_password', 'confirmPassword',
+                     'password_confirmation', 'passwordConfirmation', 'access_token', 'accessToken', 'auth',
+                     'authentication']
+
     # 'ignorable_404_urls': (
     #     re.compile('/index\.php'),
     #     re.compile('/foobar'),
@@ -217,6 +230,7 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "notes",
     "invoice_notes",
     "non_subscribing_member",
+    "signed_membership_agreement",
     "can_order_dairy",
     "google_person_id",
     "discount_code",

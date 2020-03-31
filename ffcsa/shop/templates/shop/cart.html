@@ -28,6 +28,7 @@
 {% endblock %}
 
 {% block main %}
+    {% include 'ffcsa_core/includes/membership_agreement_alert.html' %}
     {% if cart_formset.errors %}
         {% for error in cart_formset.errors %}
             {% if error and not error.values.0 %}

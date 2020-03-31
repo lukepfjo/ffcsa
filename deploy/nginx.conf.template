@@ -59,6 +59,15 @@ server {
 		allow all;
 	}
 
+    # TODO: remove this if we ever implement webpack & content hashing
+    location /static/docs/delivery_area.kml {
+        root            %(proj_path)s;
+        access_log      off;
+        log_not_found   off;
+        expires -1;
+        add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
+    }
+
     location /static/ {
         root            %(proj_path)s;
         access_log      off;

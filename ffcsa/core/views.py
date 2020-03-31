@@ -1,8 +1,10 @@
 import datetime
+import json
 from decimal import Decimal
 
 import stripe
 from dal import autocomplete
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login as auth_login
@@ -11,13 +13,16 @@ from django.contrib.messages import error, info, success
 from django.contrib.sites.models import Site
 from django.db.models import Q
 from django.forms import modelformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
+from django.shortcuts import redirect
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
 from django.utils import formats
+from django.utils.decorators import method_decorator
 from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
+from django.views import View
 from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
@@ -28,7 +33,7 @@ from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
 from ffcsa.core.forms import BasePaymentFormSet, ProfileForm
 from ffcsa.core.google import add_contact as add_google_contact
-from ffcsa.core import sendinblue
+from ffcsa.core import sendinblue, signrequest
 from ffcsa.core.models import Payment, Recipe
 from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
                                       clear_ach_payment_source,
@@ -71,7 +76,8 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         info(request, "Successfully signed up")
         auth_login(request, new_user)
 
-        drop_site = sendinblue.HOME_DELIVERY_LIST if new_user.profile.home_delivery else form.cleaned_data.get('drop_site')
+        drop_site = sendinblue.HOME_DELIVERY_LIST if new_user.profile.home_delivery else form.cleaned_data.get(
+            'drop_site')
 
         c = {
             'user': "{} {}".format(new_user.first_name, new_user.last_name),
@@ -85,18 +91,21 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
             'communication_method': form.cleaned_data['communication_method'],
             'num_adults': form.cleaned_data['num_adults'],
             'num_children': form.cleaned_data['num_children'],
-            'email_product_agreement': form.cleaned_data['email_product_agreement'],
             'hear_about_us': form.cleaned_data['hear_about_us'],
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
+        signrequest.send_sign_request(new_user, True)
         add_google_contact(new_user)
         sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
                                       c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
                                       sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
+        subject = "New User Signup"
+        if new_user.profile.join_dairy_program:
+            subject = subject + ' - Needs Dairy Conversation'
         send_mail_template(
-            "New User Signup %s" % settings.SITE_TITLE,
+            subject,
             "ffcsa_core/send_admin_new_user_email",
             settings.DEFAULT_FROM_EMAIL,
             settings.ACCOUNTS_APPROVAL_EMAILS,
@@ -884,3 +893,27 @@ class ProductAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(title__icontains=self.q)
 
         return qs
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SignRequest(View):
+    http_method_names = ['get', 'post']
+
+    @method_decorator(login_required)
+    def get(self, request):
+        """Re-sends a SignRequest"""
+        try:
+            signrequest.send_sign_request(request.user)
+            messages.success(request, 'We have sent a copy of our Membership Agreement to your email.')
+        except signrequest.DocSignedError:
+            messages.info(request,
+                          'You have already signed the agreement. Please refresh the page and contact fullfarmcsa@deckfamilyfarm.com if are still asked to sign the membership agreement.')
+
+        referer = request.META.get('HTTP_REFERER', None)
+        if referer and request.get_host() in referer:
+            return redirect(request.META['HTTP_REFERER'])
+
+        return redirect(reverse('home'))
+
+    def post(self, request):
+        return signrequest.handle_webhook(json.loads(request.body.decode()))

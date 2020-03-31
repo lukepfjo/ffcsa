@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.conf.urls import url
 from django.conf.urls.i18n import i18n_patterns
+from django.views.generic import TemplateView
 from mezzanine.conf import settings
 from mezzanine.core.views import page_not_found
 from mezzanine.accounts.views import profile_update
@@ -24,4 +25,9 @@ urlpatterns = i18n_patterns(
     url("^stripe%s$" % _slash, views.stripe_webhooks),
     url("^accounts/update%s$" % _slash, profile_update, kwargs={"extra_context": {"title": "Account Settings"}}),
     url(r'^country-autocomplete/$', views.ProductAutocomplete.as_view(), name='product-autocomplete'),
+    url(r'^signrequest/$', views.SignRequest.as_view(), name='signrequest'),
+    url(r'^signrequest-success/$', TemplateView.as_view(template_name='ffcsa_core/signrequest_success.html'),
+        name='signrequest-success'),
+    url(r'^signrequest-declined/$', TemplateView.as_view(template_name='ffcsa_core/signrequest_declined.html'),
+        name='signrequest-declined')
 )

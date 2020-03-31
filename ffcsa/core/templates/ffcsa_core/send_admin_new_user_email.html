@@ -1,14 +1,8 @@
 <p>{{ user }} has just signed up.</p>
 
 {% if join_dairy_program %}
-    <p>You will need to contact them to discuss the Raw Dairy Program. Then you will need to activate their account by
-        visiting <a href="{{ user_url }}">{{ user_url }}</a> before they can place an order.</p>
-{% endif %}
-
-{% if email_product_agreement %}
-    <p><b>You will need to email this user the product liability agreement to sign via SignRequest.</b></p>
-{% else %}
-    <p><b>Make sure to verify that they have signed the Product Liability Form.</b></p>
+    <p>You will need to contact them to discuss the Raw Dairy Program and check the box on their account at: <a
+            href="{{ user_url }}">{{ user_url }}</a> before they can order dairy products.</p>
 {% endif %}
 
 <h4>Drop Site</h4>
