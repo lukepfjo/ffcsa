@@ -77,6 +77,14 @@ def generate_weekly_order_reports(date):
     if checklist:
         docs.append(checklist)
 
+    notes = generate_home_delivery_notes(date)
+    if notes:
+        docs.append(notes)
+
+    checklist = generate_master_checklist(date)
+    if checklist:
+        docs.append(checklist)
+
     # Packing Order Sheet
     # zip_files.append(("product_order_{}.pdf".format(date), generate_product_order(date)))
     docs.append(generate_product_order(date))
@@ -317,6 +325,23 @@ def generate_product_order(date):
     return HTML(string=html).render()
 
 
+def generate_home_delivery_notes(date):
+    drop_site = 'Home Delivery'
+    orders = Order.objects.filter(drop_site=drop_site, time__date=date,
+                                  shipping_instructions__isnull=False) \
+        .exclude(shipping_instructions__exact='') \
+        .order_by('shipping_detail_city', 'billing_detail_last_name')
+
+    orders = list(orders)
+
+    if len(orders) == 0:
+        return
+
+    html = get_template("shop/reports/home_delivery_instructions_pdf.html").render(
+        {'orders': orders, 'drop_site': drop_site})
+    return HTML(string=html).render()
+
+
 def generate_home_delivery_checklists(date):
     drop_site = 'Home Delivery'
 
@@ -324,10 +349,11 @@ def generate_home_delivery_checklists(date):
         'last_name': F('billing_detail_last_name'),
         'shipping_street': F('shipping_detail_street'),
         'shipping_city': F('shipping_detail_city'),
+        'shipping_instructions': F('shipping_instructions'),
     }
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
-    qs = qs.values(*columns).order_by('shipping_city', 'shipping_street')
+    qs = qs.values(*columns).order_by('shipping_city', 'billing_detail_last_name')
     users = list(qs)
 
     if len(users) == 0:
@@ -359,9 +385,12 @@ def generate_market_checklists(date):
         if len(users) == 0:
             continue
 
+        for k in annotations.keys():
+            columns.remove(k)
+
         context = {
             'users': users,
-            'headers': list(columns - annotations.keys()),
+            'headers': columns,
             'drop_site': drop_site,
             'date': date,
         }
@@ -378,17 +407,16 @@ def generate_market_checklists(date):
 
 def _get_market_checklist_qs(date, drop_site, annotations):
     # checklist columns -> (category list, additional kwargs, default)
-    qs = Order.objects.filter(drop_site=drop_site, time__date=date).annotate(**annotations)
-    columns = list(annotations.keys())
+    qs = Order.objects.filter(drop_site=drop_site, time__date=date)  # .annotate(**annotations)
+    annotates = OrderedDict(annotations)
 
     for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
         filter = Q()
         for cat in categories:
             filter = filter | Q(category__icontains=cat)
 
-        annotation = {}
         if default is None:
-            annotation[column] = Subquery(
+            annotates[column] = Subquery(
                 OrderItem.objects
                     .filter(filter, order_id=OuterRef('pk'))
                     .values('order_id')  # This provides a group_by order_id clause
@@ -402,7 +430,7 @@ def _get_market_checklist_qs(date, drop_site, annotations):
                 default=Value('0'),
                 output_field=IntegerField())
 
-            annotation[column] = Subquery(
+            annotates[column] = Subquery(
                 OrderItem.objects
                     .filter(filter, order_id=OuterRef('pk'))
                     .values('order_id')  # This provides a group_by order_id clause
@@ -411,10 +439,60 @@ def _get_market_checklist_qs(date, drop_site, annotations):
                     .values('has')
             )
 
-        columns.append(column)
-        qs = qs.annotate(**annotation)
+    return qs.annotate(**annotates), list(annotates.keys())
 
-    return qs, columns
+
+def generate_master_checklist(date):
+    qs = Order.objects.filter(time__date=date)
+
+    annotations = OrderedDict()
+    for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
+        filter = Q()
+        for cat in categories:
+            filter = filter | Q(category__icontains=cat)
+
+        if default is None:
+            annotations[column] = Sum(
+                Subquery(
+                    OrderItem.objects
+                        .filter(filter, order_id=OuterRef('pk'))
+                        .values('order_id')  # This provides a group_by order_id clause
+                        .annotate(total=Sum('quantity'))
+                        .values('total'),
+                    output_field=IntegerField(),
+                )
+            )
+        else:
+            case = Case(
+                When(total__gte=1, then=Value(default)),
+                default=Value('0'),
+                output_field=IntegerField())
+
+            annotations[column] = Sum(
+                Subquery(
+                    OrderItem.objects
+                        .filter(filter, order_id=OuterRef('pk'))
+                        .values('order_id')  # This provides a group_by order_id clause
+                        .annotate(total=Sum('quantity'))
+                        .annotate(has=case)
+                        .values('has')
+                )
+            )
+
+    data = qs.values('drop_site').annotate(**annotations).order_by('drop_site')
+    data = list(data)
+
+    if len(data) == 0:
+        return
+
+    context = {
+        'data': data,
+        'headers': annotations.keys(),
+        'date': date,
+    }
+
+    html = get_template("shop/reports/master_checklist_pdf.html").render(context)
+    return HTML(string=html).render()
 
 
 def send_order_to_vendor(order, vendor, vendor_title, date):

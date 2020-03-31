@@ -1,11 +1,18 @@
 import datetime
+
+import emoji as emoji
 from mezzanine.conf import settings
-from . import models as ffcsa_models
 
 ORDER_CUTOFF_DAY = settings.ORDER_CUTOFF_DAY or 3
 
 # only 6 days because we want to end on 1 day and start on the next. 7 days will start and end on the same week day
 DAYS_IN_WEEK = 6
+
+
+def give_emoji_free_text(text):
+    if not text:
+        return text
+    return emoji.get_emoji_regexp().sub(r'', text)
 
 
 def get_friday_pickup_date():
@@ -31,6 +38,17 @@ def get_order_week_start():
         week_start = now - datetime.timedelta(delta)
 
     return week_start
+
+
+def get_order_week_end():
+    now = datetime.datetime.now()
+
+    if now.weekday() < ORDER_CUTOFF_DAY:
+        delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day
+        return now + datetime.timedelta(delta)
+    else:
+        delta = now.weekday() - ORDER_CUTOFF_DAY
+        return now + datetime.timedelta(DAYS_IN_WEEK - delta)
 
 
 def next_weekday(d, weekday):

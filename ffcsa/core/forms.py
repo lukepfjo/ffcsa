@@ -11,7 +11,7 @@ from mezzanine.utils.email import send_mail_template
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
 from ffcsa.core.models import DropSiteHistory
-from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
+from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget, give_emoji_free_text
 
 
 class CartDinnerForm(forms.Form):
@@ -236,6 +236,9 @@ class ProfileFieldsForm(accounts_forms.ProfileFieldsForm):
             return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
 
         return num[:3] + '-' + num[3:6] + '-' + num[6:]
+
+    def clean_delivery_notes(self):
+        return give_emoji_free_text(self.cleaned_data['delivery_notes'])
 
     def clean_phone_number(self):
         num = self.cleaned_data['phone_number']

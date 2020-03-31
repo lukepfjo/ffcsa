@@ -68,6 +68,7 @@
 
           addressInput.val(p.formatted_address)
           addressInput.parent('.form-group').removeClass('has-error')
+          $('#save-alert').removeClass('hidden')
 
           addressCheckModal.modal('hide')
         }

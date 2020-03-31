@@ -12,13 +12,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         two_months_date = (datetime.now() - timedelta(days=60)).date()
+        thirty_days = (datetime.now() - timedelta(days=30)).date()
 
         for user in get_user_model().objects.filter(is_active=True):
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site
 
-            # TODO should be considered active if they are a new user and haven't yet setup a subscription
-            is_active = user.profile.stripe_subscription_id or Order.objects.filter(user_id=user.id,
-                                                                                    time__gte=two_months_date).count() > 0
+            # active if they have a subscription, or have signed up in the last 30 days, or have made and order
+            # in the last 60 days (pay-in-advance members don't have a subscription)
+            is_active = user.profile.stripe_subscription_id or user.date_joined.date() >= thirty_days or \
+                        Order.objects.filter(user_id=user.id,
+                                             time__gte=two_months_date).count() > 0
 
             lists_to_add = []
             lists_to_remove = []

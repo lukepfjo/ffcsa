@@ -53,10 +53,11 @@ DROP_SITE_COLORS = {
     'St Johns': 'purple',
     'Woodstock': 'yellow',
     'Banzhaf': 'orange',
+    'Home Delivery': 'purple'
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU',
-                   'Hollywood', 'Home Delivery']
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'Roosevelt', 'Farm', 'Woodstock', 'St Johns',
+                   'PSU', 'Hollywood', ]
 
 # SignRequest settings
 SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
