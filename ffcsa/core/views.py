@@ -834,15 +834,16 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
 
 
 def product_keySort(product):
+    """ If updating, make sure to update keySort function in order_actions.py"""
     if product.order_on_invoice:
         return (product.order_on_invoice, product.title)
 
     cat = product.get_category()
 
-    if not cat.parent:
+    if cat and not cat.parent:
         return (cat.order_on_invoice, product.title)
 
-    if cat.parent and cat.parent.category:
+    if cat and cat.parent and cat.parent.category:
         parent_order = cat.parent.category.order_on_invoice
         order = cat.order_on_invoice
         if order == 0:
@@ -861,6 +862,10 @@ def product_keySort(product):
 def admin_product_invoice_order(request, template="admin/product_invoice_order.html"):
     products = [p for p in Product.objects.filter(
         available=True, status=CONTENT_STATUS_PUBLISHED)]
+
+    for p in products:
+        p.computed_order_on_invoice = product_keySort(p)[0]
+
     products.sort(key=product_keySort)
 
     context = {

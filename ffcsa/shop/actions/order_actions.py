@@ -219,6 +219,7 @@ DEFAULT_GROUP_KEY = 5
 
 
 def keySort(categories):
+    """ If updating, make sure to update product_keysort function in views.py"""
     def func(item):
         try:
             product = Product.objects.get(title=item.description, sku=item.sku)
