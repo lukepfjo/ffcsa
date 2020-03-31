@@ -97,9 +97,6 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
 
         signrequest.send_sign_request(new_user, True)
         add_google_contact(new_user)
-        sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
-                                      c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
-                                      sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         subject = "New User Signup"
         if new_user.profile.join_dairy_program:
