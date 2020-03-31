@@ -33,38 +33,22 @@
     .items tbody {
         border-bottom: 3px solid black;
     }
-
-    .items th.num,
-    .items .num {
-        text-align: right;
-        width: 50px;
-    }
 </style>
 
-<h3 style="float: left; margin-top:0">{{ drop_site }} FFCSA Checklist</h3>
+<h3 style="float: left; margin-top:0">{{ drop_site }} Delivery Notes</h3>
 <p style="float: right; margin-top:0">{{ date }}</p>
 
 <table class="items">
     <tr>
-        <th>Address</th>
         <th>Last Name</th>
-        <th>Delivery Notes?</th>
-        {% for val in headers %}
-            <th class="num">{{ val }}</th>
-        {% endfor %}
-        <th class="num">Jars</th>
+        <th>Delivery Notes</th>
     </tr>
 
     <tbody>
-    {% for user in users %}
+    {% for order in orders %}
         <tr>
-            <td>{{ user.shipping_street }}, {{ user.shipping_city }}, OR</td>
-            <td>{{ user.last_name }}</td>
-            <td>{% if user.shipping_instructions %}yes{% endif %}</td>
-            {% for val in headers %}
-                <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
-            {% endfor %}
-            <td></td>
+            <td>{{ order.billing_detail_last_name }}</td>
+            <td>{{ order.shipping_instructions }}</td>
         </tr>
     {% endfor %}
     </tbody>

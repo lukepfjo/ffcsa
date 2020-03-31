@@ -56,7 +56,7 @@ class Command(BaseCommand):
 
             # workaround for https://github.com/Kozea/WeasyPrint/issues/990
             for invoice, order in generate_invoices(orders):
-                if order.drop_site in settings.MARKET_CHECKLISTS or 'Home Delivery' in order.drop_site:
+                if order.drop_site in settings.MARKET_CHECKLISTS:
                     # points to Items Ordered header
                     # Lets rename to lastname
                     bookmark = list(invoice.pages[0].bookmarks[0])

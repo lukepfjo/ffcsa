@@ -39,32 +39,33 @@
         text-align: right;
         width: 50px;
     }
+
+    .items th.checkbox,
+    .items .checkbox{
+        width: 15px;
+    }
 </style>
 
-<h3 style="float: left; margin-top:0">{{ drop_site }} FFCSA Checklist</h3>
+<h3 style="float: left; margin-top:0">Master Checklist</h3>
 <p style="float: right; margin-top:0">{{ date }}</p>
 
 <table class="items">
     <tr>
-        <th>Address</th>
-        <th>Last Name</th>
-        <th>Delivery Notes?</th>
+        <th>Drop Site</th>
         {% for val in headers %}
             <th class="num">{{ val }}</th>
+            <th class="checkbox"></th>
         {% endfor %}
-        <th class="num">Jars</th>
     </tr>
 
     <tbody>
-    {% for user in users %}
+    {% for d in data %}
         <tr>
-            <td>{{ user.shipping_street }}, {{ user.shipping_city }}, OR</td>
-            <td>{{ user.last_name }}</td>
-            <td>{% if user.shipping_instructions %}yes{% endif %}</td>
+            <td>{{ d.drop_site }}</td>
             {% for val in headers %}
-                <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
+                <td class="num">{{ d | get_item:val | default_if_none:'' | floatformat:"0" }}</td>
+                <td class="checkbox"></td>
             {% endfor %}
-            <td></td>
         </tr>
     {% endfor %}
     </tbody>
