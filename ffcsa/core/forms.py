@@ -58,6 +58,18 @@ class CartDinnerForm(forms.Form):
 
 
 # CartItemForm.clean_quantity = cart_item_clean_quantity
+def sanitize_phone_number(num):
+    if not num or not num.strip():
+        return num
+
+    num = num.replace('(', '').replace(')', '').replace(
+        ' ', '').replace('-', '').strip()
+
+    if len(num) > 10 and num.startswith('1'):
+        return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
+
+    return num[:3] + '-' + num[3:6] + '-' + num[6:]
+
 
 class ProfileForm(accounts_forms.ProfileForm):
     # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
@@ -72,8 +84,6 @@ class ProfileForm(accounts_forms.ProfileForm):
         del self.fields['first_name'].widget.attrs['autofocus']
 
         # for some reason, the Profile model validators are not copied over to the form, so we add them here
-        self.fields['phone_number'].validators.append(PHONE_REGEX)
-        self.fields['phone_number_2'].validators.append(PHONE_REGEX)
         self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
         self.fields['delivery_address'].widget.attrs['readonly'] = ''
@@ -119,6 +129,18 @@ class ProfileForm(accounts_forms.ProfileForm):
 
     def get_profile_fields_form(self):
         return ProfileFieldsForm
+
+    def clean_phone_number(self):
+        num = self.cleaned_data['phone_number']
+        num = sanitize_phone_number(num)
+        PHONE_REGEX(num)
+        return num
+
+    def clean_phone_number_2(self):
+        num = self.cleaned_data['phone_number_2']
+        num = sanitize_phone_number(num)
+        PHONE_REGEX(num)
+        return num
 
     def clean(self):
         cleaned_data = super().clean()
@@ -181,27 +203,17 @@ class ProfileForm(accounts_forms.ProfileForm):
 
 
 class ProfileFieldsForm(accounts_forms.ProfileFieldsForm):
-    def sanitize_phone_number(self, num):
-        if not num or not num.strip():
-            return num
-        num = num.replace('(', '').replace(')', '').replace(
-            ' ', '').replace('-', '').strip()
-
-        if len(num) > 10 and num.startswith('1'):
-            return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
-
-        return num[:3] + '-' + num[3:6] + '-' + num[6:]
 
     def clean_delivery_notes(self):
         return give_emoji_free_text(self.cleaned_data['delivery_notes'])
 
     def clean_phone_number(self):
         num = self.cleaned_data['phone_number']
-        return self.sanitize_phone_number(num)
+        return sanitize_phone_number(num)
 
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
-        return self.sanitize_phone_number(num)
+        return sanitize_phone_number(num)
 
 
 class BasePaymentFormSet(forms.BaseModelFormSet):
