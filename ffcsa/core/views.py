@@ -1,4 +1,5 @@
 import datetime
+import logging
 import json
 from decimal import Decimal
 
@@ -13,7 +14,7 @@ from django.contrib.messages import error, info, success
 from django.contrib.sites.models import Site
 from django.db.models import Q
 from django.forms import modelformset_factory
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
@@ -49,6 +50,7 @@ from .utils import (ORDER_CUTOFF_DAY,
                     get_order_week_start, next_weekday)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+logger = logging.getLogger(__name__)
 
 
 def shop_home(request, template="shop_home.html"):
@@ -568,6 +570,9 @@ def stripe_webhooks(request):
                         reverse("payments"))
                     send_pending_payment_email(user, payments_url)
 
+            elif not user:
+                logger.error('Failed to find user with stripe_customer_id: ', event.data.object.customer)
+
         elif event.type == 'charge.succeeded':
             # TODO :: Will non-users get an email when the payment processes?
             # TODO :: Will non-users get processed at all?
@@ -604,6 +609,8 @@ def stripe_webhooks(request):
                             user.profile.start_date = date
                             user.profile.save()
                             send_first_payment_email(user)
+            else:
+                logger.error('Failed to find user with stripe_customer_id: ', event.data.object.customer)
 
         elif event.type == 'charge.failed':
             user = User.objects.filter(
@@ -636,6 +643,7 @@ def stripe_webhooks(request):
             sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
 
     except ValueError as e:
+        logger.error('Stripe webhook value error: ', e)
         # Invalid payload
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
