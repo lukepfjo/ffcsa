@@ -357,7 +357,7 @@ def make_payment(request):
     Make a 1 time payment
     """
     hasError = False
-    amount = Decimal(request.POST.get('amount'))
+    amount = Decimal(request.POST.get('amount', 0))
 
     user = request.user
     if not user.profile.stripe_customer_id:
