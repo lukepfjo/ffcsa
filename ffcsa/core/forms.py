@@ -1,4 +1,5 @@
 from django import forms
+from django.core import validators
 from django.db import transaction
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
@@ -8,6 +9,7 @@ from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
+from ffcsa.core.models import PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
@@ -68,6 +70,11 @@ class ProfileForm(accounts_forms.ProfileForm):
         super(ProfileForm, self).__init__(*args, **kwargs)
 
         del self.fields['first_name'].widget.attrs['autofocus']
+
+        # for some reason, the Profile model validators are not copied over to the form, so we add them here
+        self.fields['phone_number'].validators.append(PHONE_REGEX)
+        self.fields['phone_number_2'].validators.append(PHONE_REGEX)
+        self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
         self.fields['delivery_address'].widget.attrs['readonly'] = ''
         self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
