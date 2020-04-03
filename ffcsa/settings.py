@@ -354,6 +354,8 @@ AUTHENTICATION_BACKENDS = ["mezzanine.core.auth_backends.MezzanineBackend"]
 # a mode you'd pass directly to os.chmod.
 FILE_UPLOAD_PERMISSIONS = 0o644
 
+ATOMIC_REQUESTS = False
+
 #############
 # DATABASES #
 #############
@@ -402,14 +404,14 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, STATIC_URL.strip("/"))
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder'
+    # 'compressor.finders.CompressorFinder'
 ]
 
-COMPRESS_POSTCSS_BINARY = 'node_modules/postcss-cli/bin/postcss'
+# COMPRESS_POSTCSS_BINARY = 'node_modules/postcss-cli/bin/postcss'
 
 COMPRESS_PRECOMPILERS = (
     # type="text/css" must be set on stylesheet
-    ('text/css', 'compressor_postcss.PostCSSFilter'),
+    # ('text/css', 'compressor_postcss.PostCSSFilter'),
 )
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -427,7 +429,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(PROJECT_ROOT, "original_templates")
+            # os.path.join(PROJECT_ROOT, "original_templates")
+            os.path.join(PROJECT_ROOT, "templates")
         ],
         "OPTIONS": {
             "context_processors": [
@@ -488,6 +491,8 @@ INSTALLED_APPS = (
     "ffcsa.core",
     'nested_admin',
     # "mezzanine.mobile",
+
+    'webpack_loader'
 )
 
 # List of middleware classes to use. Order is important; in the request phase,
@@ -536,7 +541,7 @@ PACKAGE_NAME_GRAPPELLI = "grappelli_safe"
 OPTIONAL_APPS = (
     "debug_toolbar",
     "django_extensions",
-    "compressor",
+    # "compressor",
     PACKAGE_NAME_FILEBROWSER,
     PACKAGE_NAME_GRAPPELLI,
 )
@@ -563,6 +568,14 @@ if os.path.exists(f):
     module.__file__ = f
     sys.modules[module_name] = module
     exec(open(f, "rb").read())
+
+WEBPACK_LOADER = {
+    "DEFAULT": {
+        "STATS_FILE": os.path.join(
+            BASE_DIR, "static", "webpack-stats-%s.json" % ("dev" if DEBUG else "prod")
+        )
+    }
+}
 
 ####################
 # DYNAMIC SETTINGS #

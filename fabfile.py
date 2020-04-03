@@ -2,6 +2,7 @@ from __future__ import print_function, unicode_literals
 from future.builtins import open
 
 import os
+import tempfile
 import re
 import sys
 from contextlib import contextmanager
@@ -716,3 +717,21 @@ def all():
     install()
     if create():
         deploy()
+
+@task
+def dev():
+    with tempfile.NamedTemporaryFile('w') as f:
+        # https://gist.github.com/jiaaro/b2e1b7c705022c2cf56888152a999f65
+        f.write(
+            """\
+trap "exit" INT TERM
+trap "kill 0" EXIT
+PYTHONWARNINGS=always python manage.py runserver 0.0.0.0:%(port)s &
+HOST=%(host)s npm run dev &
+for job in $(jobs -p); do wait $job; done
+"""
+            % {"port": 8000, "host": "127.0.0.1"}
+        )
+        f.flush()
+
+        local("bash %s" % f.name)
