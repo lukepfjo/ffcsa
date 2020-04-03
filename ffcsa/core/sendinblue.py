@@ -4,6 +4,7 @@ import logging
 from urllib.parse import quote as make_url_safe
 
 import requests
+import requests.exceptions
 
 
 if __name__ == '__main__':
@@ -32,7 +33,6 @@ NEW_USER_LISTS = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER', 'MEMBERS']
 NEW_USER_LISTS_TO_REMOVE = ['PROSPECTIVE_MEMBERS']
 
 HOME_DELIVERY_LIST = 'Home Delivery'
-
 
 # --------
 # General helper functions
@@ -78,7 +78,20 @@ def _initialize_drop_site_lists():
     # Create a dictionary of {drop_site_name: id} of the SIB drop site mailing lists
     # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
-    existing_lists = send_request('contacts/lists')
+    try:
+        existing_lists = send_request('contacts/lists')
+
+    except requests.exceptions.ConnectionError as ex:
+        if settings.DEBUG:
+            logger.critical('The connection to Sendinblue failed while trying to initialize the drop site list. '
+                            'Using placeholder IDs.')
+
+            stub_ids = (_ for _ in range(len(settings.DROP_SITE_CHOICES)))
+            return {ds[0]: ds_id for ds, ds_id in zip(settings.DROP_SITE_CHOICES, stub_ids)}
+
+        else:
+            raise ex
+
     drop_site_ids = {_list['name'].replace('Dropsite - ', ''): int(_list['id'])
                      for _list in existing_lists['lists']
                      if _list['name'].startswith('Dropsite')}
@@ -103,8 +116,7 @@ def _initialize_drop_site_lists():
     return drop_site_ids
 
 
-if settings.SENDINBLUE_ENABLED:
-    _DROP_SITE_IDS = _initialize_drop_site_lists()
+_DROP_SITE_IDS = _initialize_drop_site_lists()
 
 # --------
 # User (contact) management
@@ -365,6 +377,9 @@ def send_transactional_email(template_name, recipient_email):
     @param recipient_email: Email of recipient
     @return: True upon success, False on failure
     """
+
+    if not settings.SENDINBLUE_ENABLED:
+        return True
 
     template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
 

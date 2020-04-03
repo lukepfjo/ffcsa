@@ -123,27 +123,15 @@ class Profile(models.Model):
 #  DropSite
 ###################
 
-
-class DropSiteHistory(models.Model):
-    profile = models.OneToOneField(Profile, primary_key=True, on_delete=models.CASCADE)
-
-    # JSON in format {'Drop site name': {'last_hash': ''}, ...} for all drop sites user has previously selected
-    _notifications_received = models.TextField('Notifications Received', default='{}')
-
-    @property
-    def notifications_received(self):
-        return json.loads(self._notifications_received)
-
-    @notifications_received.setter
-    def notifications_received(self, dropsite_info):
-        updated_info = json.loads(self._notifications_received)
-        updated_info.update(dropsite_info)
-        self._notifications_received = json.dumps(updated_info)
+class DropSiteInfo(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    drop_site_template_name = models.CharField('Drop Site Template Name', max_length=255)
+    last_hash_received = models.TextField('Last Hash Received', null=True, blank=True)
 
     def __str__(self):
         return '{} {} - Has received: {}'.format(self.profile.user.first_name,
                                                  self.profile.user.last_name,
-                                                 self.notifications_received.keys())
+                                                 self.profile.dropsiteinfo_set)
 
 
 ###################

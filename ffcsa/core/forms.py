@@ -10,8 +10,9 @@ from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
-from ffcsa.core.models import DropSiteHistory
-from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget, give_emoji_free_text
+from ffcsa.core.models import DropSiteInfo
+from ffcsa.core.utils import give_emoji_free_text
+from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
 class CartDinnerForm(forms.Form):
@@ -173,11 +174,6 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         user.profile.save()
 
-        # Instantiate a new DropSiteHistory model for the user if one doesn't already exist
-        if not hasattr(user.profile, 'dropsitehistory'):
-            _drop_site_history_obj = DropSiteHistory.objects.create(profile=user.profile)
-            _drop_site_history_obj.save()
-
         request = current_request()
         if not self._signup:
             # we can't set this on signup b/c the cart.user_id has not been set yet
@@ -204,6 +200,7 @@ class ProfileForm(accounts_forms.ProfileForm):
                                           self.cleaned_data['last_name'], drop_site_list,
                                           self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
 
+
         # Send drop site information (or home delivery instructions)
         if self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data):
             # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
@@ -215,12 +212,19 @@ class ProfileForm(accounts_forms.ProfileForm):
             # if notification_received is not None and last_drop_site_hash != latest_drop_site_hash:
 
             # User has not received the notification before
-            if sib_template_name not in user.profile.dropsitehistory.notifications_received.keys():
-                if sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email']) is True:
-                    # This updates the log of notifications received rather than setting it
-                    user.profile.dropsitehistory.notifications_received = {sib_template_name: {'last_hash': ''}}
+            user_dropsite_info = user.profile.dropsiteinfo_set
+            template_names = [ds_info.drop_site_template_name for ds_info in user_dropsite_info]
+            if sib_template_name not in template_names:
 
-        user.profile.dropsitehistory.save()
+                # If the email is successfully sent and SIB is enabled, add a DropSiteInfo to the user for it
+                email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+                if email_result is True:
+                    _dropsite_info_obj = DropSiteInfo.objects.create(profile=user.profile,
+                                                                     drop_site_template_name=sib_template_name,
+                                                                     last_hash_received=None)
+                    _dropsite_info_obj.save()
+
+            user.profile.save()
 
         return user
 
