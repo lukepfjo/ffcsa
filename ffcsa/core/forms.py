@@ -237,11 +237,11 @@ class ProfileForm(accounts_forms.ProfileForm):
             # if notification_received is not None and last_drop_site_hash != latest_drop_site_hash:
 
             # User has not received the notification before
-            user_dropsite_info = user.profile.dropsiteinfo_set
+            user_dropsite_info = user.profile.dropsiteinfo_set.all()
+
             template_names = [ds_info.drop_site_template_name for ds_info in user_dropsite_info]
             if sib_template_name not in template_names:
-
-                # If the email is successfully sent and SIB is enabled, add a DropSiteInfo to the user for it
+                # If the email is successfully sent (or SIB is disabled), add a DropSiteInfo to the user for it
                 email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
                 if email_result is True:
                     _dropsite_info_obj = DropSiteInfo.objects.create(profile=user.profile,

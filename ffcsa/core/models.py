@@ -128,9 +128,7 @@ class DropSiteInfo(models.Model):
     last_hash_received = models.TextField('Last Hash Received', null=True, blank=True)
 
     def __str__(self):
-        return '{} {} - Has received: {}'.format(self.profile.user.first_name,
-                                                 self.profile.user.last_name,
-                                                 self.profile.dropsiteinfo_set)
+        return self.drop_site_template_name
 
 
 ###################
