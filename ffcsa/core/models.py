@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.core import validators
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.safestring import mark_safe
 from mezzanine.core.fields import FileField, RichTextField
 from mezzanine.core.models import RichText
 from mezzanine.pages.models import Page

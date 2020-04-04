@@ -1,16 +1,14 @@
-import json
-
 from django import forms
-from django.db import transaction
+from django.core import validators
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
 from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
-from ffcsa.core.models import DropSiteInfo
+from ffcsa.core.google import update_contact as update_google_contact
+from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
@@ -59,6 +57,18 @@ class CartDinnerForm(forms.Form):
 
 
 # CartItemForm.clean_quantity = cart_item_clean_quantity
+def sanitize_phone_number(num):
+    if not num or not num.strip():
+        return num
+
+    num = num.replace('(', '').replace(')', '').replace(
+        ' ', '').replace('-', '').strip()
+
+    if len(num) > 10 and num.startswith('1'):
+        return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
+
+    return num[:3] + '-' + num[3:6] + '-' + num[6:]
+
 
 class ProfileForm(accounts_forms.ProfileForm):
     # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
@@ -71,6 +81,9 @@ class ProfileForm(accounts_forms.ProfileForm):
         super(ProfileForm, self).__init__(*args, **kwargs)
 
         del self.fields['first_name'].widget.attrs['autofocus']
+
+        # for some reason, the Profile model validators are not copied over to the form, so we add them here
+        self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
         self.fields['delivery_address'].widget.attrs['readonly'] = ''
         self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
@@ -115,6 +128,18 @@ class ProfileForm(accounts_forms.ProfileForm):
 
     def get_profile_fields_form(self):
         return ProfileFieldsForm
+
+    def clean_phone_number(self):
+        num = self.cleaned_data['phone_number']
+        num = sanitize_phone_number(num)
+        PHONE_REGEX(num)
+        return num
+
+    def clean_phone_number_2(self):
+        num = self.cleaned_data['phone_number_2']
+        num = sanitize_phone_number(num)
+        PHONE_REGEX(num)
+        return num
 
     def clean(self):
         cleaned_data = super().clean()
@@ -230,27 +255,17 @@ class ProfileForm(accounts_forms.ProfileForm):
 
 
 class ProfileFieldsForm(accounts_forms.ProfileFieldsForm):
-    def sanitize_phone_number(self, num):
-        if not num or not num.strip():
-            return num
-        num = num.replace('(', '').replace(')', '').replace(
-            ' ', '').replace('-', '').strip()
-
-        if len(num) > 10 and num.startswith('1'):
-            return '1-' + num[1:4] + '-' + num[4:7] + '-' + num[7:]
-
-        return num[:3] + '-' + num[3:6] + '-' + num[6:]
 
     def clean_delivery_notes(self):
         return give_emoji_free_text(self.cleaned_data['delivery_notes'])
 
     def clean_phone_number(self):
         num = self.cleaned_data['phone_number']
-        return self.sanitize_phone_number(num)
+        return sanitize_phone_number(num)
 
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
-        return self.sanitize_phone_number(num)
+        return sanitize_phone_number(num)
 
 
 class BasePaymentFormSet(forms.BaseModelFormSet):

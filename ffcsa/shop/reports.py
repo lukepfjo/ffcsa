@@ -349,7 +349,7 @@ def generate_home_delivery_checklists(date):
         'last_name': F('billing_detail_last_name'),
         'shipping_street': F('shipping_detail_street'),
         'shipping_city': F('shipping_detail_city'),
-        'shipping_instructions': F('shipping_instructions'),
+        'shipping_ins': F('shipping_instructions'),
     }
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 

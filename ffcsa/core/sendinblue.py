@@ -169,8 +169,8 @@ def get_user(email=None, phone_number=None):
     return {
         'identifier': user['email'],
         'email': user['email'],
-        'first_name': attributes['FIRSTNAME'],
-        'last_name': attributes['LASTNAME'],
+        'first_name': attributes.get('FIRSTNAME', None),
+        'last_name': attributes.get('LASTNAME', None),
         'phone_number': attributes.get('sms', attributes).get('SMS', None),
         'drop_site': drop_site,
         'list_ids': list_ids

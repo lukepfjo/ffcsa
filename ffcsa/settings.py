@@ -674,6 +674,12 @@ if not DEBUG:
                 'handlers': ['console'],
                 'level': 'WARNING',
                 'propagate': False,
+            },
+            'googleapiclient.discovery_cache': {
+                # only log errors from this module
+                'handlers': ['console'],
+                'level': 'ERROR',
+                'propagate': False
             }
         }
     })
