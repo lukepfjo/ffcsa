@@ -17,14 +17,15 @@ MARKET_CHECKLISTS = ['LCFM', 'Hollywood', 'PSU', 'St Johns', 'Woodstock']
 MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
     # checklist columns -> (category list, additional kwargs, default)
     # if default is None, then we will sum the number of items
-    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {'is_frozen': False}, 1)),
-    ('Meat', (['meat', 'butter'], {'is_frozen': True}, 1)),
+    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag', 'bread', 'mushroom', 'nut', 'coffee', 'pantry'],
+              {'AND': {'is_frozen': False}}, 1)),
+    ('Meat', (['meat', 'butter'], {'OR': {'is_frozen': True}}, 1)),
     ('Dairy', (['dairy'], {}, None)),
     ('Flowers', (['flowers'], {}, None)),
 ])
 DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
-SIGNUP_FEE_IN_CENTS = 10000
+SIGNUP_FEE_IN_CENTS = 5000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 HOME_DELIVERY_ENABLED = True
 HOME_DELIVERY_CHARGE = 5

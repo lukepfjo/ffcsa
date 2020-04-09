@@ -1,5 +1,6 @@
 import datetime
 import logging
+import os
 import tempfile
 
 from django.conf import settings
@@ -69,6 +70,8 @@ class Command(BaseCommand):
             delivery_orders = orders.filter(drop_site='Home Delivery')
             deliveries_csv = generate_deliveries_csv(delivery_orders)
 
+            # if not os.path.exists('app-messages'):
+            #     os.mkdir('app-messages')
             # with tempfile.NamedTemporaryFile(
             #         delete=False, dir="app-messages", suffix='.pdf') as tmp:
             #     tmp.write(doc.write_pdf())
