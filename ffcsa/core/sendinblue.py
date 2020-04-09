@@ -116,7 +116,8 @@ def _initialize_drop_site_lists():
     return drop_site_ids
 
 
-_DROP_SITE_IDS = _initialize_drop_site_lists()
+if settings.SENDINBLUE_ENABLED:
+    _DROP_SITE_IDS = _initialize_drop_site_lists()
 
 # --------
 # User (contact) management
@@ -150,6 +151,9 @@ def get_user(email=None, phone_number=None):
 
     @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids'
     """
+
+    if not settings.SENDINBLUE_ENABLED:
+        raise Exception('Attempted to get SendInBlue user while SIB is disabled')
 
     if email is None and phone_number is None:
         raise Exception('Either email or phone_number must be provided')
@@ -189,6 +193,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 

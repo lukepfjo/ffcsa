@@ -1,5 +1,6 @@
 from django import forms
 from django.core import validators
+from django.db import transaction
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
@@ -143,61 +144,63 @@ class ProfileForm(accounts_forms.ProfileForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        drop_site = cleaned_data.get('drop_site', None)
 
         if cleaned_data.get('home_delivery', False):
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
-        elif cleaned_data.get('drop_site', None) is None:
+
+        elif drop_site is None or drop_site == '':
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
-        if self._signup:
-            if not self.cleaned_data.get('product_agreement', False) and not self.cleaned_data.get(
-                    'email_product_agreement', False):
-                self.fields['email_product_agreement'].widget = forms.CheckboxInput()
-                d = self.data.copy()
-                d['has_submitted'] = 'on'
-                self.data = d
-                self.add_error('product_agreement',
-                               'Please upload your signed liability doc (preferred) or check the "Email Product Agreement" field below')
-                self.add_error('email_product_agreement',
-                               'Please check this box or upload your signed liability doc above (preferred)')
+        if not self.cleaned_data.get('product_agreement', False) and not self.cleaned_data.get(
+                'email_product_agreement', False):
+            self.fields['email_product_agreement'].widget = forms.CheckboxInput()
+            d = self.data.copy()
+            d['has_submitted'] = 'on'
+            self.data = d
+            self.add_error('product_agreement',
+                           'Please upload your signed liability doc (preferred) or check the "Email Product Agreement" field below')
+            self.add_error('email_product_agreement',
+                           'Please check this box or upload your signed liability doc above (preferred)')
 
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        user = super(ProfileForm, self).save(*args, **kwargs)
+        with transaction.atomic():
+            user = super(ProfileForm, self).save(*args, **kwargs)
 
-        drop_site = self.cleaned_data['drop_site']
-        user.profile.drop_site = drop_site
-        sib_template_name = drop_site
+            drop_site = self.cleaned_data['drop_site']
+            user.profile.drop_site = drop_site
+            sib_template_name = drop_site
 
-        if self._signup:
-            user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
-                                 "<b>Preferred communication method:</b>  {}<br/>" \
-                                 "<b>Adults in family:</b>  {}<br/>" \
-                                 "<b>Children in family:</b>  {}<br/>" \
-                                 "<b>How did you hear about us:</b>  {}<br/>" \
-                .format(self.cleaned_data['best_time_to_reach'],
-                        self.cleaned_data['communication_method'],
-                        self.cleaned_data['num_adults'],
-                        self.cleaned_data['num_children'],
-                        self.cleaned_data['hear_about_us'])
+            if self._signup:
+                user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
+                                     "<b>Preferred communication method:</b>  {}<br/>" \
+                                     "<b>Adults in family:</b>  {}<br/>" \
+                                     "<b>Children in family:</b>  {}<br/>" \
+                                     "<b>How did you hear about us:</b>  {}<br/>" \
+                    .format(self.cleaned_data['best_time_to_reach'],
+                            self.cleaned_data['communication_method'],
+                            self.cleaned_data['num_adults'],
+                            self.cleaned_data['num_children'],
+                            self.cleaned_data['hear_about_us'])
 
-            # defaults
-            user.profile.allow_substitutions = True
-            user.profile.weekly_emails = True
-            user.profile.no_plastic_bags = False
+                # defaults
+                user.profile.allow_substitutions = True
+                user.profile.weekly_emails = True
+                user.profile.no_plastic_bags = False
 
-            home_delivery = self.cleaned_data.get('home_delivery', None)
-            sib_template_name = 'Home Delivery' if home_delivery is None else drop_site
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if home_delivery is None else drop_site
+                home_delivery = self.cleaned_data.get('home_delivery', None)
+                sib_template_name = drop_site if home_delivery is None else 'Home Delivery'
+                drop_site_list = drop_site if home_delivery is None else sendinblue.HOME_DELIVERY_LIST
 
-            sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
-                                          self.cleaned_data['last_name'], drop_site_list,
-                                          self.cleaned_data['phone_number'], sendinblue.NEW_USER_LISTS,
-                                          sendinblue.NEW_USER_LISTS_TO_REMOVE)
+                sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                              self.cleaned_data['last_name'], drop_site_list,
+                                              self.cleaned_data['phone_number'], sendinblue.NEW_USER_LISTS,
+                                              sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
-        user.profile.save()
+            user.profile.save()
 
         request = current_request()
         if not self._signup:
