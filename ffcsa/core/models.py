@@ -125,7 +125,7 @@ class Profile(models.Model):
 class DropSiteInfo(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     drop_site_template_name = models.CharField('Drop Site Template Name', max_length=255)
-    last_hash_received = models.TextField('Last Hash Received', null=True, blank=True)
+    last_version_received = models.TextField('Last Version Received', null=True, blank=True)
 
     def __str__(self):
         return self.drop_site_template_name

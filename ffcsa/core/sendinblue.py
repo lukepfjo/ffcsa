@@ -405,6 +405,13 @@ def send_transactional_email(template_name, recipient_email):
         logger.error(str(ex))
         return False
 
-    # TODO :: Return hash of transactional template instead
-    return 'messageId' in response.keys()
+    if 'messageId' not in response.keys():
+        return False
 
+    try:
+        response = send_request('smtp/templates/{}'.format(template_id), 'GET')
+        return response.get('modifiedAt', None)  # Date template was last modified
+
+    except Exception as ex:
+        logger.error(str(ex))
+        return False

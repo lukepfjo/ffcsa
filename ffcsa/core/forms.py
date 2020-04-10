@@ -232,11 +232,11 @@ class ProfileForm(accounts_forms.ProfileForm):
             template_names = [ds_info.drop_site_template_name for ds_info in user_dropsite_info]
             if sib_template_name not in template_names:
                 # If the email is successfully sent (or SIB is disabled), add a DropSiteInfo to the user for it
-                email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
-                if email_result is True:
+                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+                if date_last_modified is not False:
                     _dropsite_info_obj = DropSiteInfo.objects.create(profile=user.profile,
                                                                      drop_site_template_name=sib_template_name,
-                                                                     last_hash_received=None)
+                                                                     last_version_received=date_last_modified)
                     _dropsite_info_obj.save()
 
             user.profile.save()
