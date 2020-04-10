@@ -206,8 +206,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
             update_google_contact(user)
 
+            # The following NOPs if settings.SENDINBLUE_ENABLED == False
             drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
-
             weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
             lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
@@ -215,9 +215,9 @@ class ProfileForm(accounts_forms.ProfileForm):
                                           self.cleaned_data['last_name'], drop_site_list,
                                           self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
 
-
         # Send drop site information (or home delivery instructions)
-        if self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data):
+        if settings.SENDINBLUE_ENABLED and \
+                (self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data)):
             # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
             #         future. Thus, update to compare hashes; if they differ, update stored hash and send new email.
 
