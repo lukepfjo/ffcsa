@@ -148,6 +148,7 @@ def draw_label(label, width, height, order):
 
 class SkipLabelsForm(forms.Form):
     _selected_action = forms.CharField(widget=forms.MultipleHiddenInput)
+    select_across = forms.BooleanField(required=False, widget=forms.HiddenInput())
     skip = forms.IntegerField(max_value=30)
 
 
@@ -208,7 +209,10 @@ def create_labels(modeladmin, request, queryset):
                 return response
     else:
         form = SkipLabelsForm(initial={
-            'skip': 0, '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME)})
+            'skip': 0,
+            '_selected_action': request.POST.getlist(admin.ACTION_CHECKBOX_NAME),
+            'select_across': request.POST.get('select_across', False)
+        })
 
     return TemplateResponse(request, 'admin/skip_labels.html', {'form': form})
 
