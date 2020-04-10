@@ -120,6 +120,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         else:
             # All fields (only checkboxes?) must be rendered in the form unless they are included in settings.ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
             # Otherwise they will be reset/overridden
+            self.fields['email_product_agreement'].widget = forms.HiddenInput()
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             self.fields['num_adults'].widget = forms.HiddenInput()
@@ -144,17 +145,15 @@ class ProfileForm(accounts_forms.ProfileForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        drop_site = cleaned_data.get('drop_site', None)
 
         if cleaned_data.get('home_delivery', False):
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
 
-        elif drop_site is None or drop_site == '':
+        elif not cleaned_data.get('drop_site', False):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
-        if not self.cleaned_data.get('product_agreement', False) and not self.cleaned_data.get(
-                'email_product_agreement', False):
+        if not self.cleaned_data.get('product_agreement', False) and not self.cleaned_data.get('email_product_agreement', False):
             self.fields['email_product_agreement'].widget = forms.CheckboxInput()
             d = self.data.copy()
             d['has_submitted'] = 'on'
