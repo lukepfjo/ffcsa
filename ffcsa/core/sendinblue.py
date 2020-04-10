@@ -374,6 +374,22 @@ def _get_transactional_email_templates(pprint=True):
         return templates
 
 
+def get_template_last_modified_date(template_name):
+    template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
+
+    if template_id is None:
+        logger.critical('Sendinblue error: Transactional template "{}" is missing in settings.py'.format(template_name))
+        return False
+
+    try:
+        response = send_request('smtp/templates/{}'.format(template_id), 'GET')
+        return response.get('modifiedAt', None)  # Date template was last modified
+
+    except Exception as ex:
+        logger.error(str(ex))
+        return False
+
+
 def send_transactional_email(template_name, recipient_email):
     """
     Send a transactional email using the provided details
@@ -408,10 +424,4 @@ def send_transactional_email(template_name, recipient_email):
     if 'messageId' not in response.keys():
         return False
 
-    try:
-        response = send_request('smtp/templates/{}'.format(template_id), 'GET')
-        return response.get('modifiedAt', None)  # Date template was last modified
-
-    except Exception as ex:
-        logger.error(str(ex))
-        return False
+    return get_template_last_modified_date(template_name)

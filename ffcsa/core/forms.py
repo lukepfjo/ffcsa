@@ -218,17 +218,10 @@ class ProfileForm(accounts_forms.ProfileForm):
         # Send drop site information (or home delivery instructions)
         if settings.SENDINBLUE_ENABLED and \
                 (self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data)):
-            # TODO :: send_transactional_email will return the hash of the transactional email upon success in the
-            #         future. Thus, update to compare hashes; if they differ, update stored hash and send new email.
 
-            # notification_received = user.profile.drop_site_history.notifications_received.get(sib_template_name, None)
-            # last_drop_site_hash = None if notification_received is None else notification_received['last_hash']
-            # latest_drop_site_hash = sendinblue.get_template_hash(sib_template_name)
-            # if notification_received is not None and last_drop_site_hash != latest_drop_site_hash:
-
-            # User has not received the notification before
             user_dropsite_info = user.profile.dropsiteinfo_set.all()
 
+            # User has not received the notification before
             template_names = [ds_info.drop_site_template_name for ds_info in user_dropsite_info]
             if sib_template_name not in template_names:
                 # If the email is successfully sent (or SIB is disabled), add a DropSiteInfo to the user for it
@@ -238,6 +231,11 @@ class ProfileForm(accounts_forms.ProfileForm):
                                                                      drop_site_template_name=sib_template_name,
                                                                      last_version_received=date_last_modified)
                     _dropsite_info_obj.save()
+
+            else:
+                # TODO :: Check current template version and compare against existing
+                # date_last_modified = sendinblue.get_template_last_modified_date(sib_template_name)
+                pass
 
             user.profile.save()
 
