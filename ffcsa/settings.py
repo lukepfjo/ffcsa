@@ -33,7 +33,8 @@ FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
     # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    ('W 11th', 'Eugene - W 11th and Van Buren (Saturday)'),
     # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
     ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
@@ -48,7 +49,8 @@ DROP_SITE_COLORS = {
     # 'Corner Market': 'white',
     'LCFM': 'blue',
     # '19th St': 'blue',
-    'Roosevelt': 'white',
+    # 'Roosevelt': 'white',
+    'W 11th': 'white',
     'Hollywood': 'yellow',
     'PSU': 'green',
     'St Johns': 'purple',
@@ -57,7 +59,7 @@ DROP_SITE_COLORS = {
     'Home Delivery': 'purple'
 }
 
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'Roosevelt', 'Farm', 'Woodstock', 'St Johns',
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodstock', 'St Johns',
                    'PSU', 'Hollywood', ]
 
 # SignRequest settings
