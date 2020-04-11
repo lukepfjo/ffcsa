@@ -102,7 +102,7 @@ jQuery(function ($) {
         $(element).closest('.form-group').removeClass('has-error')
       },
       submitHandler: function (form, event) {
-        if (event) event.preventDefault();
+        if (event) event.preventDefault()
         var btn = $(this.submitButton)
         if (btn) {
           btn.attr('disabled', 'disabled')
@@ -234,8 +234,14 @@ jQuery(function ($) {
 
         var defaultSubmitHandler = validateOpts.submitHandler
 
+        var opts = _.assign({}, validateOpts)
+        opts.rules.amount.min = 20
+
+        var validator = $('#payment-form').validate(opts)
+
         $('#submit-payment').click(function () {
-          var btn = $(this);
+          if (!validator.form()) return
+          var btn = $(this)
           btn.attr('disabled', 'disabled')
           btn.addClass('spinner')
           var form = document.getElementById('payment-form')
@@ -251,10 +257,6 @@ jQuery(function ($) {
           }
         })
 
-        var opts = _.assign({}, validateOpts)
-        opts.rules.amount.min = 20
-
-        $('#payment-form').validate(opts)
       }
     })
 

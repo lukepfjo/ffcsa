@@ -6,7 +6,8 @@
     {% else %}
         on <strong>{{ order_week_start }} at 5 pm</strong>
     {% endif %}
-    . Your first week's order will be available for pickup at <strong>{{ drop_site }}</strong>, on
+    . {% if home_delivery %}Your first week's order will be <strong>delivered to your house</strong> on{% else %}Your
+        first week's order will be available for pickup at <strong>{{ drop_site }}</strong>, on{% endif %}
     <strong>{{ pickup_date }}</strong>.</p>
 
 <p>Just a friendly reminder that your order must be put together by Wednesday at midnight each week. This is very

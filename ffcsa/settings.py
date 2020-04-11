@@ -33,7 +33,8 @@ FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
     # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    ('W 11th', 'Eugene - W 11th and Van Buren (Saturday)'),
     # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
     ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
@@ -48,7 +49,8 @@ DROP_SITE_COLORS = {
     # 'Corner Market': 'white',
     'LCFM': 'blue',
     # '19th St': 'blue',
-    'Roosevelt': 'white',
+    # 'Roosevelt': 'white',
+    'W 11th': 'white',
     'Hollywood': 'yellow',
     'PSU': 'green',
     'St Johns': 'purple',
@@ -57,8 +59,17 @@ DROP_SITE_COLORS = {
     'Home Delivery': 'purple'
 }
 
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'Roosevelt', 'Farm', 'Woodstock', 'St Johns',
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodstock', 'St Johns',
                    'PSU', 'Hollywood', ]
+STANDING_DELIVERIES = [
+    # ['Address', 'Name', 'Phone', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers']
+    ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '5'],
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '15', '7:00', '16:00'],
+    ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '15'],
+    ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '15'],
+    ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '15'],
+    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '20', '4:00', '9:00']
+]
 
 # SignRequest settings
 SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
