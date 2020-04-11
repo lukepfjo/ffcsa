@@ -113,6 +113,7 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     'St Johns': 9,
     'Woodstock': 10,
     'Home Delivery': 11,
+    'W 11th': 12,
 }
 
 SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'

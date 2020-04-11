@@ -219,23 +219,32 @@ class ProfileForm(accounts_forms.ProfileForm):
         if settings.SENDINBLUE_ENABLED and \
                 (self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data)):
 
-            user_dropsite_info = user.profile.dropsiteinfo_set.all()
+            user_dropsite_info_set = user.profile.dropsiteinfo_set.all()
+            user_dropsite_info = list(user_dropsite_info_set.filter(drop_site_template_name=sib_template_name))
 
             # User has not received the notification before
-            template_names = [ds_info.drop_site_template_name for ds_info in user_dropsite_info]
-            if sib_template_name not in template_names:
-                # If the email is successfully sent (or SIB is disabled), add a DropSiteInfo to the user for it
+            if len(user_dropsite_info) == 0:
                 date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+
+                # If the email is successfully sent add an appropriate DropSiteInfo to the user
                 if date_last_modified is not False:
                     _dropsite_info_obj = DropSiteInfo.objects.create(profile=user.profile,
                                                                      drop_site_template_name=sib_template_name,
                                                                      last_version_received=date_last_modified)
                     _dropsite_info_obj.save()
 
+            # Check if user has received the latest version of the notification message
             else:
-                # TODO :: Check current template version and compare against existing
-                # date_last_modified = sendinblue.get_template_last_modified_date(sib_template_name)
-                pass
+                date_last_modified = sendinblue.get_template_last_modified_date(sib_template_name)
+
+                user_dropsite_entry = user_dropsite_info[0]
+                if user_dropsite_entry.last_version_received != date_last_modified:
+                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+
+                    # Don't update entry if email fails to send
+                    if email_result is not False:
+                        user_dropsite_entry.last_version_received = email_result
+                        user_dropsite_entry.save()
 
             user.profile.save()
 

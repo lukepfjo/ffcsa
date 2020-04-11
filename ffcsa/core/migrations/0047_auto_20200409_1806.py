@@ -16,10 +16,6 @@ class Migration(migrations.Migration):
             model_name='dropsiteinfo',
             name='last_hash_received',
         ),
-        migrations.RemoveField(
-            model_name='profile',
-            name='email_product_agreement',
-        ),
         migrations.AddField(
             model_name='dropsiteinfo',
             name='last_version_received',

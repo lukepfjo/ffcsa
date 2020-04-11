@@ -375,6 +375,13 @@ def _get_transactional_email_templates(pprint=True):
 
 
 def get_template_last_modified_date(template_name):
+    """
+    Get the timestamp at which the specified template was last modified
+
+    @param template_name: Name of the Sendinblue template as found in settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES
+    @return: Timestamp in format 'YYYY-MM-DDTHH:MM:SS.000+00:00' on success, False on failure
+    """
+
     template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
 
     if template_id is None:
@@ -422,6 +429,7 @@ def send_transactional_email(template_name, recipient_email):
         return False
 
     if 'messageId' not in response.keys():
+        logger.error('Sendinblue error: Unexpected response contents: "{}"'.format(response.keys()))
         return False
 
     return get_template_last_modified_date(template_name)
