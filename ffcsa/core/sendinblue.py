@@ -299,9 +299,31 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     # User could not be found on Sendinblue; create a new one
     if not old_user_info:
         add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number)
+
         if not add_success:
+            logger.error(add_msg)
             return False, add_msg
+
         old_user_info = get_user(email, phone_number)
+
+    # Tried to add a user with a phone number that already exists in SIB
+    if not old_user_info:
+        logger.info('New SIB user {} has existing phone number {}; dropping phone number.'.format(email, phone_number))
+        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number=None)
+
+        if not add_success:
+            logger.error(add_msg)
+            return False, add_msg
+
+        old_user_info = get_user(email, phone_number)
+
+    # Something unexpected went wrong; if this message is seen it should be debugged
+    if not old_user_info:
+        msg = 'Unexpectedly failed to add or update user with this info:\n' +\
+              'Email: "{}" FNAME: "{}" LNAME: "{}" DROPSITE: "{}" PHONE: "{}"'.format(
+                email, first_name, last_name, drop_site, phone_number)
+        logger.error(msg)
+        return False, msg
 
     identifier = old_user_info.pop('identifier')
 
