@@ -253,6 +253,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
@@ -282,7 +283,6 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         else:
             logger.error(ex)
             return False, str(ex)
-            # raise ex
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
