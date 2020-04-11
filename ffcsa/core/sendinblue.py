@@ -158,16 +158,31 @@ def get_user(email=None, phone_number=None):
     if email is None and phone_number is None:
         raise Exception('Either email or phone_number must be provided')
 
+    # Look up user, trying email first (if provided)
     identifier = email if email is not None else phone_number
+    user = None
     try:
         user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     except Exception as ex:
-        if email is not None and 'Contact does not exist' in str(ex):
-            try:
-                user = send_request('contacts/{}'.format(make_url_safe(phone_number)))
-            except Exception as ex:
-                if 'Contact does not exist' in str(ex):
-                    return False
+        if 'Contact does not exist' in str(ex):
+            if phone_number is None:
+                # Email not found and phone number not provided
+                return False
+        else:
+            raise ex
+
+    if user is None:
+        # Failed to look up by email, try phone number
+        identifier = phone_number
+
+        try:
+            user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+        except Exception as ex:
+            if 'Contact does not exist' in str(ex):
+                # User could not be found using the provided phone number
+                return False
+            else:
+                raise ex
 
     attributes = user['attributes']
     list_ids = user['listIds']
@@ -175,7 +190,7 @@ def get_user(email=None, phone_number=None):
     drop_site = drop_site[0] if len(drop_site) != 0 else None
 
     return {
-        'identifier': user['email'],
+        'identifier': identifier,
         'email': user['email'],
         'first_name': attributes.get('FIRSTNAME', None),
         'last_name': attributes.get('LASTNAME', None),
@@ -237,7 +252,6 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             logger.error(msg)
             return False, msg
         logger.error(ex)
-        # raise ex
 
     return True, ''
 
@@ -274,19 +288,22 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         return False, msg
 
     body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
-    identifier = email
 
     # Diff the old and new user info
     try:
         old_user_info = get_user(email, phone_number)
-        identifier = old_user_info.pop('identifier')
     except Exception as ex:
-        if 'Contact does not exist' in str(ex):
-            add_user(email, first_name, last_name, drop_site, phone_number)
-            old_user_info = get_user(email, phone_number)
-        else:
-            logger.error(ex)
-            return False, str(ex)
+        logger.error(ex)
+        return False, str(ex)
+
+    # User could not be found on Sendinblue; create a new one
+    if not old_user_info:
+        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number)
+        if not add_success:
+            return False, add_msg
+        old_user_info = get_user(email, phone_number)
+
+    identifier = old_user_info.pop('identifier')
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
@@ -336,9 +353,9 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             msg = 'Invalid phone number'
             logger.error(msg)
             return False, msg
+
         logger.error(ex)
         return False, str(ex)
-        # raise ex
 
     return True, ''
 
