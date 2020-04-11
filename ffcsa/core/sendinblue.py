@@ -149,7 +149,7 @@ def get_user(email=None, phone_number=None):
     @param email: User's email
     @param phone_number: User's cell phone number (optional; can be used instead of email)
 
-    @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids'
+    @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids' on success, False on failure
     """
 
     if not settings.SENDINBLUE_ENABLED:
@@ -163,7 +163,11 @@ def get_user(email=None, phone_number=None):
         user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     except Exception as ex:
         if email is not None and 'Contact does not exist' in str(ex):
-            user = send_request('contacts/{}'.format(make_url_safe(phone_number)))
+            try:
+                user = send_request('contacts/{}'.format(make_url_safe(phone_number)))
+            except Exception as ex:
+                if 'Contact does not exist' in str(ex):
+                    return False
 
     attributes = user['attributes']
     list_ids = user['listIds']
