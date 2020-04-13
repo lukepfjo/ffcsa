@@ -254,7 +254,7 @@ class BasePaymentFormSet(forms.BaseModelFormSet):
 class CreditOrderedProductForm(forms.Form):
     date = forms.ChoiceField(help_text='Only order dates in the last 30 days are shown.')
     products = forms.MultipleChoiceField(help_text='Only products ordered in the last 30 days are shown.')
-    notify = forms.BooleanField(required=False, label='Notify Members that a credit was issued?')
+    notify = forms.BooleanField(required=False, label='Notify Members that a credit was issued?', initial=True)
     msg = forms.CharField(label='Message to include in the notification.', widget=forms.Textarea(attrs={'rows': 3}),
                           required=False)
 

@@ -57,7 +57,7 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
         """
         Update stripe subscription if needed
         """
-        user = User.objects.get(id=obj.id)
+        user = User.objects.get(id=obj.id) if change else None
         if change \
                 and user.profile.monthly_contribution != obj.profile.monthly_contribution \
                 and obj.profile.stripe_subscription_id:
