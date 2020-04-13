@@ -1,0 +1,14 @@
+Hello {{ first_name }},
+
+A credit of ${{ amount }} has been applied to your account for your order on {{ date }}.
+
+{% if payments_url %}
+    You can view this credit by visiting {{ payments_url }}
+{% endif %}
+
+{% if msg %}
+    {{ msg }}
+{% endif %}
+
+The FFCSA Team!
+541-321-0925

@@ -1,6 +1,8 @@
+import datetime
+
 from django import forms
 from django.core import validators
-from django.db import transaction
+from django.db import transaction, connection
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
@@ -11,6 +13,7 @@ from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
 from ffcsa.core.models import PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
+from ffcsa.shop.models import OrderItem
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
@@ -246,3 +249,26 @@ class BasePaymentFormSet(forms.BaseModelFormSet):
                         'payments_url': self.request.build_absolute_uri(reverse("payments")) if self.request else None
                     }
                 )
+
+
+class CreditOrderedProductForm(forms.Form):
+    date = forms.ChoiceField(help_text='Only order dates in the last 30 days are shown.')
+    products = forms.MultipleChoiceField(help_text='Only products ordered in the last 30 days are shown.')
+    notify = forms.BooleanField(required=False, label='Notify Members that a credit was issued?')
+    msg = forms.CharField(label='Message to include in the notification.', widget=forms.Textarea(attrs={'rows': 3}),
+                          required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        thirty_days_ago = datetime.date.today() - datetime.timedelta(days=30)
+
+        with connection.cursor() as cursor:
+            cursor.execute('select distinct(date(time)) as date from shop_order where time >= %s', [thirty_days_ago])
+            self.fields['date'].choices = [(o[0], o[0]) for o in cursor]
+
+        self.fields['products'].choices = [(i['description'], i['description']) for i in
+                                           OrderItem.objects.filter(order__time__gt=thirty_days_ago)
+                                               .values('description').distinct().order_by(
+                                               'description')
+                                           ]
