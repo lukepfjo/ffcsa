@@ -92,6 +92,7 @@ GOOGLE_GROUP_IDS = {
 
 SENDINBLUE_ENABLED = False
 SENDINBLUE_API_KEY = None
+
 SENDINBLUE_LISTS = {
     'WEEKLY_NEWSLETTER': 9,
     'WEEKLY_REMINDER': 10,
@@ -99,6 +100,22 @@ SENDINBLUE_LISTS = {
     'FORMER_MEMBERS': 11,
     'PROSPECTIVE_MEMBERS': 4,
 }
+
+SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
+    '19th St.': 1,
+    'Banzhaf': 2,
+    'Corner Market': 3,
+    'Farm': 4,
+    'Hollywood': 5,
+    'LCFM': 6,
+    'PSU': 7,
+    'Roosevelt': 8,
+    'St Johns': 9,
+    'Woodstock': 10,
+    'Home Delivery': 11,
+    'W 11th': 12,
+}
+
 SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 # Rollbar settings
