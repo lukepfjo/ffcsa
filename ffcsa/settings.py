@@ -102,18 +102,17 @@ SENDINBLUE_LISTS = {
 }
 
 SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
-    '19th St.': 1,
-    'Banzhaf': 2,
-    'Corner Market': 3,
-    'Farm': 4,
-    'Hollywood': 5,
-    'LCFM': 6,
-    'PSU': 7,
-    'Roosevelt': 8,
-    'St Johns': 9,
-    'Woodstock': 10,
-    'Home Delivery': 11,
-    'W 11th': 12,
+    'Banzhaf': 27,
+    'Farm': 31,
+    'Hollywood': 30,
+    'LCFM': 28,
+    'PSU': 29,
+    'Home Delivery': 32,
+    'W 11th': 26,
+    # 'St Johns': 9,
+    # 'Woodstock': 10,
+    # '19th St.': 1,
+    # 'Corner Market': 3,
 }
 
 SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'

@@ -225,10 +225,11 @@ class ProfileForm(accounts_forms.ProfileForm):
 
             user_dropsite_info_set = user.profile.dropsiteinfo_set.all()
             user_dropsite_info = list(user_dropsite_info_set.filter(drop_site_template_name=sib_template_name))
+            params = {'FIRSTNAME': user.first_name}
 
             # User has not received the notification before
             if len(user_dropsite_info) == 0:
-                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
 
                 # If the email is successfully sent add an appropriate DropSiteInfo to the user
                 if date_last_modified is not False:
@@ -243,7 +244,7 @@ class ProfileForm(accounts_forms.ProfileForm):
 
                 user_dropsite_entry = user_dropsite_info[0]
                 if user_dropsite_entry.last_version_received != date_last_modified:
-                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'])
+                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
 
                     # Don't update entry if email fails to send
                     if email_result is not False:

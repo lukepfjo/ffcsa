@@ -6,7 +6,6 @@ from urllib.parse import quote as make_url_safe
 import requests
 import requests.exceptions
 
-
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
 
@@ -33,6 +32,7 @@ NEW_USER_LISTS = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER', 'MEMBERS']
 NEW_USER_LISTS_TO_REMOVE = ['PROSPECTIVE_MEMBERS']
 
 HOME_DELIVERY_LIST = 'Home Delivery'
+
 
 # --------
 # General helper functions
@@ -66,7 +66,8 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
         else:
             response_json = response.json()
             response_error = response_json.get('error', response_json)['message']  # SIB error format is not consistent
-            raise Exception('Sendinblue internal server error: HTTP {}: {}'.format(response.status_code, response_error))
+            raise Exception(
+                'Sendinblue internal server error: HTTP {}: {}'.format(response.status_code, response_error))
 
     try:
         return response.json()
@@ -118,6 +119,7 @@ def _initialize_drop_site_lists():
 
 if settings.SENDINBLUE_ENABLED:
     _DROP_SITE_IDS = _initialize_drop_site_lists()
+
 
 # --------
 # User (contact) management
@@ -319,9 +321,9 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     # Something unexpected went wrong; if this message is seen it should be debugged
     if not old_user_info:
-        msg = 'Unexpectedly failed to add or update user with this info:\n' +\
+        msg = 'Unexpectedly failed to add or update user with this info:\n' + \
               'Email: "{}" FNAME: "{}" LNAME: "{}" DROPSITE: "{}" PHONE: "{}"'.format(
-                email, first_name, last_name, drop_site, phone_number)
+                  email, first_name, last_name, drop_site, phone_number)
         logger.error(msg)
         return False, msg
 
@@ -395,6 +397,7 @@ def on_user_resubscribe(email, first_name, last_name, drop_site):
                               lists_to_add=['MEMBERS'],
                               lists_to_remove=['FORMER_MEMBERS'])
 
+
 # --------
 # Email management
 
@@ -440,7 +443,7 @@ def get_template_last_modified_date(template_name):
         return False
 
 
-def send_transactional_email(template_name, recipient_email):
+def send_transactional_email(template_name, recipient_email, params={}):
     """
     Send a transactional email using the provided details
 
@@ -461,7 +464,8 @@ def send_transactional_email(template_name, recipient_email):
     data = {
         'templateId': template_id,
         'replyTo': {'name': 'Full Farm CSA', 'email': settings.DEFAULT_FROM_EMAIL},
-        'to': [{'email': recipient_email}]
+        'to': [{'email': recipient_email}],
+        'params': params
     }
 
     try:
