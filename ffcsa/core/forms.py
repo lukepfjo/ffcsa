@@ -142,7 +142,8 @@ class ProfileForm(accounts_forms.ProfileForm):
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
         num = sanitize_phone_number(num)
-        PHONE_REGEX(num)
+        if num:
+            PHONE_REGEX(num)
         return num
 
     def clean(self):
