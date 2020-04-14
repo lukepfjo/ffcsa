@@ -4,7 +4,7 @@ from future.builtins import int, str
 from json import dumps
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.messages import info
+from django.contrib.messages import info, error
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
 from django.http import Http404, HttpResponse
@@ -53,28 +53,41 @@ def product(request, slug, template="shop/product.html",
     Display a product - convert the product variations to JSON as well as
     handling adding the product to the cart
     """
+
     if not product:
         published_products = Product.objects.published(for_user=request.user)
         product = get_object_or_404(published_products, slug=slug)
+
     fields = [f.name for f in ProductVariation.option_fields()]
     variations = product.variations.all()
     variations_json = dumps([dict([(f, getattr(v, f))
                                    for f in fields + ["sku", "image_id"]]) for v in variations])
+
     initial_data = {}
     if variations:
         initial_data = dict([(f, getattr(variations[0], f)) for f in fields])
     initial_data["quantity"] = 1
+
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
         if not request.user.is_authenticated():
             raise Exception(
                 "You must be authenticated in order to add products to your cart")
+
         if not request.user.profile.signed_membership_agreement:
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
+
+        if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
+            error(request,
+                  "Your current dropsite is presently unavailable. "
+                  "Please select a different dropsite before adding items to your cart.")
+            return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
+
         if not request.cart.user_id:
             request.cart.user_id = request.user.id
+
         elif request.cart.user_id != request.user.id:
             raise Exception("Server Error")
 
@@ -84,9 +97,11 @@ def product(request, slug, template="shop/product.html",
             recalculate_cart(request)
             info(request, _("Item added to cart"))
             return redirect("shop_cart")
+
     related = []
     if settings.SHOP_USE_RELATED_PRODUCTS:
         related = product.related_products.published(for_user=request.user)
+
     context = {
         "product": product,
         "editable_obj": product,
