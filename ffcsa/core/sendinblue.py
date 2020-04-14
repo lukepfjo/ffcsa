@@ -190,7 +190,7 @@ def get_user(email=None, phone_number=None):
     drop_site = drop_site[0] if len(drop_site) != 0 else None
 
     return {
-        'identifier': identifier,
+        'identifier': user['email'],
         'email': user['email'],
         'first_name': attributes.get('FIRSTNAME', None),
         'last_name': attributes.get('LASTNAME', None),
