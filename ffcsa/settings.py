@@ -321,6 +321,7 @@ USE_MODELTRANSLATION = False
 ########################
 
 DEFAULT_FROM_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
+SERVER_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
 
 CACHES = {
     "default": {
@@ -516,6 +517,7 @@ INSTALLED_APPS = (
     # "ffcsa.invites",
     "ffcsa.core",
     'nested_admin',
+    'anymail',
     # "mezzanine.mobile",
 )
 
