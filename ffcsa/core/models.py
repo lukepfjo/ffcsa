@@ -143,11 +143,13 @@ class Payment(models.Model):
     pending = models.BooleanField('Pending', default=False)
     notes = models.TextField('Notes', null=True, blank=True)
     charge_id = models.CharField(max_length=255, null=True, blank=True)
+    is_credit = models.BooleanField(default=False)
 
     objects = PaymentManager()
 
     def __str__(self):
-        return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.amount)
+        return "%s, %s - %s - %s for $%s" % (
+        self.user.last_name, self.user.first_name, self.date, 'Credit' if self.is_credit else 'Payment', self.amount)
 
 
 class Recipe(Page, RichText):

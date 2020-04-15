@@ -775,24 +775,14 @@ def member_order_history(request, template="admin/member_order_history.html"):
 @csrf_protect
 @staff_member_required
 def admin_bulk_payments(request, template="admin/bulk_payments.html"):
-    new_month = request.GET.get('newMonth', False)
     ids = request.GET.get('ids', [])
     if ids and isinstance(ids, str):
         ids = ids.split(',')
 
-    if new_month:
-        users = User.objects.filter(
-            ~Q(profile__monthly_contribution__isnull=True) & ~Q(
-                profile__monthly_contribution=0),
-            is_active=True, profile__stripe_subscription_id__isnull=True).order_by(
-            'last_name')
-        extra = users.count() + 1
-        can_delete = True
-    else:
-        extra = 1 if len(ids) > 0 else 2
-        can_delete = len(ids) > 0
+    extra = 1 if len(ids) > 0 else 2
+    can_delete = len(ids) > 0
 
-    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes'), can_delete=can_delete,
+    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes', 'is_credit'), can_delete=can_delete,
                                           extra=extra, formset=BasePaymentFormSet)
 
     if request.method == 'POST':
@@ -801,21 +791,9 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
             formset.save()
             return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
 
-    if new_month:
-        formset = PaymentFormSet(queryset=Payment.objects.none())
-
-        i = 0
-        for user in users:
-            form = formset.forms[i]
-            form.initial = {
-                'amount': user.profile.monthly_contribution,
-                'user': user.id
-            }
-            i += 1
-    else:
-        PaymentFormSet.form.base_fields['user'].queryset = User.objects.filter(
-            is_active=True).order_by('last_name')
-        formset = PaymentFormSet(queryset=Payment.objects.filter(pk__in=ids))
+    PaymentFormSet.form.base_fields['user'].queryset = User.objects.filter(
+        is_active=True).order_by('last_name')
+    formset = PaymentFormSet(queryset=Payment.objects.filter(pk__in=ids))
 
     setattr(formset, 'opts', {
         'verbose_name_plural': 'Payments',

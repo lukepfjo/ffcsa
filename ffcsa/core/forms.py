@@ -279,6 +279,7 @@ class BasePaymentFormSet(forms.BaseModelFormSet):
 
     def add_fields(self, form, index):
         super(BasePaymentFormSet, self).add_fields(form, index)
+        form.fields['is_credit'].initial = True
         form.fields['notify'] = forms.BooleanField(
             label="Notify User", initial=True, required=False)
 
