@@ -1,0 +1,41 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n mezzanine_tags staticfiles %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static settings.MEZZANINE_ADMIN_PREFIX|add:"css/dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "mezzanine/css/admin/dashboard.css" %}">
+    <!--[if IE 7]><style>.dashboard #content {padding-top: 80px;}</style><![endif]-->
+{% endblock %}
+
+{% block coltype %}{% endblock %}
+{% block bodyclass %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">{% trans "Home" %}</div>{% endblock %}
+
+{% block content_title %}<h1>{% trans "Credit Ordered Product" %}</h1>{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <h3>Select Products To Credit</h3>
+        <p>This will issue a credit for all of the select products that were ordered on the specified date.</p>
+        <p><b>NOTE: There is no check to see if a credit has already been issued for a product. If a credit has already
+            been issued, this will result in a duplicate credit.</b></p>
+        <br/>
+
+        <form method="post" action="{{ path }}">
+            {% csrf_token %}
+            <table>
+                {{ form }}
+            </table>
+
+            <p class="submit-row">
+                <input type="submit" name="cancel" value="Cancel"/>
+                <input type="submit" class="default" name="credit" value="Credit Members"/>
+            </p>
+        </form>
+    </div>
+{% endblock %}
+

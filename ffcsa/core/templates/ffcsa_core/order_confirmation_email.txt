@@ -1,0 +1,14 @@
+Hi {{first_name}}!
+
+This is a confirmation that we have received your order for this week!
+
+{% if home_delivery %}Your order will be delivered on {{ pickup_date }}. You will receive a notification
+    with an estimated delivery time in the coming day or two.
+{% else %}
+    Your order will be available for pickup on {{ pickup_date }} at the following drop site: {{ drop_site }}.
+{% endif %}
+
+Let us know if you have any questions!
+The FFCSA Team!
+541-321-0925
+

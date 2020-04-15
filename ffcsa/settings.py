@@ -63,12 +63,12 @@ DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodst
                    'PSU', 'Hollywood', ]
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers']
-    ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '5'],
-    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '15', '7:00', '16:00'],
-    ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '15'],
-    ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '15'],
-    ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '15'],
-    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '20', '4:00', '9:00']
+    ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '4', '', '', '', '', '', ''],
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '8', '7:00', '16:00', '', '', '', ''],
+    ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '10', '', '', '', '', '', ''],
+    ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '10', '', '', '', '', '', ''],
+    ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '10', '', '', '', '', '', ''],
+    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '8', '4:00', '9:00', '', '', '', '']
 ]
 
 # SignRequest settings
@@ -92,6 +92,7 @@ GOOGLE_GROUP_IDS = {
 
 SENDINBLUE_ENABLED = False
 SENDINBLUE_API_KEY = None
+
 SENDINBLUE_LISTS = {
     'WEEKLY_NEWSLETTER': 9,
     'WEEKLY_REMINDER': 10,
@@ -99,6 +100,21 @@ SENDINBLUE_LISTS = {
     'FORMER_MEMBERS': 11,
     'PROSPECTIVE_MEMBERS': 4,
 }
+
+SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
+    'Banzhaf': 27,
+    'Farm': 31,
+    'Hollywood': 30,
+    'LCFM': 28,
+    'PSU': 29,
+    'Home Delivery': 32,
+    'W 11th': 26,
+    # 'St Johns': 9,
+    # 'Woodstock': 10,
+    # '19th St.': 1,
+    # 'Corner Market': 3,
+}
+
 SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 # Rollbar settings
@@ -304,6 +320,7 @@ USE_MODELTRANSLATION = False
 ########################
 
 DEFAULT_FROM_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
+SERVER_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
 
 CACHES = {
     "default": {
@@ -499,6 +516,7 @@ INSTALLED_APPS = (
     # "ffcsa.invites",
     "ffcsa.core",
     'nested_admin',
+    'anymail',
     # "mezzanine.mobile",
 )
 

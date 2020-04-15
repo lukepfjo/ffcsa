@@ -32,7 +32,7 @@ from mezzanine.accounts import views
 
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
-from ffcsa.core.forms import BasePaymentFormSet, ProfileForm
+from ffcsa.core.forms import BasePaymentFormSet, ProfileForm, CreditOrderedProductForm
 from ffcsa.core.google import add_contact as add_google_contact
 from ffcsa.core import sendinblue, signrequest
 from ffcsa.core.models import Payment, Recipe
@@ -99,9 +99,6 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
 
         signrequest.send_sign_request(new_user, True)
         add_google_contact(new_user)
-        sendinblue.update_or_add_user(new_user.email, new_user.first_name, new_user.last_name,
-                                      c['drop_site'], c['phone_number'], sendinblue.NEW_USER_LISTS,
-                                      sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
         subject = "New User Signup"
         if new_user.profile.join_dairy_program:
@@ -878,6 +875,60 @@ def admin_product_invoice_order(request, template="admin/product_invoice_order.h
 
     context = {
         'products': products,
+    }
+
+    return TemplateResponse(request, template, context)
+
+
+@csrf_protect
+@staff_member_required
+def admin_credit_ordered_product(request, template="admin/credit_ordered_product.html"):
+    form = CreditOrderedProductForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        date = form.cleaned_data.get('date')
+        date = datetime.datetime.strptime(date, '%Y-%m-%d').date()
+        products = form.cleaned_data.get('products')
+        credits = []
+
+        orders_to_credit = Order.objects.prefetch_related('items').filter(time__gte=date,
+                                                                          time__lt=date + datetime.timedelta(days=1),
+                                                                          items__description__in=products).distinct()
+
+        base_msg = 'missing products on {}:'.format(date)
+        for o in orders_to_credit:
+            amt = 0
+            items = []
+            for i in o.items.filter(description__in=products):
+                items.append(i.description)
+                amt = amt + i.total_price
+            credits.append(Payment(user_id=o.user_id, notes='{}: {}'.format(base_msg, ' & '.join(items)), amount=amt))
+
+        Payment.objects.bulk_create(credits)
+        success(request, "Successfully credited {} members".format(len(credits)))
+
+        if form.cleaned_data.get('notify', False):
+            # send email
+            for p in credits:
+                send_mail_template(
+                    "FFCSA Credit",
+                    "ffcsa_core/ordered_product_applied_credit_email",
+                    settings.DEFAULT_FROM_EMAIL,
+                    p.user.email,
+                    fail_silently=True,
+                    context={
+                        'first_name': p.user.first_name,
+                        'date': date,
+                        'amount': p.amount,
+                        'msg': form.cleaned_data.get('msg', None),
+                        'payments_url': request.build_absolute_uri(reverse("payments"))
+                    }
+                )
+
+        return HttpResponseRedirect(reverse('admin:ffcsa_core_payment_changelist'))
+
+    context = {
+        'form': form,
     }
 
     return TemplateResponse(request, template, context)

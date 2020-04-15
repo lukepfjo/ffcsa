@@ -13,6 +13,11 @@ SIGN_REQUEST_TEMPLATES = {
 
 SENDINBLUE_ENABLED = True
 SENDINBLUE_API_KEY = "%(sendinblue_api_key)s";
+ANYMAIL = {
+    "SENDINBLUE_API_KEY": SENDINBLUE_API_KEY
+}
+
+EMAIL_BACKEND = "anymail.backends.sendinblue.EmailBackend"
 
 EMAIL_HOST_USER = "%(email_host_user)s"
 EMAIL_USE_SSL = True

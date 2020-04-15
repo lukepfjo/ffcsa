@@ -1,0 +1,15 @@
+<p>Hi {{ first_name }}!</p>
+
+<p>A credit of ${{ amount }} has been applied to your account for your order on {{ date }}.</p>
+
+{% if payments_url %}
+    <p>You can view this credit by visiting <a href="{{ payments_url }}">{{ payments_url }}</a></p>
+{% endif %}
+
+{% if msg %}
+    <p></p>
+    <p>{{ msg }}</p>
+{% endif %}
+
+<p>The FFCSA Team!</p>
+<p>541-321-0925</p>

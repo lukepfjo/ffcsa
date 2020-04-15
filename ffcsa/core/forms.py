@@ -1,16 +1,19 @@
+import datetime
+
 from django import forms
 from django.core import validators
-from django.db import transaction
+from django.db import transaction, connection
 from django.urls import reverse
 from mezzanine.accounts import forms as accounts_forms
 from mezzanine.conf import settings
 from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core import sendinblue
-from ffcsa.core.models import PHONE_REGEX
+from ffcsa.core.google import update_contact as update_google_contact
+from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
+from ffcsa.shop.models import OrderItem
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
@@ -139,7 +142,8 @@ class ProfileForm(accounts_forms.ProfileForm):
     def clean_phone_number_2(self):
         num = self.cleaned_data['phone_number_2']
         num = sanitize_phone_number(num)
-        PHONE_REGEX(num)
+        if num:
+            PHONE_REGEX(num)
         return num
 
     def clean(self):
@@ -148,7 +152,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         if cleaned_data.get('home_delivery', False):
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
-        elif not cleaned_data.get('drop_site', None):
+        elif not cleaned_data.get('drop_site', False):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
 
         return cleaned_data
@@ -157,7 +161,9 @@ class ProfileForm(accounts_forms.ProfileForm):
         with transaction.atomic():
             user = super(ProfileForm, self).save(*args, **kwargs)
 
-            user.profile.drop_site = self.cleaned_data['drop_site']
+            drop_site = self.cleaned_data['drop_site']
+            user.profile.drop_site = drop_site
+            sib_template_name = drop_site
 
             if self._signup:
                 user.profile.notes = "<b>Best time to reach:</b>  {}<br/>" \
@@ -170,10 +176,20 @@ class ProfileForm(accounts_forms.ProfileForm):
                             self.cleaned_data['num_adults'],
                             self.cleaned_data['num_children'],
                             self.cleaned_data['hear_about_us'])
+
                 # defaults
                 user.profile.allow_substitutions = True
                 user.profile.weekly_emails = True
                 user.profile.no_plastic_bags = False
+
+                home_delivery = self.cleaned_data.get('home_delivery', None)
+                sib_template_name = drop_site if home_delivery is None else 'Home Delivery'
+                drop_site_list = drop_site if home_delivery is None else sendinblue.HOME_DELIVERY_LIST
+
+                sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
+                                              self.cleaned_data['last_name'], drop_site_list,
+                                              self.cleaned_data['phone_number'], sendinblue.NEW_USER_LISTS,
+                                              sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
             user.profile.save()
 
@@ -187,17 +203,55 @@ class ProfileForm(accounts_forms.ProfileForm):
                     clear_shipping(request)
                 recalculate_remaining_budget(request)
 
+                sib_template_name = 'Home Delivery'
+
+            elif 'drop_site' in self.changed_data:
+                sib_template_name = drop_site
+
             update_google_contact(user)
 
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else self.cleaned_data[
-                'drop_site']
-
+            # The following NOPs if settings.SENDINBLUE_ENABLED == False
+            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
             weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
             lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
             sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
                                           self.cleaned_data['last_name'], drop_site_list,
                                           self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
+
+        # Send drop site information (or home delivery instructions)
+        if settings.SENDINBLUE_ENABLED and \
+                (self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data)):
+
+            user_dropsite_info_set = user.profile.dropsiteinfo_set.all()
+            user_dropsite_info = list(user_dropsite_info_set.filter(drop_site_template_name=sib_template_name))
+            params = {'FIRSTNAME': user.first_name}
+
+            # User has not received the notification before
+            if len(user_dropsite_info) == 0:
+                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+
+                # If the email is successfully sent add an appropriate DropSiteInfo to the user
+                if date_last_modified is not False:
+                    _dropsite_info_obj = DropSiteInfo.objects.create(profile=user.profile,
+                                                                     drop_site_template_name=sib_template_name,
+                                                                     last_version_received=date_last_modified)
+                    _dropsite_info_obj.save()
+
+            # Check if user has received the latest version of the notification message
+            else:
+                date_last_modified = sendinblue.get_template_last_modified_date(sib_template_name)
+
+                user_dropsite_entry = user_dropsite_info[0]
+                if user_dropsite_entry.last_version_received != date_last_modified:
+                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+
+                    # Don't update entry if email fails to send
+                    if email_result is not False:
+                        user_dropsite_entry.last_version_received = email_result
+                        user_dropsite_entry.save()
+
+            user.profile.save()
 
         return user
 
@@ -246,3 +300,26 @@ class BasePaymentFormSet(forms.BaseModelFormSet):
                         'payments_url': self.request.build_absolute_uri(reverse("payments")) if self.request else None
                     }
                 )
+
+
+class CreditOrderedProductForm(forms.Form):
+    date = forms.ChoiceField(help_text='Only order dates in the last 30 days are shown.')
+    products = forms.MultipleChoiceField(help_text='Only products ordered in the last 30 days are shown.')
+    notify = forms.BooleanField(required=False, label='Notify Members that a credit was issued?', initial=True)
+    msg = forms.CharField(label='Message to include in the notification.', widget=forms.Textarea(attrs={'rows': 3}),
+                          required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        thirty_days_ago = datetime.date.today() - datetime.timedelta(days=30)
+
+        with connection.cursor() as cursor:
+            cursor.execute('select distinct(date(time)) as date from shop_order where time >= %s', [thirty_days_ago])
+            self.fields['date'].choices = [(o[0], o[0]) for o in cursor]
+
+        self.fields['products'].choices = [(i['description'], i['description']) for i in
+                                           OrderItem.objects.filter(order__time__gt=thirty_days_ago)
+                                               .values('description').distinct().order_by(
+                                               'description')
+                                           ]
