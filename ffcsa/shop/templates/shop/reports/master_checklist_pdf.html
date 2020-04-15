@@ -1,0 +1,74 @@
+{% load ffcsa_core_tags %}
+<style>
+    @page {
+        size: Letter;
+    }
+
+    .items {
+        clear: both;
+        border-collapse: collapse;
+        color: #333;
+        width: 100%;
+    }
+
+
+    .items tr:nth-child(even) {
+        background: #eee;
+    }
+
+    .items tr:first-child {
+        background: white;
+    }
+
+    .items td, th {
+        border: 1px solid #ccc;
+        padding: 0.5em;
+    }
+
+    .items th {
+        border: none;
+        text-align: left;
+    }
+
+    .items tbody {
+        border-bottom: 3px solid black;
+    }
+
+    .items th.num,
+    .items .num {
+        text-align: right;
+        width: 50px;
+    }
+
+    .items th.checkbox,
+    .items .checkbox{
+        width: 15px;
+    }
+</style>
+
+<h3 style="float: left; margin-top:0">Master Checklist</h3>
+<p style="float: right; margin-top:0">{{ date }}</p>
+
+<table class="items">
+    <tr>
+        <th>Drop Site</th>
+        {% for val in headers %}
+            <th class="num">{{ val }}</th>
+            <th class="checkbox"></th>
+        {% endfor %}
+    </tr>
+
+    <tbody>
+    {% for d in data %}
+        <tr>
+            <td>{{ d.drop_site }}</td>
+            {% for val in headers %}
+                <td class="num">{{ d | get_item:val | default_if_none:'' | floatformat:"0" }}</td>
+                <td class="checkbox"></td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+

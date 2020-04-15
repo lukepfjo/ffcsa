@@ -6,7 +6,8 @@ from django import forms
 from django.utils import formats
 from django.utils.safestring import mark_safe
 from mezzanine import template
-from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start
+from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start, \
+    get_order_week_end, next_weekday
 
 register = template.Library()
 
@@ -30,16 +31,18 @@ def order_week_start():
 
 @register.simple_tag()
 def order_week_end():
-    now = datetime.datetime.now()
-
-    if now.weekday() < ORDER_CUTOFF_DAY:
-        delta = ORDER_CUTOFF_DAY - now.weekday() - 1  # subtract 1 so we end the day of the cutoff day
-        order_week_end = now + datetime.timedelta(delta)
-    else:
-        delta = now.weekday() - ORDER_CUTOFF_DAY
-        order_week_end = now + datetime.timedelta(DAYS_IN_WEEK - delta)
+    order_week_end = get_order_week_end()
 
     return formats.date_format(order_week_end, "F d, Y")
+
+
+@register.simple_tag()
+def is_order_cycle():
+    now = datetime.date.today()
+    week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
+    week_end = get_order_week_end()
+
+    return week_start.date() <= now <= week_end.date()
 
 
 @register.filter
@@ -79,13 +82,15 @@ def render_field(context, field, **kwargs):
     Renders a single form field
     """
     template = kwargs.get('template', "includes/form_field.html")
-    context["field"] = field
-    if 'show_required' not in context:
-        context["show_required"] = True
-    if 'show_label' not in context:
-        context["show_label"] = True
-    context.update(kwargs)
-    return get_template(template).render(context.flatten())
+    # This will make a copy of the context so it isn't globally modified
+    c = context.flatten()
+    c["field"] = field
+    if 'show_required' not in c:
+        c["show_required"] = True
+    if 'show_label' not in c:
+        c["show_label"] = True
+    c.update(kwargs)
+    return get_template(template).render(c)
 
 
 @register.filter

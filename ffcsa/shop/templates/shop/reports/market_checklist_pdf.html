@@ -48,9 +48,7 @@
     <tr>
         <th>Last Name</th>
         {% for val in headers %}
-            {% if val != 'last_name' %}
-                <th class="num">{{ val }}</th>
-            {% endif %}
+            <th class="num">{{ val }}</th>
         {% endfor %}
     </tr>
 
@@ -59,9 +57,7 @@
         <tr>
             <td>{{ user.last_name }}</td>
             {% for val in headers %}
-                {% if val != 'last_name' %}
-                    <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
-                {% endif %}
+                <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
             {% endfor %}
         </tr>
     {% endfor %}

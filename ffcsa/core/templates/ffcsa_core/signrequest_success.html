@@ -1,0 +1,9 @@
+{% extends "shop/base.html" %}
+{% block main %}
+    <h2>Thank you for signing our Membership Agreement!</h2>
+
+    <p class="mb-4">If you have already made your first payment, you can now make your order!</p>
+    <p class="mb-8">Please note that it may take a few minutes for the member store to update and allow you to start ordering.</p>
+
+    <a class="btn btn-primary" href="{% url 'home' %}">Shop Now!</a>
+{% endblock %}

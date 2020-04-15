@@ -1,0 +1,26 @@
+<!-- Modal -->
+<div class="modal fade" id="addressCheckModal" tabindex="-1" role="dialog" aria-labelledby="addressCheckModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Home Delivery Availability</h4>
+            </div>
+            <div class="modal-body">
+                <p>Enter your address below to see if it falls within our home delivery area.</p>
+                <div id="address-check-group" class="form-group mb-0 mt-5">
+                    <label for="address" class="control-label">Delivery Address</label>
+                    <input class="form-control mw-100" type="text" required id="address-check-input" name="address"/>
+                    <p id="error-message" class="text-lg help-block"></p>
+                </div>
+            </div>
+            <div class="modal-footer mt-0">
+                <button type="button" class="btn btn-info" id="check-address">Check</button>
+                <button style="display: none;" type="button" class="btn btn-default" id="check-address-cancel"
+                        data-dismiss="modal">Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -25,18 +25,17 @@ from .models import Payment, Recipe, RecipeProduct
 
 User = get_user_model()
 
-
 accounts_base.ProfileInline.readonly_fields = [
     'payment_method', 'ach_status', 'google_person_id']
 accounts_base.ProfileInline.fieldsets = (
     (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'invoice_notes')}),
     ('Payments', {'fields': (
-        'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_agreement', 'payment_method', 'ach_status',
+        'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_method', 'ach_status',
         'stripe_subscription_id', 'stripe_customer_id')}),
-    ('Preferences', {'fields': ('drop_site', 'no_plastic_bags',
+    ('Preferences', {'fields': ('home_delivery', 'delivery_address', 'delivery_notes', 'drop_site', 'no_plastic_bags',
                                 'allow_substitutions', 'weekly_emails')}),
-    ('Other', {'fields': ('start_date', 'can_order_dairy',
-                          'product_agreement', 'non_subscribing_member')}),
+    ('Other', {'fields': ('start_date', 'join_dairy_program', 'can_order_dairy',
+                          'signed_membership_agreement', 'non_subscribing_member')}),
 
 )
 
@@ -46,6 +45,8 @@ SitePermissionInline.classes = ('collapse', 'collapse-closed')
 
 user_list_filter = list(deepcopy(accounts_base.UserProfileAdmin.list_filter))
 user_list_filter.append('profile__drop_site')
+user_list_filter.append('profile__home_delivery')
+user_list_filter.append('profile__join_dairy_program')
 
 
 class UserProfileAdmin(accounts_base.UserProfileAdmin):
@@ -56,7 +57,7 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
         """
         Update stripe subscription if needed
         """
-        user = User.objects.get(id=obj.id)
+        user = User.objects.get(id=obj.id) if change else None
         if change \
                 and user.profile.monthly_contribution != obj.profile.monthly_contribution \
                 and obj.profile.stripe_subscription_id:

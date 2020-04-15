@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
-{% load pages_tags mezzanine_tags i18n staticfiles %}
+{% load pages_tags mezzanine_tags i18n staticfiles static %}
 
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
@@ -42,6 +42,23 @@
         {% block extra_js %}{% endblock %}
     {% endcompress %}
     {% include "includes/footer_scripts.html" %}
+    <!-- Facebook Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '205901347148225');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+                   src="https://www.facebook.com/tr?id=205901347148225&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
 
     <!--[if lt IE 9]>
 <script src="{% static "js/html5shiv.js" %}"></script>
@@ -179,7 +196,15 @@
     <script src="{% static "js/jquery.flexslider.js" %}"></script>
     <script src="{% static "js/animate.js" %}"></script>
     <script src="{% static "js/custom.js" %}"></script>
+
+    <script>
+      var static_url = "{% get_static_prefix %}";
+      var media_url = "{% get_media_prefix %}";
+    </script>
 {% endcompress %}
+
+{% block footer_js %}
+{% endblock %}
 
 </body>
 </html>

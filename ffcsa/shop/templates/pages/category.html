@@ -70,32 +70,34 @@
                                         <div class="flex-grow mb-6">{{ product.content|truncate:140 }}</div>
                                     </a>
                                     {% with has_stock=product|product_has_stock %}
-                                        {% if has_stock and can_order_dairy or has_stock and not product.is_dairy %}
-                                            {% errors_for product.add_form %}
-                                            {#                                        {% nevercache %}#}
-                                            {#                                            <input type="hidden" name="referrer"#}
-                                            {#                                                   value="{{ request.META.HTTP_REFERER }}">#}
-                                            {#                                            {% csrf_token %}#}
-                                            {#                                        {% endnevercache %}#}
-                                            {##}
-                                            {#                                        {% for field in product.add_form %}#}
-                                            {#                                            {% if requestfield.name not in exclude_fields %}#}
-                                            {#                                                {% render_field field show_required=False show_label=False %}#}
-                                            {#                                            {% endif %}#}
-                                            {#                                        {% endfor %}#}
-                                            {% fields_for product.add_form show_required=False show_label=False include_media=False %}
-                                            {#                                    <div class="form-actions">#}
+                                        {% if has_stock and request.user.profile.signed_membership_agreement %}
+                                            {% if can_order_dairy or not product.is_dairy %}
+                                                {% errors_for product.add_form %}
+                                                {#                                        {% nevercache %}#}
+                                                {#                                            <input type="hidden" name="referrer"#}
+                                                {#                                                   value="{{ request.META.HTTP_REFERER }}">#}
+                                                {#                                            {% csrf_token %}#}
+                                                {#                                        {% endnevercache %}#}
+                                                {##}
+                                                {#                                        {% for field in product.add_form %}#}
+                                                {#                                            {% if requestfield.name not in exclude_fields %}#}
+                                                {#                                                {% render_field field show_required=False show_label=False %}#}
+                                                {#                                            {% endif %}#}
+                                                {#                                        {% endfor %}#}
+                                                {% fields_for product.add_form show_required=False show_label=False include_media=False %}
+                                                {#                                    <div class="form-actions">#}
 
-                                            {#                                    </div>#}
-                                            {#                                    <p class="price text-center">{{ product.price|currency }}</p>#}
-                                            {#                                    <form method="post" class="product-quick-add-form form-group-sm">#}
-                                            {#                                        {% csrf_token %}#}
-                                            {#                                        <input type="number" class="form-control item-qty" placeholder="qty"#}
-                                            {#                                               name="item_qty"/>#}
-                                            {#                                        <input type="hidden" name="item_id" value="{{ product.id }}"/>#}
-                                            {#                                        <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"#}
-                                            {#                                               value="{% trans "Add to Order" %}">#}
-                                            {#                                    </form>#}
+                                                {#                                    </div>#}
+                                                {#                                    <p class="price text-center">{{ product.price|currency }}</p>#}
+                                                {#                                    <form method="post" class="product-quick-add-form form-group-sm">#}
+                                                {#                                        {% csrf_token %}#}
+                                                {#                                        <input type="number" class="form-control item-qty" placeholder="qty"#}
+                                                {#                                               name="item_qty"/>#}
+                                                {#                                        <input type="hidden" name="item_id" value="{{ product.id }}"/>#}
+                                                {#                                        <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"#}
+                                                {#                                               value="{% trans "Add to Order" %}">#}
+                                                {#                                    </form>#}
+                                            {% endif %}
                                         {% elif not has_stock %}
                                             <p class="text-danger text-center">Out of Stock</p>
                                         {% endif %}
@@ -103,11 +105,17 @@
                                     {#                                        {% endif %}#}
                                 </div>
                                 <div>
-                                    {% if can_order_dairy or not product.is_dairy %}
+                                    {% if not request.user.profile.signed_membership_agreement %}
+                                        <p class="text-base text-center text-red-800">Please sign our member
+                                            agreement</p>
+                                    {% elif can_order_dairy or not product.is_dairy %}
                                         {% if product|product_has_stock %}
                                             <input type="submit" class="btn btn-primary btn-sm form-control"
                                                    name="add_item" value="{% trans "Add to Order" %}">
                                         {% endif %}
+                                    {% elif product.is_dairy and not request.user.profile.join_dairy_program %}
+                                        <p class="text-base text-center text-red-800">Ask us about our Raw Dairy program
+                                            to order.</p>
                                     {% endif %}
                                 </div>
                             </form>

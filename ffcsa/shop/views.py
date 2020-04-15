@@ -21,7 +21,7 @@ from mezzanine.utils.urls import next_url
 
 from ffcsa.shop import checkout
 from ffcsa.shop.forms import (AddProductForm, CartItemFormSet,
-                                  DiscountForm, OrderForm)
+                              DiscountForm, OrderForm)
 from ffcsa.shop.models import Product, ProductVariation, Order, Vendor
 from ffcsa.shop.models import DiscountCode
 from ffcsa.shop.utils import recalculate_cart, sign
@@ -67,6 +67,10 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
+        # TODO :: Verify this behavior is correct
+        if request.user.is_authenticated() and not request.user.profile.signed_membership_agreement:
+            raise Exception("You must sign our membership agreement before you can make an order")
+
         if not request.cart.user_id:
             request.cart.user_id = request.user.id
         elif request.cart.user_id != request.user.id:
@@ -78,9 +82,11 @@ def product(request, slug, template="shop/product.html",
             recalculate_cart(request)
             info(request, _("Item added to cart"))
             return redirect("shop_cart")
+
     related = []
     if settings.SHOP_USE_RELATED_PRODUCTS:
         related = product.related_products.published(for_user=request.user)
+
     context = {
         "product": product,
         "editable_obj": product,

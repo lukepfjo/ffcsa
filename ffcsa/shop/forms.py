@@ -22,10 +22,10 @@ from mezzanine.conf import settings
 from mezzanine.core.templatetags.mezzanine_tags import thumbnail
 from mezzanine.pages.admin import PageAdminForm
 
+from ffcsa.core.budgets import clear_cached_budget_for_variation
 from ffcsa.shop import checkout
 from ffcsa.shop.models import (Cart, CartItem, DiscountCode, Order,
                                Product, ProductVariation, Vendor)
-from ffcsa.shop.models.Cart import update_cart_items
 from ffcsa.shop.models.Vendor import VendorCartItem
 from ffcsa.shop.utils import (clear_session, make_choices, set_locale,
                               set_shipping)
@@ -611,14 +611,6 @@ class VendorProductVariationAdminFormset(BaseInlineFormSet):
             self.validate_min = False
         return super().full_clean()
 
-    def save(self, commit=True):
-        items = super().save(commit)
-
-        variations = set([v.variation for v, _ in self.changed_objects])
-        CartItem.objects.handle_changed_variations(variations)
-
-        return items
-
 
 class ProductVariationAdminFormset(BaseInlineFormSet):
     """
@@ -749,6 +741,7 @@ class ProductChangelistForm(forms.ModelForm):
                 # If a variations has more then 1 vendor, we can't allow editing via this form
                 if variation.vendors.count() > 1:
                     # don't need to set actual_value b/c vendor is a calculated attribute
+                    self.fields['num_in_stock'] = DisplayField(self.initial['num_in_stock'])
                     self.fields['vendor'] = DisplayField(None)
                     self.initial['vendor'] = '-- Multiple Vendors --'
                 elif variation.vendors.count() == 1:
@@ -769,23 +762,18 @@ class ProductChangelistForm(forms.ModelForm):
             vpv = None
             variation_fields = [f.name for f in variation._meta.fields]
 
-            if 'vendor' in self.cleaned_data:
+            if 'vendor' in self.cleaned_data and self.cleaned_data['vendor'] is not None:
                 vpv = variation.vendorproductvariation_set.first()
 
                 if not vpv:
                     vpv = variation.vendorproductvariation_set.create(vendor=self.cleaned_data['vendor'])
                 else:
-                    orig = vpv.vendor
                     vpv.vendor = self.cleaned_data['vendor']
-                    # update cart item vendors if vendor has changed
-                    VendorCartItem.objects \
-                        .filter(item__variation=variation, vendor=orig) \
-                        .update(vendor=vpv.vendor)
 
             for key, value in self.cleaned_data.items():
                 if key is not 'id' and key in variation_fields:
                     setattr(variation, key, value)
-                elif key is 'num_in_stock':
+                elif key is 'num_in_stock' and variation.vendors.count() == 1:
                     # only allow modification if there is a single vendor
                     if not vpv:
                         vpv = variation.vendorproductvariation_set.first()
@@ -793,7 +781,11 @@ class ProductChangelistForm(forms.ModelForm):
 
             if vpv:
                 vpv.save()
+                # either vendor or num_in_stock has changed, so we need to update all cart items
+                CartItem.objects.handle_changed_variation(variation)
+            elif 'unit_price' in self.cleaned_data:
+                clear_cached_budget_for_variation(variation)
+
             variation.save()
-            update_cart_items(variation)
 
         return obj

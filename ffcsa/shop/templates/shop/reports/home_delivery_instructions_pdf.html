@@ -1,0 +1,57 @@
+{% load ffcsa_core_tags %}
+<style>
+    @page {
+        size: Letter;
+    }
+
+    .items {
+        clear: both;
+        border-collapse: collapse;
+        color: #333;
+        width: 100%;
+    }
+
+
+    .items tr:nth-child(even) {
+        background: #eee;
+    }
+
+    .items tr:first-child {
+        background: white;
+    }
+
+    .items td, th {
+        border: 1px solid #ccc;
+        padding: 0.5em;
+    }
+
+    .items th {
+        border: none;
+        text-align: left;
+    }
+
+    .items tbody {
+        border-bottom: 3px solid black;
+    }
+</style>
+
+<h3 style="float: left; margin-top:0">{{ drop_site }} Delivery Notes</h3>
+<p style="float: right; margin-top:0">{{ date }}</p>
+
+<table class="items">
+    <tr>
+        <th>Last Name</th>
+        <th>Delivery Notes</th>
+    </tr>
+
+    <tbody>
+    {% for order in orders %}
+        <tr>
+            <td>{{ order.billing_detail_last_name }}</td>
+            <td>{{ order.shipping_instructions }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+

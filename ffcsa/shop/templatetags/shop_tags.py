@@ -51,7 +51,10 @@ def _order_totals(context):
         for field in fields + ["item_total"]:
             template_vars[field] = getattr(context["order"], field)
     else:
-        template_vars["item_total"] = context["request"].cart.total_price()
+        template_vars["item_total"] = context["request"].cart.item_total_price()
+        if context["request"].user.profile.home_delivery:
+            template_vars["shipping_type"] = "Home Delivery"
+            template_vars["shipping_total"] = context["request"].cart.delivery_fee()
         if template_vars["item_total"] == 0:
             # Ignore session if cart has no items, as cart may have
             # expired sooner than the session.

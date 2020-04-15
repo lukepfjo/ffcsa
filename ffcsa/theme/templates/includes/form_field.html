@@ -4,7 +4,7 @@
 {% if field.is_hidden %}
     {{ field }}
 {% else %}
-    <div class="form-group input_{{ field.id_for_label }} {{ field.field.type }}
+    <div class="form-group input_{{ field.id_for_label }} {{ field.field.type }} {{ group_class }}
         {% if field.errors %} has-error {% endif %}{% if field|is_checkbox %}checkbox{% endif %}">
         {% if field.label and show_label %}
             <label class="control-label" for="{{ field.auto_id }}">

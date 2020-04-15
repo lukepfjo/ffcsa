@@ -102,7 +102,12 @@ jQuery(function ($) {
         $(element).closest('.form-group').removeClass('has-error')
       },
       submitHandler: function (form, event) {
-        if (event) event.preventDefault();
+        if (event) event.preventDefault()
+        var btn = $(this.submitButton)
+        if (btn) {
+          btn.attr('disabled', 'disabled')
+          btn.addClass('spinner')
+        }
         var promise
         var isStripe = false
 
@@ -132,6 +137,10 @@ jQuery(function ($) {
             if (result.error) {
               // Inform the customer that there was an error.
               $('#stripeErrors').text(result.error.message).addClass('alert alert-danger')
+              if (btn) {
+                btn.removeAttr('disabled')
+                btn.removeClass('spinner')
+              }
               return false
             } else {
               // Send the token to your server.
@@ -225,16 +234,22 @@ jQuery(function ($) {
 
         var defaultSubmitHandler = validateOpts.submitHandler
 
+        var opts = _.assign({}, validateOpts)
+        opts.rules.amount.min = 20
+
+        var validator = $('#payment-form').validate(opts)
+
         $('#submit-payment').click(function () {
-          var btn = $(this);
+          if (!validator.form()) return
+          var btn = $(this)
           btn.attr('disabled', 'disabled')
-          btn.html('Submitting...')
+          btn.addClass('spinner')
           var form = document.getElementById('payment-form')
           if ($('#paymentTypesCC').is(':checked')) {
             defaultSubmitHandler(form).then(function (success) {
               if (!success) {
-                btn.html('Add Funds')
                 btn.removeAttr('disabled')
+                btn.removeClass('spinner')
               }
             })
           } else {
@@ -242,10 +257,6 @@ jQuery(function ($) {
           }
         })
 
-        var opts = _.assign({}, validateOpts)
-        opts.rules.amount.min = 20
-
-        $('#payment-form').validate(opts)
       }
     })
 

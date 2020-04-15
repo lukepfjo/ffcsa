@@ -19,19 +19,27 @@
 
 {% block content %}
     <div id="content-main">
+        <p>Products with the same "order on invoice" value are sorted alphabetically. The default value if "order on
+            invoice" is unset is 5. The following logic is used to determine the "order on invoice":</p>
+        <ul>
+            <li>Product - Order on Invoice field (if set)</li>
+            <li>If category & parent category - "order on invoice" = {PARENT_CAT_ORDER}.{CAT_ORDER}</li>
+        </ul>
         <table>
             <tr>
                 <th>Product</th>
                 <th>Category</th>
+                <th>Order on Invoice</th>
                 <th>product.order_on_invoice?</th>
             </tr>
 
             {% for p in products %}
                 <tr>
                     <td><a href="{% url 'admin:shop_product_change' p.id %}">{{ p.title }}</a></td>
-                    <td>{{p.get_category}}</td>
+                    <td>{{ p.get_category }}</td>
+                    <td>{{ p.computed_order_on_invoice }}</td>
                     <td>
-                        {% if p.order_on_invoice %}{{ p.order_on_invoice }}{% endif %}
+                        {% if p.order_on_invoice %}True{% endif %}
                     </td>
                 </tr>
             {% endfor %}

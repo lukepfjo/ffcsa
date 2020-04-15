@@ -14,10 +14,12 @@
             {{ page.recipe.content|safe }}
         {% endeditable %}
 
-        {% if request.user.is_authenticated %}
-            <form method="post" class="add-recipe-form">
+        {% if request.user.is_authenticated and request.user.profile.signed_membership_agreement %}
+            <form method="post" id="add-all-recipe-form" class="add-recipe-form">
                 {% csrf_token %}
                 <div class="form-actions">
+                    {# This is necessary b/c we capture the submit event, send a google analytics event, then use form.submit which doesn't include the button as the submittor and the backend doesn't know this form is submitted#}
+                    <input type="hidden" name="add_box_items" value="true"/>
                     <input type="submit" name="add_box_items" class="btn btn-primary btn-lg center-block"
                            value="{% trans "Add All Items To Weekly Order" %}">
                 </div>
@@ -43,6 +45,7 @@
                                     <h6>{{ p.product }}</h6>
                                 </div>
                             </a>
+                        {% if request.user.profile.signed_membership_agreement %}
                             {% if can_order_dairy or not p.product.is_dairy %}
                                 {% if p.product.variations.first.has_stock %}
                                     <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
@@ -58,6 +61,10 @@
                                     <p class="text-danger text-center">Out of Stock</p>
                                 {% endif %}
                             {% endif %}
+                            {% else %}
+                            <p class="text-base text-center text-red-800">Please sign our member
+                                agreement</p>
+                        {% endif %}
                         </div>
                     </div>
                 {% endif %}
@@ -68,4 +75,46 @@
 
     {% endif %}
 
+{% endblock %}
+
+{% block footer_js %}
+    {{ block.super }}
+    {% if settings.GOOGLE_ANALYTICS_ID and not request.user.is_staff %}
+        <script>
+          // https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+          // Gets a reference to the form element, assuming
+          // it contains the id attribute "signup-form".
+          var form = document.getElementById('add-all-recipe-form')
+
+          // Adds a listener for the "submit" event.
+          form.addEventListener('submit', function (event) {
+
+            // Prevents the browser from submitting the form
+            // and thus unloading the current page.
+            event.preventDefault()
+
+            // Creates a timeout to call `submitForm` after one second.
+            setTimeout(submitForm, 1000)
+
+            // Keeps track of whether or not the form has been submitted.
+            // This prevents the form from being submitted twice in cases
+            // where `hitCallback` fires normally.
+            var formSubmitted = false
+
+            function submitForm () {
+              if (!formSubmitted) {
+                formSubmitted = true
+                form.submit()
+              }
+            }
+
+            // Sends the event to Google Analytics and
+            // resubmits the form once the hit is done.
+            {#ga('send', 'event', 'Signup Form', 'submit', {#}
+            ga('send', 'event', 'Recipe', 'Add', 'Add All Items', {
+              hitCallback: submitForm,
+            })
+          })
+        </script>
+    {% endif %}
 {% endblock %}

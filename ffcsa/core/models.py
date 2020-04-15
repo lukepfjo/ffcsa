@@ -1,9 +1,11 @@
 import datetime
+import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import validators
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils.safestring import mark_safe
 from mezzanine.core.fields import FileField, RichTextField
 from mezzanine.core.models import RichText
 from mezzanine.pages.models import Page
@@ -63,14 +65,15 @@ class Profile(models.Model):
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
     can_order_dairy = models.BooleanField("Has had dairy conversation", default=False)
-    payment_agreement = models.BooleanField(
-        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 12 months, with a minimium of $172 per month. If I need to change my monthly payment amount, I will notify the FFCSA admin and keep changes to a maximum of two times per year.",
+    join_dairy_program = models.BooleanField(
+        "Join Raw Dairy Program",
+        help_text="I would like to join the Raw Dairy program. I understand that I will be charged a $50 herd-share fee when making my first payment and will need to talk to the Dairy Manager before gaining access to raw dairy products. We'll be in touch soon.",
         default=False)
-    product_agreement = models.FileField("Liability Agreement Form",
-                                         upload_to='uploads/member_docs/',
-                                         blank=True,
-                                         help_text=mark_safe(
-                                             "Please <a target='_blank' href='/static/docs/Product Liability Agreement.pdf'>download this form</a> and have all adult members in your household sign. Then upload here."))
+    payment_agreement = models.BooleanField(
+        "I agree to make monthly payments in order to maintain my membership with the FFCSA for 6 months, with a minimium of $172 per month.",
+        default=False)
+    signed_membership_agreement = models.BooleanField(default=False,
+                                                      help_text="We have a signed Member Liability Document of file.")
     non_subscribing_member = models.BooleanField(default=False,
                                                  help_text="Non-subscribing members are allowed to make payments to their ffcsa account w/o having a monthly subscription")
     no_plastic_bags = models.BooleanField(default=False,
@@ -83,6 +86,14 @@ class Profile(models.Model):
         null=True, help_text="Google Person resource id", blank=True)
     discount_code = models.ForeignKey(
         'shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
+    home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery",
+                                        help_text="Home delivery is available in select areas for a ${} fee. This fee is waived for all orders over ${}.".format(
+                                            settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
+    delivery_address = models.CharField("Address", blank=True, max_length=100)
+    delivery_notes = models.TextField("Special Delivery Notes", blank=True)
+    num_adults = models.IntegerField("How many adults are in your family?", default=0,
+                                     validators=[validators.MinValueValidator(1)]
+                                     )
 
     @property
     def joined_before_dec_2017(self):
@@ -102,6 +113,30 @@ class Profile(models.Model):
             return "{}, {}".format(self.user.last_name, self.user.first_name)
 
         return self.user.get_username()
+
+    def __getattr__(self, item):
+        if item == 'home_delivery':
+            return self._get_home_delivery()
+        return super().__getattribute__(item)
+
+    def _get_home_delivery(self):
+        if settings.HOME_DELIVERY_ENABLED:
+            return self._home_delivery
+
+        return False
+
+
+###################
+#  DropSite
+###################
+
+class DropSiteInfo(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    drop_site_template_name = models.CharField('Drop Site Template Name', max_length=255)
+    last_version_received = models.TextField('Last Version Received', null=True, blank=True)
+
+    def __str__(self):
+        return self.drop_site_template_name
 
 
 ###################

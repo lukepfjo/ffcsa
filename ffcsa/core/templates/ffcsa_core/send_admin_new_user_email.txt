@@ -4,6 +4,9 @@ You will need to contact them to discuss the Raw Dairy Program. Then you will ne
     visiting {{ user_url }} before they can place an order. Make sure to verify that they
     have signed the Product Liability Form.
 
+Email Product Liability Agreement via SignRequest
+{{ email_product_agreement }}
+
 Drop Site
 {{ drop_site }}
 
@@ -19,8 +22,11 @@ What is the best time to reach you?
 What is your preferred method of communication?
 {{ communication_method }}
 
-How many adults and children are in your family?
-{{ family_stats }}
+How many adults are in your family?
+{{ num_adults }}
+
+How many children are in your family?
+{{ num_children }}
 
 How did you hear about us?
 {{ hear_about_us }}

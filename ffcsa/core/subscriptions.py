@@ -8,20 +8,20 @@ from mezzanine.conf import settings
 from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start, next_weekday
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-SIGNUP_DESCRIPTION = 'FFCSA Signup Fee'
+SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Fee'
 
 
 def charge_signup_fee_if_needed(user):
-    if not user.profile.paid_signup_fee:
+    if user.profile.join_dairy_program and not user.profile.paid_signup_fee:
         if not user.profile.stripe_customer_id:
-            raise AssertionError('Attempting to charge a signup fee, but user has no stripe customer id')
+            raise AssertionError('Attempting to charge a raw dairy program fee, but user has no stripe customer id')
 
         stripe.Charge.create(
             amount=settings.SIGNUP_FEE_IN_CENTS,
             currency='usd',
             description=SIGNUP_DESCRIPTION,
             customer=user.profile.stripe_customer_id,
-            statement_descriptor='FFCSA Signup Fee'
+            statement_descriptor='FFCSA Raw Dairy Fee'
         )
         # we update the user.profile.paid_signup_fee when the payment goes through
 
@@ -76,11 +76,11 @@ def create_stripe_subscription(user):
     amount = user.profile.monthly_contribution
 
     if amount is None:
-        raise ValueError('Attempting to create a subscription but user monthly_contribution hasnt been set')
+        raise ValueError('Attempting to create a subscription but user monthly_contribution hasn\'t been set')
     if user.profile.stripe_subscription_id:
         raise AssertionError('Attempting to create a subscription but user already has a subscription')
     if not user.profile.stripe_customer_id:
-        raise AssertionError('Attempting to create a subscription but user has not stripe customer id')
+        raise AssertionError('Attempting to create a subscription but user has no stripe customer id')
 
     plan = stripe.Plan.create(
         amount=(amount * 100).quantize(0),  # in cents
@@ -100,6 +100,7 @@ def create_stripe_subscription(user):
 
         # TODO integrate crypto
     )
+
     user.profile.stripe_subscription_id = subscription.id
     user.profile.save()
 
@@ -108,16 +109,17 @@ def create_stripe_subscription(user):
 
 def send_first_payment_email(user):
     now = datetime.datetime.now()
-    can_order_now = 1 <= now.weekday() <= ORDER_CUTOFF_DAY
+    can_order_now = 1 <= now.weekday() < ORDER_CUTOFF_DAY
     week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
 
     pickup = get_friday_pickup_date()
-    if user.profile.drop_site and user.profile.drop_site.lower().strip() != 'farm':
+    if user.profile.home_delivery or user.profile.drop_site.lower().strip() != 'farm':
         pickup = pickup + datetime.timedelta(1)
 
     context = {
         'pickup_date': formats.date_format(pickup, "D F d"),
-        'drop_site': user.profile.drop_site,
+        'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
+        'home_delivery': user.profile.home_delivery,
         'can_order_now': can_order_now,
         'order_week_start': formats.date_format(week_start, "D F d"),
     }

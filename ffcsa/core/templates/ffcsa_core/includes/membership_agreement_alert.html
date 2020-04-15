@@ -1,0 +1,6 @@
+{% if request.user.is_authenticated and not request.user.profile.signed_membership_agreement %}
+    <p class="alert alert-warning">You will need to sign our Membership Agreement before you can order. You should
+        have received an email with this document upon signup. <a href="{% url 'signrequest' %}"
+                                                                  class="btn btn-xs btn-primary ml-3">Re-Send</a>
+    </p>
+{% endif %}

@@ -7,6 +7,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from future.builtins import super
 from mezzanine.conf import settings
+from mezzanine.utils.email import send_mail_template
 
 from ffcsa.shop import managers
 from ffcsa.shop.models.Order import Order
@@ -31,7 +32,7 @@ class Cart(models.Model):
             self._cached_items = self.items.all()
         return iter(self._cached_items)
 
-    def add_item(self, variation, quantity):
+    def add_item(self, variation, quantity, record_action=True):
         """
         Increase quantity of existing item if variation matches, otherwise create new.
         """
@@ -39,7 +40,7 @@ class Cart(models.Model):
         if not self.pk:
             self.save()
         item, created = self.items.get_or_create(variation=variation)
-        if created:
+        if created and record_action:
             variation.product.actions.added_to_cart()
 
         item.update_quantity(quantity)
@@ -88,7 +89,23 @@ class Cart(models.Model):
         ytd_order_total = Order.objects.total_for_user(user)
         ytd_payment_total = Payment.objects.total_for_user(user)
 
-        return ytd_payment_total - (ytd_order_total + self.total_price_after_discount())
+        return ytd_payment_total - (ytd_order_total + self.total_price())
+
+    def delivery_fee(self):
+        if not self.user_id or not settings.HOME_DELIVERY_ENABLED:
+            return 0
+
+        User = get_user_model()
+        user = User.objects.get(pk=self.user_id)
+
+        if not user or not user.profile.home_delivery:
+            return 0
+
+        order_total = self.total_price_after_discount()
+        if order_total >= settings.FREE_HOME_DELIVERY_ORDER_AMOUNT:
+            return 0
+
+        return settings.HOME_DELIVERY_CHARGE
 
     def discount(self):
         # TODO :: This will have to be changed to allow for public discount codes
@@ -105,7 +122,13 @@ class Cart(models.Model):
         return self.calculate_discount(user.profile.discount_code, has_member_discount=user.profile.is_member)
 
     def total_price_after_discount(self):
-        return self.total_price() - self.discount()
+        return self.item_total_price() - self.discount()
+
+    def total_price(self):
+        """
+        Cart total including discount & delivery fees
+        """
+        return self.item_total_price() - self.discount() + Decimal(self.delivery_fee())
 
     def has_items(self):
         """
@@ -119,7 +142,7 @@ class Cart(models.Model):
         """
         return sum([item.quantity for item in self])
 
-    def total_price(self):
+    def item_total_price(self):
         """
         Template helper function - sum of all costs of item quantities.
         """
@@ -287,22 +310,25 @@ class CartItem(models.Model):
         if hasattr(self, '_cached_quantity') and self._cached_quantity is not None:
             self._cached_quantity = quantity
 
+        # we just made a change, so lets clear the cached value
+        if hasattr(self.variation, "_cached_num_in_stock"):
+            del self.variation._cached_num_in_stock
+
+        live_num_in_stock = self.variation.live_num_in_stock()
+        if live_num_in_stock is not None and live_num_in_stock <= 0:
+            # notify admin that a product is out of stock
+            send_mail_template(
+                "Member Store - Item Out Of Stock",
+                "shop/admin_out_of_stock_email",
+                settings.DEFAULT_FROM_EMAIL,
+                settings.DEFAULT_FROM_EMAIL,
+                context={'variation': self.variation},
+                fail_silently=True,
+            )
+
     def save(self, *args, **kwargs):
         super(CartItem, self).save(*args, **kwargs)
 
         # Check if this is the last cart item being removed
         if self.quantity == 0 and not self.cart.items.exists():
             self.cart.delete()
-
-
-def update_cart_items(variation):
-    """
-    When an item has changed, update any items that are already in the cart
-    """
-    from ffcsa.core.budgets import clear_cached_budget_for_user_id
-
-    CartItem.objects.handle_changed_variations([variation])
-
-    carts = Cart.objects.filter(items__variation__sku=variation.sku)
-    for cart in carts:
-        clear_cached_budget_for_user_id(cart.user_id)

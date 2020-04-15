@@ -121,16 +121,26 @@
             {% endfor %}
         </ul>
 
-        {% errors_for add_product_form %}
-        <form method="post" id="add-cart" class="shop-form">
-            {% fields_for add_product_form %}
-            <div class="form-actions">
-                {% if can_order_dairy or not product.is_dairy %}
-                <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
-                       value="{% trans "Add to Order" %}">
-                {% endif %}
-            </div>
-        </form>
+        {% if request.user.is_authenticated and request.user.profile.signed_membership_agreement %}
+            {% errors_for add_product_form %}
+
+            <form method="post" id="add-cart" class="shop-form">
+                {% fields_for add_product_form %}
+                <div class="form-actions">
+                    {% if can_order_dairy or not product.is_dairy %}
+                        <input type="submit" class="btn btn-primary btn-lg pull-right" name="add_cart"
+                               value="{% trans "Add to Order" %}">
+                    {% endif %}
+                    {% if product.is_dairy and  not request.user.profile.join_dairy_program %}
+                        <p class="text-base text-center text-red-800">Ask us about our Raw Dairy program to order.</p>
+                    {% endif %}
+                </div>
+            </form>
+        {% elif request.user.is_authenticated and not request.user.profile.signed_membership_agreement %}
+            <p class="error-msg">{% trans "Please sign our membership agreement" %}</p>
+        {% else %}
+            <p class="error-msg">{% trans "Log In to place an order." %}</p>
+        {% endif %}
 
     {% else %}
         <p class="error-msg">{% trans "This product is currently unavailable." %}</p>

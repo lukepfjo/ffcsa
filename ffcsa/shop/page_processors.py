@@ -45,6 +45,10 @@ def category_processor(request, page):
         sku = request.POST.get("variation")
         quantity = request.POST.get("quantity")
 
+        if not request.user.profile.signed_membership_agreement:
+            raise Exception(
+                "You must sign our membership agreement before you can make an order")
+
         if sku and quantity:
             try:
                 variation = ProductVariation.objects.get(sku=sku)

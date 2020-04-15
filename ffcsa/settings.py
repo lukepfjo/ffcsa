@@ -17,21 +17,26 @@ MARKET_CHECKLISTS = ['LCFM', 'Hollywood', 'PSU', 'St Johns', 'Woodstock']
 MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
     # checklist columns -> (category list, additional kwargs, default)
     # if default is None, then we will sum the number of items
-    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag'], {'is_frozen': False}, 1)),
-    ('Meat', (['meat', 'butter'], {'is_frozen': True}, 1)),
+    ('Tote', (['grain', 'vegetables', 'fruit', 'eggs', 'swag', 'bread', 'mushroom', 'nut', 'coffee', 'pantry'],
+              {'AND': {'is_frozen': False}}, 1)),
+    ('Meat', (['meat', 'butter'], {'OR': {'is_frozen': True}}, 1)),
     ('Dairy', (['dairy'], {}, None)),
     ('Flowers', (['flowers'], {}, None)),
 ])
 DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
-SIGNUP_FEE_IN_CENTS = 10000
+SIGNUP_FEE_IN_CENTS = 5000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
+HOME_DELIVERY_ENABLED = True
+HOME_DELIVERY_CHARGE = 5
+FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 DROP_SITE_CHOICES = (
     ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
+    # ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    ('W 11th', 'Eugene - W 11th and Van Buren (Saturday)'),
     # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
     ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
     ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
     # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
@@ -42,17 +47,30 @@ DROP_SITE_CHOICES = (
 DROP_SITE_COLORS = {
     'Farm': 'pink',
     # 'Corner Market': 'white',
-    # 'LCFM': 'blue',
-    '19th St': 'blue',
-    'Roosevelt': 'white',
+    'LCFM': 'blue',
+    # '19th St': 'blue',
+    # 'Roosevelt': 'white',
+    'W 11th': 'white',
     'Hollywood': 'yellow',
     'PSU': 'green',
     'St Johns': 'purple',
     'Woodstock': 'yellow',
     'Banzhaf': 'orange',
+    'Home Delivery': 'purple'
 }
 
-DROP_SITE_ORDER = ['Farm', 'Banzhaf', 'Roosevelt', 'Corner Market', '19th St', 'LCFM', 'Woodstock', 'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodstock', 'St Johns',
+                   'PSU', 'Hollywood', ]
+STANDING_DELIVERIES = [
+    # ['Address', 'Name', 'Phone', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers']
+    ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '4', '', '', '', '', '', ''],
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '8', '7:00', '16:00', '', '', '', ''],
+    ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '10', '', '', '', '', '', ''],
+    ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '10', '', '', '', '', '', ''],
+    ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '10', '', '', '', '', '', ''],
+    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '8', '4:00', '9:00', '', '', '', '']
+]
+
 
 # SETTINGS FOR ONE-TIME ORDERS
 MEMBER_ONE_TIME_ORDER_DISCOUNT = .05  # Percentage expressed as a decimal
@@ -71,11 +89,52 @@ ONE_TIME_ORDER_DROP_SITE_CHOICES = (
     ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
 )
 
+# SignRequest settings
+SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
+SIGN_REQUEST_API_KEY = None
+SIGN_REQUEST_TEMPLATES = {
+    1: 'f3ad5564-60f9-4e99-99d3-c7b33e75bddb',
+    2: '22704e6b-4997-46c6-95df-a0cd4b64d6d8',
+    3: '',
+    4: ''
+}
+
+
+GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {
     "MEMBERS": "contactGroups/71b7ef9a09789cab",
     "NEWSLETTER": "contactGroups/3095ba340cae4e15",
     "MANAGED": "contactGroups/41aaae0b0f3d9da7",
 }
+
+# Sendinblue settings
+
+SENDINBLUE_ENABLED = False
+SENDINBLUE_API_KEY = None
+
+SENDINBLUE_LISTS = {
+    'WEEKLY_NEWSLETTER': 9,
+    'WEEKLY_REMINDER': 10,
+    'MEMBERS': 7,
+    'FORMER_MEMBERS': 11,
+    'PROSPECTIVE_MEMBERS': 4,
+}
+
+SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
+    'Banzhaf': 27,
+    'Farm': 31,
+    'Hollywood': 30,
+    'LCFM': 28,
+    'PSU': 29,
+    'Home Delivery': 32,
+    'W 11th': 26,
+    # 'St Johns': 9,
+    # 'Woodstock': 10,
+    # '19th St.': 1,
+    # 'Corner Market': 3,
+}
+
+SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
 
 # Rollbar settings
 
@@ -86,6 +145,10 @@ ROLLBAR = {
     'environment': 'development',
     'branch': 'master',
     'root': os.getcwd(),
+    'scrub_fields': ['pw', 'passwd', 'password', 'password2', 'secret', 'confirm_password', 'confirmPassword',
+                     'password_confirmation', 'passwordConfirmation', 'access_token', 'accessToken', 'auth',
+                     'authentication']
+
     # 'ignorable_404_urls': (
     #     re.compile('/index\.php'),
     #     re.compile('/foobar'),
@@ -199,8 +262,10 @@ ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS = [
     "notes",
     "invoice_notes",
     "non_subscribing_member",
+    "signed_membership_agreement",
     "can_order_dairy",
-    "google_person_id"
+    "google_person_id",
+    "discount_code",
 ]
 ACCOUNTS_APPROVAL_EMAILS = 'fullfarmcsa@deckfamilyfarm.com'  # used to send notifications of new user accounts
 
@@ -274,6 +339,7 @@ USE_MODELTRANSLATION = False
 ########################
 
 DEFAULT_FROM_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
+SERVER_EMAIL = "fullfarmcsa@deckfamilyfarm.com"
 
 CACHES = {
     "default": {
@@ -477,6 +543,7 @@ INSTALLED_APPS = (
     # "ffcsa.invites",
     "ffcsa.core",
     'nested_admin',
+    'anymail',
     # "mezzanine.mobile",
 )
 
@@ -648,6 +715,12 @@ if not DEBUG:
                 'handlers': ['console'],
                 'level': 'WARNING',
                 'propagate': False,
+            },
+            'googleapiclient.discovery_cache': {
+                # only log errors from this module
+                'handlers': ['console'],
+                'level': 'ERROR',
+                'propagate': False
             }
         }
     })

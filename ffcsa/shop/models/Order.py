@@ -34,6 +34,7 @@ class Order(SiteRelated):
     shipping_detail_postcode = CharField(_("Zip/Postcode"), max_length=10)
     shipping_detail_country = CharField(_("Country"), max_length=100)
     shipping_detail_phone = CharField(_("Phone"), max_length=20)
+    shipping_instructions = models.TextField(_("Shipping instructions"), blank=True)
     additional_instructions = models.TextField(_("Additional instructions"),
                                                blank=True)
     time = models.DateTimeField(_("Time"), auto_now_add=True, null=True)
@@ -93,7 +94,7 @@ class Order(SiteRelated):
         for field in self.session_fields:
             if field in request.session:
                 setattr(self, field, request.session[field])
-        self.total = self.item_total = request.cart.total_price()
+        self.total = self.item_total = request.cart.item_total_price()
         if self.shipping_total is not None:
             self.shipping_total = Decimal(str(self.shipping_total))
             self.total += self.shipping_total
@@ -181,7 +182,8 @@ class OrderItem(models.Model):
         base_manager_name = 'objects'
 
     def __str__(self):
-        return ""
+        return self.description
+        # return ""
 
     def save(self, *args, **kwargs):
         """

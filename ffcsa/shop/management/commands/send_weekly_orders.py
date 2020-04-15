@@ -1,10 +1,13 @@
 import datetime
 import logging
+import os
+import tempfile
 
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.core.management import BaseCommand
 
+from ffcsa.shop.deliveries import generate_deliveries_csv, generate_deliveries_optimoroute_csv
 from ffcsa.shop.invoice import generate_invoices
 from ffcsa.shop.models import Order
 from ffcsa.shop.reports import generate_weekly_order_reports, send_order_to_vendor
@@ -65,16 +68,27 @@ class Command(BaseCommand):
 
             doc = reports.copy(market_invoice_pages + reports.pages + invoice_pages)  # uses the metadata from reports
 
+            # delivery_orders = orders.filter(drop_site='Home Delivery')
+            # deliveries_csv = generate_deliveries_csv(delivery_orders)
+            deliveries_csv = generate_deliveries_optimoroute_csv(date)
+
+            # if not os.path.exists('app-messages'):
+            #     os.mkdir('app-messages')
             # with tempfile.NamedTemporaryFile(
             #         delete=False, dir="app-messages", suffix='.pdf') as tmp:
             #     tmp.write(doc.write_pdf())
-            #
-            #     # Reset file pointer
-            #     tmp.seek(0)
+
+                # # Reset file pointer
+                # tmp.seek(0)
+
+            # with tempfile.NamedTemporaryFile(
+            #         delete=False, dir="app-messages", suffix='.csv', mode='w') as tmp:
+            #     tmp.write(deliveries_csv)
 
             msg = EmailMessage("Weekly Order Files - {}".format(date), "Weekly Order Files are attached.",
                                settings.EMAIL_HOST_USER, (settings.EMAIL_HOST_USER,))
             msg.attach("ffcsa_weekly_orders_{}.pdf".format(date), doc.write_pdf(), mimetype='application/pdf')
+            msg.attach("home_deliveries_{}.csv".format(date), deliveries_csv, mimetype='text/csv')
             msg.send()
         except Exception as e:
             EmailMessage("URGENT - Failed to send_weekly_orders", "Need to investigate asap.",

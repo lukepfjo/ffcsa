@@ -30,7 +30,7 @@
 {% endblock %}
 
 {% block main %}
-    <h2>{{ is_subscriber }}</h2>
+    {% include 'ffcsa_core/includes/membership_agreement_alert.html' %}
 
     {% if cart_formset.errors %}
         {% for error in cart_formset.errors %}
@@ -53,48 +53,50 @@
             {{ cart_formset.management_form }}
             <table class="table table-striped">
                 <thead>
-                    <tr>
-                        <th colspan="2" class="left">{% trans "Item" %}</th>
-                        <th class="center">{% trans "Qty" %}</th>
-                        <th class="center">{% trans "Remove?" %}</th>
-                    </tr>
+                <tr>
+                    <th colspan="2" class="left">{% trans "Item" %}</th>
+                    <th class="center">{% trans "Qty" %}</th>
+                    <th class="center">{% trans "Price" %}</th>
+                    <th class="center">{% trans "Remove?" %}</th>
+                </tr>
                 </thead>
                 <tbody>
-                    {% for form in cart_formset.forms %}
-                        {% with form.instance as item %}
-                            <tr>
-                                <td width="30">
-                                    {{ form.id }}
-                                    {% if item.image %}
-                                        <a href="{{ item.get_absolute_url }}">
-                                            <img alt="{{ item.description }}"
-                                                 src="{{ MEDIA_URL }}{% thumbnail item.image 30 30 %}">
-                                        </a>
-                                    {% endif %}
-                                </td>
-                                <td class="left">
-                                    <a href="{{ item.get_absolute_url }}">{{ item.description }}</a>
-                                </td>
-                                <td class="quantity">{{ form.quantity }}</td>
-                                <td class="center">{{ form.DELETE }}</td>
-                            </tr>
-                        {% endwith %}
-                    {% endfor %}
-                    <tr>
-                        <td colspan="4">{% order_totals %}</td>
-                        <td>&nbsp;</td>
-                    </tr>
+                {% for form in cart_formset.forms %}
+                    {% with form.instance as item %}
+                        <tr>
+                            <td width="30">
+                                {{ form.id }}
+                                {% if item.image %}
+                                    <a href="{{ item.get_absolute_url }}">
+                                        <img alt="{{ item.description }}"
+                                             src="{{ MEDIA_URL }}{% thumbnail item.image 30 30 %}">
+                                    </a>
+                                {% endif %}
+                            </td>
+                            <td class="left">
+                                <a href="{{ item.get_absolute_url }}">{{ item.description }}</a>
+                            </td>
+                            <td class="quantity">{{ form.quantity }}</td>
+                            <td class="center price">{{ item.total_price|currency }}</td>
+                            <td width="50" class="center">{{ form.DELETE }}</td>
+                        </tr>
+                    {% endwith %}
+                {% endfor %}
+                <tr>
+                    <td colspan="5">{% order_totals %}</td>
+                    <td>&nbsp;</td>
+                </tr>
                 </tbody>
             </table>
 
-{#            {% if dinner_week %}#}
-{#                <div class="form-group">#}
-{#                    {{ cart_dinner_form.attending_dinner.errors }}#}
-{#                    <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the#}
-{#                        Farm 5:30pm (If coming to dinner, we will have your order waiting for you at the farm) </label>#}
-{#                    {{ cart_dinner_form.attending_dinner }}#}
-{#                </div>#}
-{#            {% endif %}#}
+            {#            {% if dinner_week %}#}
+            {#                <div class="form-group">#}
+            {#                    {{ cart_dinner_form.attending_dinner.errors }}#}
+            {#                    <label for="{{ cart_dinner_form.id_for_label }}">Number of people attending Friday Dinner at the#}
+            {#                        Farm 5:30pm (If coming to dinner, we will have your order waiting for you at the farm) </label>#}
+            {#                    {{ cart_dinner_form.attending_dinner }}#}
+            {#                </div>#}
+            {#            {% endif %}#}
 
             <div class="form-actions">
                 <input type="submit" name="update_cart" class="btn btn-primary btn-lg pull-right"
