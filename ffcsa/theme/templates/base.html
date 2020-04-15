@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="{{ LANGUAGE_CODE }}"{% if LANGUAGE_BIDI %} dir="rtl"{% endif %}>
-{% load pages_tags mezzanine_tags i18n staticfiles static %}
+{% load pages_tags mezzanine_tags i18n staticfiles static webpack_loader %}
 
 <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
@@ -21,17 +21,18 @@
     {% compress css %}
         <link rel="stylesheet" href="{% static "css/bootstrap.min.css" %}">
         <link rel="stylesheet" href="{% static "css/fancybox/jquery.fancybox.css" %}">
-
         <link rel="stylesheet" href="{% static "css/flexslider.css" %}">
-
         <link rel="stylesheet" href="{% static "css/mezzanine.css" %}">
-        <link rel="stylesheet" type="text/css" href="{% static "css/style.css" %}">
-
         <link rel="stylesheet" href="{% static "skins/default.css" %}">
 
         <link rel="stylesheet" type="text/css" href="{% static "css/shop.css" %}">
         {% block extra_css %}{% endblock %}
     {% endcompress %}
+
+    {% render_bundle "manifest" "css" %}
+    {% render_bundle "vendors" "css" %}
+    {% render_bundle "style" "css" %}
+    {% render_bundle "cart" "css" %}
 
     {% compress js %}
         <script src="{% static "mezzanine/js/"|add:settings.JQUERY_FILENAME %}"></script>
@@ -87,6 +88,7 @@
                 <div class="navbar-collapse collapse">
                     {% page_menu "pages/menus/dropdown.html" %}
                 </div>
+                <div id="cart"/>
             </div>
         </div>
     </header>
@@ -198,13 +200,21 @@
     <script src="{% static "js/custom.js" %}"></script>
 
     <script>
-      var static_url = "{% get_static_prefix %}";
-      var media_url = "{% get_media_prefix %}";
+      var static_url = "{% get_static_prefix %}"
+      var media_url = "{% get_media_prefix %}"
     </script>
 {% endcompress %}
 
-{% block footer_js %}
-{% endblock %}
+{#{{ state|json_script:'cart-state' }}#}
+{#<script id="cart-state" type="application/json">{{ state }}</script>#}
+{#<span id="current-user" data-current-user="{{ request.user.id }}"></span>#}
+
+{% render_bundle "manifest" "js" %}
+{% render_bundle "vendors" "js" %}
+{% render_bundle "style" "js" %}
+{% render_bundle "cart" "js" %}
+
+{% block js %}{% endblock %}
 
 </body>
 </html>
