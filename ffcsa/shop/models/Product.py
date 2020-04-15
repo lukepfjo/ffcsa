@@ -280,12 +280,6 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
 
     @property
     def number_in_stock(self):
-        # The following check works in Django 2.2
-        # if 'vendorproductvariation_set' not in self._state.fields_cache:
-        if 'vendorproductvariation' not in getattr(self, '_prefetched_objects_cache', []) \
-                and not hasattr(self, self._meta.get_field('vendorproductvariation').get_cache_name()):
-            return self.vendorproductvariation_set.aggregate(num_in_stock=models.Sum("num_in_stock"))['num_in_stock']
-
         stock = 0
         for vpv in self.vendorproductvariation_set.all():
             if vpv.num_in_stock is None:
