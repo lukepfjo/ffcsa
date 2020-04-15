@@ -446,7 +446,7 @@ def donate(request):
             'total_price': amount,
             'category': 'Feed-A-Friend',
             'vendor': 'Feed-A-Friend',
-            'vendor_price': amount,
+            'vendor_price': 0,
         }
 
         order.items.create(**item_dict)
