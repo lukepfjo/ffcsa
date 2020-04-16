@@ -15,6 +15,12 @@ def give_emoji_free_text(text):
     return emoji.get_emoji_regexp().sub(r'', text)
 
 
+def get_current_friday_pickup_date():
+    now = datetime.datetime.now()
+    days_ahead = 4 - now.weekday()  # Friday is the 5th day
+    return now + datetime.timedelta(days_ahead)
+
+
 def get_friday_pickup_date():
     now = datetime.datetime.now()
 
