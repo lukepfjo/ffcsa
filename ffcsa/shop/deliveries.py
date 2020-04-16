@@ -30,6 +30,7 @@ def generate_deliveries_optimoroute_csv(date):
     annotations = {
         'last_name': F('billing_detail_last_name'),
         'first_name': F('billing_detail_first_name'),
+        'email': F('billing_detail_email'),
         'phone': F('billing_detail_phone'),
         'shipping_street': F('shipping_detail_street'),
         'shipping_city': F('shipping_detail_city'),
@@ -40,7 +41,9 @@ def generate_deliveries_optimoroute_csv(date):
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
     writer = csv.writer(output, quoting=csv.QUOTE_NONNUMERIC)
-    writer.writerow(['Address', 'Name', 'Phone', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers'])
+    writer.writerow(
+        ['Address', 'Name', 'Phone', 'Email', 'Notes', 'Duration', 'tw start', 'tw end', 'Boxes', 'Dairy', 'Meat',
+         'Flowers', 'notifications'])
 
     for d in settings.STANDING_DELIVERIES:
         writer.writerow(d)
@@ -49,7 +52,8 @@ def generate_deliveries_optimoroute_csv(date):
         address = '{}, {}, {} {}'.format(o['shipping_street'], o['shipping_city'], o['shipping_state'],
                                          o['shipping_zip'])
         name = '{}, {}'.format(o['last_name'], o['first_name'])
-        writer.writerow([address, name, o['phone'], o['shipping_ins'], '4', '', '', o['Tote'], o['Dairy'], o['Meat'], o['Flowers']])
+        writer.writerow(
+            [address, name, o['phone'], o['email'], o['shipping_ins'], '4', '', '', o['Tote'], o['Dairy'], o['Meat'],
+             o['Flowers'], 'email'])
 
     return output.getvalue()
-
