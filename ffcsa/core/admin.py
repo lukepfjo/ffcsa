@@ -57,7 +57,7 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
         """
         Update stripe subscription if needed
         """
-        user = User.objects.get(id=obj.id)
+        user = User.objects.get(id=obj.id) if change else None
         if change \
                 and user.profile.monthly_contribution != obj.profile.monthly_contribution \
                 and obj.profile.stripe_subscription_id:
@@ -86,8 +86,8 @@ class UserProfileAdmin(accounts_base.UserProfileAdmin):
 
 class PaymentAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
-    list_display = ('user', 'date', 'amount')
-    list_filter = ("user", "date")
+    list_display = ('user', 'date', 'pending', 'amount', 'is_credit')
+    list_filter = ("user", "date", 'is_credit')
     search_fields = ["user__first_name", "user__last_name", "user__username"]
 
     actions = ['bulk_edit']

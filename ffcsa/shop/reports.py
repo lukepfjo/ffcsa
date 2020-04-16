@@ -65,7 +65,7 @@ def generate_weekly_order_reports(date):
 
     # Grain & Bean Sheet
     # zip_files.append(("grain_and_bean_packlist_{}.pdf".format(date), generate_grain_and_bean_packlist(date)))
-    docs.append(generate_grain_and_bean_packlist(date))
+    # docs.append(generate_grain_and_bean_packlist(date, qs))
 
     # Market Checklists
     checklist = generate_market_checklists(date)
@@ -158,7 +158,7 @@ def generate_ffcsa_inventory_packlist(date, qs):
     grains & bean packlist or the frozen item packlist
     """
     exclude_filter = Q()
-    for cat in settings.FROZEN_PRODUCT_CATEGORIES + settings.GRAIN_BEANS_CATEGORIES:
+    for cat in settings.FROZEN_PRODUCT_CATEGORIES:  # + settings.GRAIN_BEANS_CATEGORIES:
         exclude_filter = exclude_filter | Q(category__icontains=cat)
     filter = Q(in_inventory=True, is_frozen=False) & ~exclude_filter
     items = qs.filter(filter).order_by('category', 'description')
@@ -202,7 +202,7 @@ def generate_frozen_items_report(date, qs):
     return HTML(string=html).render()
 
 
-def get_frozen_items(qs):
+def get_frozen_items(qs, exclude_filter=Q()):
     """
     This should include the following:
        - any is_frozen items
@@ -210,7 +210,6 @@ def get_frozen_items(qs):
        - any item in FROZEN_PRODUCT_CATEGORIES
    """
     filter = Q()
-    exclude_filter = Q()
     for cat in settings.FROZEN_PRODUCT_CATEGORIES:
         filter = filter | Q(category__icontains=cat)
     for cat in settings.DFF_ORDER_TICKET_EXCLUDE_CATEGORIES:
@@ -224,8 +223,12 @@ def get_frozen_items(qs):
 
 
 def generate_frozen_items_packlist(date, qs):
+    exclude_filter = Q()
+    for cat in settings.FROZEN_ITEM_PACKLIST_EXCLUDED_CATEGORIES:
+        exclude_filter = exclude_filter & ~Q(category__icontains=cat)
     items = get_frozen_items(
-        qs.values('description', 'quantity', 'order__drop_site', 'order__billing_detail_last_name')
+        qs.values('description', 'quantity', 'order__drop_site', 'order__billing_detail_last_name'),
+        exclude_filter
     ).order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
 
     order_items = OrderedDict()
@@ -311,7 +314,7 @@ def generate_product_order(date):
     filter = Q()
     for cat in settings.PRODUCT_ORDER_CATEGORIES:
         filter = filter | Q(category__icontains=cat)
-    cart_items = OrderItem.objects.filter(filter, order__time__date=date).values('sku').distinct()
+    cart_items = OrderItem.objects.filter(filter, order__time__date=date, is_frozen=False).values('sku').distinct()
     qs = Product.objects.filter(variations__sku__in=cart_items)
     products = [p for p in qs]
     products.sort(key=product_keySort)
@@ -330,7 +333,7 @@ def generate_home_delivery_notes(date):
     orders = Order.objects.filter(drop_site=drop_site, time__date=date,
                                   shipping_instructions__isnull=False) \
         .exclude(shipping_instructions__exact='') \
-        .order_by('shipping_detail_city', 'billing_detail_last_name')
+        .order_by('billing_detail_last_name')
 
     orders = list(orders)
 
@@ -353,7 +356,7 @@ def generate_home_delivery_checklists(date):
     }
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
-    qs = qs.values(*columns).order_by('shipping_city', 'billing_detail_last_name')
+    qs = qs.values(*columns).order_by('billing_detail_last_name')
     users = list(qs)
 
     if len(users) == 0:
@@ -415,6 +418,11 @@ def _get_market_checklist_qs(date, drop_site, annotations):
         for cat in categories:
             filter = filter | Q(category__icontains=cat)
 
+        if kwargs and 'AND' in kwargs:
+            filter = filter & Q(**kwargs['AND'])
+        elif kwargs and 'OR' in kwargs:
+            filter = filter | Q(**kwargs['OR'])
+
         if default is None:
             annotates[column] = Subquery(
                 OrderItem.objects
@@ -436,7 +444,8 @@ def _get_market_checklist_qs(date, drop_site, annotations):
                     .values('order_id')  # This provides a group_by order_id clause
                     .annotate(total=Sum('quantity'))
                     .annotate(has=case)
-                    .values('has')
+                    .values('has'),
+                output_field=IntegerField(),
             )
 
     return qs.annotate(**annotates), list(annotates.keys())
@@ -450,6 +459,11 @@ def generate_master_checklist(date):
         filter = Q()
         for cat in categories:
             filter = filter | Q(category__icontains=cat)
+
+        if kwargs and 'AND' in kwargs:
+            filter = filter & Q(**kwargs['AND'])
+        elif kwargs and 'OR' in kwargs:
+            filter = filter | Q(**kwargs['OR'])
 
         if default is None:
             annotations[column] = Sum(
@@ -475,7 +489,8 @@ def generate_master_checklist(date):
                         .values('order_id')  # This provides a group_by order_id clause
                         .annotate(total=Sum('quantity'))
                         .annotate(has=case)
-                        .values('has')
+                        .values('has'),
+                    output_field=IntegerField(),
                 )
             )
 

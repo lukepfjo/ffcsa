@@ -762,7 +762,7 @@ class ProductChangelistForm(forms.ModelForm):
             vpv = None
             variation_fields = [f.name for f in variation._meta.fields]
 
-            if 'vendor' in self.cleaned_data and self.cleaned_data['vendor'] is not None:
+            if 'vendor' in self.changed_data and self.cleaned_data['vendor'] is not None:
                 vpv = variation.vendorproductvariation_set.first()
 
                 if not vpv:
@@ -770,7 +770,9 @@ class ProductChangelistForm(forms.ModelForm):
                 else:
                     vpv.vendor = self.cleaned_data['vendor']
 
-            for key, value in self.cleaned_data.items():
+            # for key, value in self.cleaned_data.items():
+            for key in self.changed_data:
+                value = self.cleaned_data[key]
                 if key is not 'id' and key in variation_fields:
                     setattr(variation, key, value)
                 elif key is 'num_in_stock' and variation.vendors.count() == 1:
@@ -783,7 +785,7 @@ class ProductChangelistForm(forms.ModelForm):
                 vpv.save()
                 # either vendor or num_in_stock has changed, so we need to update all cart items
                 CartItem.objects.handle_changed_variation(variation)
-            elif 'unit_price' in self.cleaned_data:
+            elif 'unit_price' in self.changed_data:
                 clear_cached_budget_for_variation(variation)
 
             variation.save()

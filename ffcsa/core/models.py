@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -118,6 +119,19 @@ class Profile(models.Model):
 
 
 ###################
+#  DropSite
+###################
+
+class DropSiteInfo(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    drop_site_template_name = models.CharField('Drop Site Template Name', max_length=255)
+    last_version_received = models.TextField('Last Version Received', null=True, blank=True)
+
+    def __str__(self):
+        return self.drop_site_template_name
+
+
+###################
 #  Payment
 ###################
 
@@ -129,11 +143,13 @@ class Payment(models.Model):
     pending = models.BooleanField('Pending', default=False)
     notes = models.TextField('Notes', null=True, blank=True)
     charge_id = models.CharField(max_length=255, null=True, blank=True)
+    is_credit = models.BooleanField(default=False)
 
     objects = PaymentManager()
 
     def __str__(self):
-        return "%s, %s - %s - $%s" % (self.user.last_name, self.user.first_name, self.date, self.amount)
+        return "%s, %s - %s - %s for $%s" % (
+        self.user.last_name, self.user.first_name, self.date, 'Credit' if self.is_credit else 'Payment', self.amount)
 
 
 class Recipe(Page, RichText):

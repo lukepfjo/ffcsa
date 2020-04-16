@@ -182,7 +182,8 @@ class OrderItem(models.Model):
         base_manager_name = 'objects'
 
     def __str__(self):
-        return ""
+        return self.description
+        # return ""
 
     def save(self, *args, **kwargs):
         """

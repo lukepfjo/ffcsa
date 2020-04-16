@@ -113,12 +113,13 @@ def send_first_payment_email(user):
     week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
 
     pickup = get_friday_pickup_date()
-    if not user.profile.home_delivery and user.profile.drop_site.lower().strip() != 'farm':
+    if user.profile.home_delivery or user.profile.drop_site.lower().strip() != 'farm':
         pickup = pickup + datetime.timedelta(1)
 
     context = {
         'pickup_date': formats.date_format(pickup, "D F d"),
         'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
+        'home_delivery': user.profile.home_delivery,
         'can_order_now': can_order_now,
         'order_week_start': formats.date_format(week_start, "D F d"),
     }

@@ -4,6 +4,7 @@ import logging
 from urllib.parse import quote as make_url_safe
 
 import requests
+import requests.exceptions
 
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
@@ -33,6 +34,9 @@ NEW_USER_LISTS_TO_REMOVE = ['PROSPECTIVE_MEMBERS']
 HOME_DELIVERY_LIST = 'Home Delivery'
 
 
+# --------
+# General helper functions
+
 def send_request(endpoint, method='GET', query=None, data=None, headers=None):
     """
     Wrapper to simplify Sendinblue request handling
@@ -60,7 +64,10 @@ def send_request(endpoint, method='GET', query=None, data=None, headers=None):
             raise Exception('Sendinblue error: HTTP {}: {}'.format(response.status_code, response_error))
 
         else:
-            raise Exception('Sendinblue internal server error: HTTP {}'.format(response.status_code))
+            response_json = response.json()
+            response_error = response_json.get('error', response_json)['message']  # SIB error format is not consistent
+            raise Exception(
+                'Sendinblue internal server error: HTTP {}: {}'.format(response.status_code, response_error))
 
     try:
         return response.json()
@@ -72,7 +79,20 @@ def _initialize_drop_site_lists():
     # Create a dictionary of {drop_site_name: id} of the SIB drop site mailing lists
     # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
-    existing_lists = send_request('contacts/lists')
+    try:
+        existing_lists = send_request('contacts/lists')
+
+    except requests.exceptions.ConnectionError as ex:
+        if settings.DEBUG:
+            logger.critical('The connection to Sendinblue failed while trying to initialize the drop site list. '
+                            'Using placeholder IDs.')
+
+            stub_ids = (_ for _ in range(len(settings.DROP_SITE_CHOICES)))
+            return {ds[0]: ds_id for ds, ds_id in zip(settings.DROP_SITE_CHOICES, stub_ids)}
+
+        else:
+            raise ex
+
     drop_site_ids = {_list['name'].replace('Dropsite - ', ''): int(_list['id'])
                      for _list in existing_lists['lists']
                      if _list['name'].startswith('Dropsite')}
@@ -101,6 +121,9 @@ if settings.SENDINBLUE_ENABLED:
     _DROP_SITE_IDS = _initialize_drop_site_lists()
 
 
+# --------
+# User (contact) management
+
 def _format_phone_number(phone_number):
     # Returns formatted phone number on success, False on failure
 
@@ -128,19 +151,40 @@ def get_user(email=None, phone_number=None):
     @param email: User's email
     @param phone_number: User's cell phone number (optional; can be used instead of email)
 
-    @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids'
+    @return: Dictionary with keys 'email', 'first_name', 'last_name', 'phone_number', 'drop_site', and 'list_ids' on success, False on failure
     """
+
+    if not settings.SENDINBLUE_ENABLED:
+        raise Exception('Attempted to get SendInBlue user while SIB is disabled')
 
     if email is None and phone_number is None:
         raise Exception('Either email or phone_number must be provided')
 
+    # Look up user, trying email first (if provided)
     identifier = email if email is not None else phone_number
+    user = None
     try:
         user = send_request('contacts/{}'.format(make_url_safe(identifier)))
     except Exception as ex:
-        if email is not None and 'Contact does not exist' in str(ex):
-            identifier = phone_number
+        if 'Contact does not exist' in str(ex):
+            if phone_number is None:
+                # Email not found and phone number not provided
+                return False
+        else:
+            raise ex
+
+    if user is None:
+        # Failed to look up by email, try phone number
+        identifier = phone_number
+
+        try:
             user = send_request('contacts/{}'.format(make_url_safe(identifier)))
+        except Exception as ex:
+            if 'Contact does not exist' in str(ex):
+                # User could not be found using the provided phone number
+                return False
+            else:
+                raise ex
 
     attributes = user['attributes']
     list_ids = user['listIds']
@@ -170,6 +214,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
@@ -194,7 +239,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             'LASTNAME': last_name,
         },
         'listIds': [drop_site_list_id] + [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS],
-        'unlinkListIds': [int(settings.SENDINBLUE_LISTS[desired]) for desired in NEW_USER_LISTS_TO_REMOVE]
+        'unlinkListIds': [int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in NEW_USER_LISTS_TO_REMOVE]
     }
 
     if phone_number is not None:
@@ -209,7 +254,6 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
             logger.error(msg)
             return False, msg
         logger.error(ex)
-        # raise ex
 
     return True, ''
 
@@ -229,6 +273,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
+
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
@@ -245,20 +290,44 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         return False, msg
 
     body = {'attributes': {}, 'listIds': [], 'unlinkListIds': []}
-    identifier = email
 
     # Diff the old and new user info
     try:
         old_user_info = get_user(email, phone_number)
-        identifier = old_user_info.pop('identifier')
     except Exception as ex:
-        if 'Contact does not exist' in str(ex):
-            add_user(email, first_name, last_name, drop_site, phone_number)
-            old_user_info = get_user(email, phone_number)
-        else:
-            logger.error(ex)
-            return False, str(ex)
-            # raise ex
+        logger.error(ex)
+        return False, str(ex)
+
+    # User could not be found on Sendinblue; create a new one
+    if not old_user_info:
+        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number)
+
+        if not add_success:
+            logger.error(add_msg)
+            return False, add_msg
+
+        old_user_info = get_user(email, phone_number)
+
+    # Tried to add a user with a phone number that already exists in SIB
+    if not old_user_info:
+        logger.info('New SIB user {} has existing phone number {}; dropping phone number.'.format(email, phone_number))
+        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number=None)
+
+        if not add_success:
+            logger.error(add_msg)
+            return False, add_msg
+
+        old_user_info = get_user(email, phone_number)
+
+    # Something unexpected went wrong; if this message is seen it should be debugged
+    if not old_user_info:
+        msg = 'Unexpectedly failed to add or update user with this info:\n' + \
+              'Email: "{}" FNAME: "{}" LNAME: "{}" DROPSITE: "{}" PHONE: "{}"'.format(
+                  email, first_name, last_name, drop_site, phone_number)
+        logger.error(msg)
+        return False, msg
+
+    identifier = old_user_info.pop('identifier')
 
     new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
                      'drop_site': drop_site, 'phone_number': phone_number}
@@ -308,9 +377,9 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             msg = 'Invalid phone number'
             logger.error(msg)
             return False, msg
+
         logger.error(ex)
         return False, str(ex)
-        # raise ex
 
     return True, ''
 
@@ -327,3 +396,87 @@ def on_user_resubscribe(email, first_name, last_name, drop_site):
                               drop_site=drop_site,
                               lists_to_add=['MEMBERS'],
                               lists_to_remove=['FORMER_MEMBERS'])
+
+
+# --------
+# Email management
+
+def _get_transactional_email_templates(pprint=True):
+    # Gets and pretty-prints the names and IDs of all transactional templates,
+    # mostly for easy reference while working in the back-end
+
+    templates = send_request('smtp/templates', query={"templateStatus": True})
+
+    templates = templates.get('templates', None)
+    if templates is None:
+        raise Exception('Sendinblue error: Could not get transactional email templates')
+
+    templates = {t['name']: t['id'] for t in templates}
+
+    if pprint:
+        print('Sendinblue Templates: <name>: <id>')
+        print(str(templates).replace('{', '{\n\t').replace('}', '\n}').replace(', ', '\n\t'))
+    else:
+        return templates
+
+
+def get_template_last_modified_date(template_name):
+    """
+    Get the timestamp at which the specified template was last modified
+
+    @param template_name: Name of the Sendinblue template as found in settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES
+    @return: Timestamp in format 'YYYY-MM-DDTHH:MM:SS.000+00:00' on success, False on failure
+    """
+
+    template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
+
+    if template_id is None:
+        logger.critical('Sendinblue error: Transactional template "{}" is missing in settings.py'.format(template_name))
+        return False
+
+    try:
+        response = send_request('smtp/templates/{}'.format(template_id), 'GET')
+        return response.get('modifiedAt', None)  # Date template was last modified
+
+    except Exception as ex:
+        logger.error(str(ex))
+        return False
+
+
+def send_transactional_email(template_name, recipient_email, params={}):
+    """
+    Send a transactional email using the provided details
+
+    @param template_name: The name of a template as defined in settings.py
+    @param recipient_email: Email of recipient
+    @return: True upon success, False on failure
+    """
+
+    if not settings.SENDINBLUE_ENABLED:
+        return True
+
+    template_id = settings.SENDINBLUE_TRANSACTIONAL_TEMPLATES.get(template_name, None)
+
+    if template_id is None:
+        logger.critical('Sendinblue error: Transactional template "{}" is missing in settings.py'.format(template_name))
+        return False
+
+    data = {
+        'templateId': template_id,
+        'replyTo': {'name': 'Full Farm CSA', 'email': settings.DEFAULT_FROM_EMAIL},
+        'to': [{'email': recipient_email}],
+        'params': params
+    }
+
+    try:
+        response = send_request('smtp/email', 'POST', data=data)
+
+    except Exception as ex:
+        logger.error(str(ex))
+        return False
+
+    if 'messageId' not in response.keys():
+        logger.error('Sendinblue error: Unexpected response contents: "{}"'.format(response.keys()))
+        return False
+
+    return get_template_last_modified_date(template_name)

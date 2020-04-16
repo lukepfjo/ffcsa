@@ -76,7 +76,7 @@ class CartItemManager(Manager):
         """
         for variation in variations:
             qs = self.filter(variation=variation)
-            users = get_user_model().objects.filter(id__in=qs.values_list("cart__user_id"))
+            users = list(get_user_model().objects.filter(id__in=qs.values_list("cart__user_id")))
             qs.delete()
 
             if users:
