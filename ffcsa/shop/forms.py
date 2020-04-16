@@ -363,7 +363,7 @@ class OrderForm(FormsetForm, DiscountForm):
     step = forms.IntegerField(widget=forms.HiddenInput())
     same_billing_shipping = forms.BooleanField(required=False, initial=True,
                                                label=_("My delivery details are the same as my billing details"))
-    remember = forms.BooleanField(required=False, initial=True,
+    remember = forms.BooleanField(required=False, initial=False,
                                   label=_("Remember my address for next time"))
     card_name = forms.CharField(label=_("Cardholder name"))
     card_type = forms.ChoiceField(label=_("Card type"),

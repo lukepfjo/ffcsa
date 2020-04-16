@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.messages import info
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
@@ -67,12 +67,10 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
-        if not request.user.is_authenticated():
-            raise Exception(
-                "You must be authenticated in order to add products to your cart")
-        if not request.user.profile.signed_membership_agreement:
-            raise Exception(
-                "You must sign our membership agreement before you can make an order")
+        # TODO :: Verify this behavior is correct
+        if request.user.is_authenticated() and not request.user.profile.signed_membership_agreement:
+            raise Exception("You must sign our membership agreement before you can make an order")
+
         if not request.cart.user_id:
             request.cart.user_id = request.user.id
         elif request.cart.user_id != request.user.id:
@@ -84,9 +82,11 @@ def product(request, slug, template="shop/product.html",
             recalculate_cart(request)
             info(request, _("Item added to cart"))
             return redirect("shop_cart")
+
     related = []
     if settings.SHOP_USE_RELATED_PRODUCTS:
         related = product.related_products.published(for_user=request.user)
+
     context = {
         "product": product,
         "editable_obj": product,
@@ -153,9 +153,11 @@ def cart(request, template="shop/cart.html",
     """
     Display cart and handle removing items from the cart.
     """
+
     cart_formset = cart_formset_class(instance=request.cart)
     discount_form = discount_form_class(request, request.POST or None)
     cart_dinner_form = CartDinnerForm(request, request.POST or None)
+
     if request.method == "POST":
         valid = True
         if request.POST.get("update_cart"):
@@ -206,6 +208,7 @@ def cart(request, template="shop/cart.html",
     if (settings.SHOP_DISCOUNT_FIELD_IN_CART and
             DiscountCode.objects.active().exists()):
         context["discount_form"] = discount_form
+
     return TemplateResponse(request, template, context)
 
 
@@ -278,6 +281,7 @@ def checkout_steps(request, form_class=OrderForm, extra_context=None):
             except checkout.CheckoutError as e:
                 checkout_errors.append(e)
 
+            # TODO :: Modify this to use scheduled ordering
             # FINAL CHECKOUT STEP - run payment handler and process order.
             if step == checkout.CHECKOUT_STEP_LAST and not checkout_errors:
                 # Create and save the initial order object so that
@@ -445,3 +449,11 @@ def invoice_resend_email(request, order_id):
         else:
             redirect_to = reverse("shop_order_history")
     return redirect(redirect_to)
+
+
+@never_cache
+def csrf_failure(request, reason=""):
+    prev_url = request.META.get('HTTP_REFERER', '/')
+    reasons = {'CSRF cookie not set.': 'Cookies must be enabled to use this site.'}
+    default = 'Security Error: Your CSRF token failed to validate. Please try again.'
+    return HttpResponseForbidden(_(reasons.get(reason, default)) + '<br/><a href="{}">Back</a>'.format(prev_url))

@@ -13,12 +13,13 @@ register = template.Library()
 
 
 @register.simple_tag()
-def pickup_date_text():
+def pickup_date_text(is_subscriber=False):
     pickup = get_friday_pickup_date()
     delivery = pickup + datetime.timedelta(1)
 
-    return "Weekly order for pickup {} & delivery {}".format(formats.date_format(pickup, "D F d"),
-                                                             formats.date_format(delivery, "D F d"))
+    return "{} for pickup {} & delivery {}".format("Weekly order" if is_subscriber else "Order",
+                                                   formats.date_format(pickup, "D F d"),
+                                                   formats.date_format(delivery, "D F d"))
 
 
 @register.simple_tag()

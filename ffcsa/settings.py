@@ -71,6 +71,24 @@ STANDING_DELIVERIES = [
     ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '9:00', '', '', '', '', 'none']
 ]
 
+
+# SETTINGS FOR ONE-TIME ORDERS
+MEMBER_ONE_TIME_ORDER_DISCOUNT = .05  # Percentage expressed as a decimal
+MINIMUM_ONE_TIME_ORDER_AMOUNT = 100  # Amount in dollars
+
+ONE_TIME_ORDER_DROP_SITE_CHOICES = (
+    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
+    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
+    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
+    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
+    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
+    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
+    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
+    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
+    ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
+)
+
 # SignRequest settings
 SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
 SIGN_REQUEST_API_KEY = None
@@ -80,6 +98,7 @@ SIGN_REQUEST_TEMPLATES = {
     3: '',
     4: ''
 }
+
 
 GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {
@@ -214,9 +233,9 @@ SHOP_USE_VARIATIONS = True
 SHOP_USE_UPSELL_PRODUCTS = False
 SHOP_USE_RELATED_PRODUCTS = False
 SHOP_USE_RATINGS = False
-SHOP_PAYMENT_STEP_ENABLED = False
+SHOP_PAYMENT_STEP_ENABLED = True
 SHOP_DEFAULT_SHIPPING_VALUE = 0
-SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
+SHOP_CHECKOUT_ACCOUNT_REQUIRED = False
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Title', 'title'), ('Recently added', '-date_added'),)
 SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
@@ -368,8 +387,16 @@ DEBUG = False
 # Whether a user's session cookie expires when the Web browser is closed.
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# The age of session cookies, in seconds.
-# SESSION_COOKIE_AGE = 2419200
+# Session cookies are used for anonymous users
+# SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
+# SESSION_COOKIE_NAME = 'MnlYRc'
+SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
+SESSION_COOKIE_SECURE = True    # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
+
+# CSRF_COOKIE_NAME = 'osQiXg'
+CSRF_COOKIE_SECURE = True  # Prevent cookies from being sent over HTTP; only HTTPS
+CSRF_FAILURE_VIEW = 'ffcsa.shop.views.csrf_failure'
 
 SITE_ID = 1
 

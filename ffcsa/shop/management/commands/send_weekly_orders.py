@@ -12,6 +12,7 @@ from ffcsa.shop.invoice import generate_invoices
 from ffcsa.shop.models import Order
 from ffcsa.shop.reports import generate_weekly_order_reports, send_order_to_vendor
 
+# TODO :: logger isn't used in this file
 logger = logging.getLogger(__name__)
 
 
