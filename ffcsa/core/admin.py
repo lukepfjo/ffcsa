@@ -28,7 +28,7 @@ User = get_user_model()
 accounts_base.ProfileInline.readonly_fields = [
     'payment_method', 'ach_status', 'google_person_id']
 accounts_base.ProfileInline.fieldsets = (
-    (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'invoice_notes')}),
+    (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'num_adults', 'invoice_notes')}),
     ('Payments', {'fields': (
         'monthly_contribution', 'discount_code', 'paid_signup_fee', 'payment_method', 'ach_status',
         'stripe_subscription_id', 'stripe_customer_id')}),
