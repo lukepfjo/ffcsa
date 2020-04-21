@@ -45,12 +45,6 @@ def recipe_processor(request, page):
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
-            error(request,
-                  "Your current dropsite is presently unavailable. "
-                  "Please select a different dropsite before adding items to your cart.")
-            return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
-
         if not request.user.profile.can_order_dairy:
             products = products.filter(product__is_dairy=False)
 
@@ -84,12 +78,6 @@ def weekly_box(request, page):
         if not request.user.profile.signed_membership_agreement:
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
-
-        if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
-            error(request,
-                  "Your current dropsite is presently unavailable. "
-                  "Please select a different dropsite before adding items to your cart.")
-            return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
 
         box_contents = Product.objects.published(for_user=request.user
                                                  ).filter(page.category.filters())
