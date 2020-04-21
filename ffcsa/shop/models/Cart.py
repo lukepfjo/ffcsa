@@ -36,7 +36,9 @@ class Cart(models.Model):
         """
         Increase quantity of existing item if variation matches, otherwise create new.
         """
-
+        # TODO: remove this for one-time orders
+        if not self.user_id:
+            raise Exception("You must be logged in to add products to your cart")
         if not self.pk:
             self.save()
         item, created = self.items.get_or_create(variation=variation)
@@ -55,11 +57,12 @@ class Cart(models.Model):
         if self.user_id is None:
             return False
 
+        # TODO: enable this for one-time orders?
         # User is not a subscribing member
-        User = get_user_model()
-        user = User.objects.get(pk=self.user_id)
-        if not user.profile.is_subscribing_member:
-            return False
+        # User = get_user_model()
+        # user = User.objects.get(pk=self.user_id)
+        # if not user.profile.is_subscribing_member:
+        #     return False
 
         return self.remaining_budget() < additional_total
 
@@ -116,7 +119,9 @@ class Cart(models.Model):
         user = User.objects.get(pk=self.user_id)
 
         # Not logged in, or is a non-member without a discount code
-        if not user or (not user.profile.is_member and not user.profile.discount_code):
+        if not user or not user.profile.discount_code:
+            # TODO: use the following for one-time orders?
+            # if not user or (not user.profile.is_member and not user.profile.discount_code):
             return 0
 
         return self.calculate_discount(user.profile.discount_code, has_member_discount=user.profile.is_member)

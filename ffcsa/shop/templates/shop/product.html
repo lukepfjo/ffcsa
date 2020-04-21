@@ -166,8 +166,8 @@
                             <div class="price-info">
                                 {% if product.has_price %}
                                     {% if request.user.profile.is_member %}
-                                        <span class="old-price">{{ variation.unit_price|currency }}</span>
                                         {% if variation.on_sale %}
+                                            <span class="old-price">{{ variation.unit_price|currency }}</span>
                                             {% trans "On sale:" %}
                                         {% else %}
                                             {% trans "Member price:" %}

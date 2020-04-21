@@ -102,11 +102,15 @@ class Profile(models.Model):
 
     @property
     def is_member(self):
+        # TODO this is not correct
+        # TODO fix this for one-time orders
         return self.paid_signup_fee
 
     @property
     def is_subscribing_member(self):
-        return (self.is_member and (self.stripe_subscription_id is not None)) or self.user.id == 5
+        # TODO fix this for one-time orders
+        return True
+        # return (self.is_member and (self.stripe_subscription_id is not None)) or self.user.id == 5
 
     def __str__(self):
         if self.user.last_name and self.user.first_name:

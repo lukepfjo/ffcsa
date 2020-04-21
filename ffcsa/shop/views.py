@@ -67,10 +67,13 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
-        # TODO :: Verify this behavior is correct
-        if request.user.is_authenticated() and not request.user.profile.signed_membership_agreement:
-            raise Exception("You must sign our membership agreement before you can make an order")
-
+        # TODO fix this for one-time orders
+        if not request.user.is_authenticated():
+            raise Exception(
+                "You must be authenticated in order to add products to your cart")
+        if not request.user.profile.signed_membership_agreement:
+            raise Exception(
+                "You must sign our membership agreement before you can make an order")
         if not request.cart.user_id:
             request.cart.user_id = request.user.id
         elif request.cart.user_id != request.user.id:
