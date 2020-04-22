@@ -61,7 +61,8 @@ def generate_weekly_order_reports(date):
     docs.append(generate_dairy_packlist(date))
 
     # Frozen items pack sheet
-    docs.append(generate_frozen_items_packlist(date, qs))
+    # docs.append(generate_frozen_items_packlist(date, qs))
+    docs.extend(generate_frozen_items_packlist(date, qs))
 
     # Grain & Bean Sheet
     # zip_files.append(("grain_and_bean_packlist_{}.pdf".format(date), generate_grain_and_bean_packlist(date)))
@@ -240,12 +241,17 @@ def generate_frozen_items_packlist(date, qs):
         order_items[k] = i
 
     context = {
-        'items': order_items,
         'date': date
     }
 
-    html = get_template("shop/reports/frozen_item_packlist_pdf.html").render(context)
-    return HTML(string=html).render()
+    for drop_site, items in order_items.items():
+        context.update({
+            'drop_site': drop_site,
+            'items': items,
+            'num_of_orders': len(items)
+        })
+        html = get_template("shop/reports/frozen_item_packlist_pdf.html").render(context)
+        yield HTML(string=html).render()
 
 
 def generate_dff_dairy_packlist(date):
