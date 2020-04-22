@@ -40,15 +40,25 @@ def recipe_processor(request, page):
     products = page.recipe.recipeproduct_set.filter(
         product__in=page.recipe.products.published())
 
-    if request.method == "POST" and request.POST.get('add_box_items'):
+    if request.method == "POST":
         if not request.user.profile.signed_membership_agreement:
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        if not request.user.profile.can_order_dairy:
-            products = products.filter(product__is_dairy=False)
+        if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
+            error(request,
+                  "Your current dropsite is no longer available. "
+                  "Please select a different dropsite before adding items to your cart.")
+            return
 
-        add_box_items([(p.product, p.quantity) for p in products], request)
+        if request.POST.get('add_box_items'):
+            if not request.user.profile.can_order_dairy:
+                products = products.filter(product__is_dairy=False)
+
+            add_box_items([(p.product, p.quantity) for p in products], request)
+        elif request.POST.get('add_item'):
+            # TODO handle this case
+            pass
         return redirect("shop_cart")
 
     def prefix_product(field):
@@ -78,6 +88,11 @@ def weekly_box(request, page):
         if not request.user.profile.signed_membership_agreement:
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
+        if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
+            error(request,
+                  "Your current dropsite is no longer available. "
+                  "Please select a different dropsite before adding items to your cart.")
+            return
 
         box_contents = Product.objects.published(for_user=request.user
                                                  ).filter(page.category.filters())
@@ -92,12 +107,6 @@ def weekly_box(request, page):
 
 
 def add_box_items(box_contents, request):
-    if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
-        error(request,
-              "Your current dropsite is no longer available. "
-              "Please select a different dropsite before adding items to your cart.")
-        return
-
     remaining_budget = request.cart.remaining_budget()
     info(request, "Box items added to order")
 
