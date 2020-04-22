@@ -37,8 +37,8 @@ ADD_PRODUCT_ERRORS = {
     "no_stock": _("The selected options are currently not in stock."),
     "no_stock_quantity": _("The selected quantity is currently unavailable."),
     "over_budget": _("Adding the selected quantity would put you over your remaining budget."),
-    "invalid_dropsite": _("Your current dropsite is presently unavailable. "
-                          "Please select a different dropsite before adding items to your cart.")
+    "invalid_dropsite": _("Your current dropsite is no longer available. "
+        "Please select a different dropsite before adding items to your cart.")
 }
 
 

@@ -94,7 +94,7 @@ def weekly_box(request, page):
 def add_box_items(box_contents, request):
     if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
         error(request,
-              "Your current dropsite is presently unavailable. "
+              "Your current dropsite is no longer available. "
               "Please select a different dropsite before adding items to your cart.")
         return
 

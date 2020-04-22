@@ -81,7 +81,7 @@ def product(request, slug, template="shop/product.html",
 
         if request.user.profile.drop_site not in [dropsite_info[0] for dropsite_info in settings.DROP_SITE_CHOICES]:
             error(request,
-                  "Your current dropsite is presently unavailable. "
+                  "Your current dropsite is no longer available. "
                   "Please select a different dropsite before adding items to your cart.")
             return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
 
