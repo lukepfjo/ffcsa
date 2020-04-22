@@ -20,7 +20,7 @@ config = {
   devtool: 'source-map',
   entry: {
     // main: './main.js',
-    style: './ffcsa/theme/static/css/style.css',
+    style: './ffcsa/static/css/style.css',
     cart: './cart/index.js',
     // absences: './absences/index.js',
   },

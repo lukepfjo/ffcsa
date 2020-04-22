@@ -528,7 +528,7 @@ if DJANGO_VERSION < (1, 9):
 INSTALLED_APPS = (
     'dal',
     'dal_select2',
-    "ffcsa.theme",
+    "ffcsa",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
