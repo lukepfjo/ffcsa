@@ -49,7 +49,14 @@ def category_processor(request, page):
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        if sku and quantity:
+        valid_dropsite = request.user.profile.drop_site in [dropsite_info[0] for dropsite_info in
+                                                            settings.DROP_SITE_CHOICES]
+        if not valid_dropsite:
+            error(request,
+                  "Your current dropsite is no longer available. "
+                  "Please select a different dropsite before adding items to your cart.")
+
+        elif valid_dropsite and sku and quantity:
             try:
                 variation = ProductVariation.objects.get(sku=sku)
                 # use AddProductForm b/c it does some validation w/ inventories, etc
@@ -66,8 +73,10 @@ def category_processor(request, page):
                                 error(request, e)
                             else:
                                 error(request, "{}: {}".format(field, e))
+
             except ProductVariation.DoesNotExist:
                 error(request, "No product found")
+
         elif not sku:
             error(request, "Please select a product")
 

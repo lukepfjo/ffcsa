@@ -3,6 +3,14 @@
 <style>
     @page {
         size: Letter;
+
+        @bottom-center{
+            content: counter(page) ' of ' counter(pages);
+            font-size: 9pt;
+            text-align: center;
+            height: 1cm;
+            width: 1cm;
+        }
     }
 
     .items li:nth-child(even) {

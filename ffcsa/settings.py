@@ -135,7 +135,9 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     # 'Corner Market': 3,
 }
 
-SENDINBLUE_DROP_SITE_FOLDER = 'marketing_automation'
+SENDINBLUE_DROP_SITE_FOLDER = 'Dropsites'
+# Can be found via https://developers.sendinblue.com/reference#getfolders-1
+SENDINBLUE_DROP_SITE_FOLDER_ID = 39
 
 # Rollbar settings
 

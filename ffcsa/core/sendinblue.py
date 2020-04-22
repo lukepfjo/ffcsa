@@ -80,7 +80,9 @@ def _initialize_drop_site_lists():
     # If drop sites in settings.py do not have corresponding lists on SIB, this will create them
 
     try:
-        existing_lists = send_request('contacts/lists')
+        # 50 is the max results the api will return. If we every have more then 50 dropsites, we will need to fix this
+        existing_lists = send_request('contacts/folders/{}/lists'.format(settings.SENDINBLUE_DROP_SITE_FOLDER_ID),
+                                      query={'limit': 50})
 
     except requests.exceptions.ConnectionError as ex:
         if settings.DEBUG:
@@ -103,16 +105,12 @@ def _initialize_drop_site_lists():
     if HOME_DELIVERY_LIST not in drop_site_ids.keys():
         missing_on_sib.append(HOME_DELIVERY_LIST)
 
-    if len(missing_on_sib) > 0:
-        folders = send_request('contacts/folders')['folders']
-        drop_site_folder = [f['id'] for f in folders if f['name'] == settings.SENDINBLUE_DROP_SITE_FOLDER][0]
-
-        for missing_drop_site in missing_on_sib:
-            list_name = 'Dropsite - {}'.format(missing_drop_site)
-            logger.info('Drop site list "{}" is missing on Sendinblue; creating...'.format(list_name))
-            response = send_request('contacts/lists', method='POST',
-                                    data={'name': list_name, 'folderId': drop_site_folder})
-            drop_site_ids[missing_drop_site] = int(response['id'])
+    for missing_drop_site in missing_on_sib:
+        list_name = 'Dropsite - {}'.format(missing_drop_site)
+        logger.warning('Drop site list "{}" is missing on Sendinblue; creating...'.format(list_name))
+        response = send_request('contacts/lists', method='POST',
+                                data={'name': list_name, 'folderId': settings.SENDINBLUE_DROP_SITE_FOLDER_ID})
+        drop_site_ids[missing_drop_site] = int(response['id'])
 
     return drop_site_ids
 
@@ -378,7 +376,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             logger.error(msg)
             return False, msg
 
-        logger.error(ex)
+        logger.error('SendInBlue error: %s - Identifier: %s - Body: %s', str(ex), identifier, body)
         return False, str(ex)
 
     return True, ''

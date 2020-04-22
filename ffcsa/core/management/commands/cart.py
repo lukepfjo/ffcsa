@@ -5,7 +5,7 @@ from django.db.models import Sum, OuterRef, Subquery, IntegerField
 from django.utils import formats
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core.utils import get_friday_pickup_date
+from ffcsa.core.utils import get_current_friday_pickup_date
 from ffcsa.shop.models import Cart, Order, ProductVariation, CartItem
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
@@ -128,7 +128,7 @@ class Command(BaseCommand):
 
                 order.save()
 
-                pickup = get_friday_pickup_date()
+                pickup = get_current_friday_pickup_date()
                 if user.profile.home_delivery or user.profile.drop_site.lower().strip() != 'farm':
                     pickup = pickup + datetime.timedelta(1)
 

@@ -126,7 +126,7 @@ def update_contact(user):
                 user.profile.google_person_id = None
 
         if not u:
-            logger.error('Failed to update google contact, attempting to create contact for user:', user)
+            logger.warning('Failed to update google contact, attempting to create contact for user:', user)
             if not add_contact(user):
                 send_mail(
                     "Failed Google Authentication %s" % settings.SITE_TITLE,
