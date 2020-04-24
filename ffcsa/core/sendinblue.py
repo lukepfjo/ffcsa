@@ -376,7 +376,7 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             logger.error(msg)
             return False, msg
 
-        logger.error('SendInBlue error: %s - Identifier: %s - Body: %s', str(ex), identifier, body)
+        logger.error('SendInBlue error: %s - Identifier: %s - Body: %s - Old User Info: %s', str(ex), identifier, body, old_user_info)
         return False, str(ex)
 
     return True, ''
