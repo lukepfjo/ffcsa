@@ -8,6 +8,7 @@ from mezzanine.conf import settings
 from mezzanine.pages.page_processors import processor_for
 from mezzanine.utils.views import paginate
 
+from ffcsa.core.dropsites import is_valid_dropsite
 from ffcsa.shop.forms import AddProductForm
 from ffcsa.shop.models import Category, Product, ProductVariation
 from ffcsa.shop.utils import recalculate_cart
@@ -49,9 +50,7 @@ def category_processor(request, page):
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        valid_dropsite = request.user.profile.home_delivery or request.user.profile.drop_site in [dropsite_info[0] for
-                                                                                                  dropsite_info in
-                                                                                                  settings.DROP_SITE_CHOICES]
+        valid_dropsite = is_valid_dropsite(request.user)
         if not valid_dropsite:
             error(request,
                   "Your current dropsite is no longer available. "

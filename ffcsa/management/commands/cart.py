@@ -113,7 +113,7 @@ class Command(BaseCommand):
                         'shipping_detail_street': address_components[0].strip(),
                         'shipping_detail_city': address_components[1].strip(),
                         'shipping_detail_state': 'OR',
-                        'shipping_detail_postcode': address_components[2].strip().split(' ')[1],
+                        'shipping_detail_postcode': user.profile.get_delivery_zip(),
                         'shipping_instructions': user.profile.delivery_notes,
                     })
 

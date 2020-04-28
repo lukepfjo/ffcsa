@@ -9,7 +9,7 @@ from mezzanine.conf import settings
 from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core import sendinblue
+from ffcsa.core import sendinblue, dropsites
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
@@ -97,7 +97,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['drop_site'] = forms.ChoiceField(
-            choices=settings.DROP_SITE_CHOICES, label="Drop Site Location")
+            choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location")
 
         if self.instance.id is not None:
             self.initial['drop_site'] = self.instance.profile.drop_site

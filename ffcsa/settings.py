@@ -30,65 +30,92 @@ FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 HOME_DELIVERY_ENABLED = True
 HOME_DELIVERY_CHARGE = 5
 FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
-DROP_SITE_CHOICES = (
-    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    # ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
-    ('W 11th', 'Eugene - W 11th and Van Buren (Saturday)'),
-    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
-    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
-    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
-    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
-    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
-    ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
-)
 
-DROP_SITE_COLORS = {
-    'Farm': 'pink',
-    # 'Corner Market': 'white',
-    'LCFM': 'blue',
-    # '19th St': 'blue',
-    # 'Roosevelt': 'white',
-    'W 11th': 'white',
-    'Hollywood': 'yellow',
-    'PSU': 'green',
-    'St Johns': 'purple',
-    'Woodstock': 'yellow',
-    'Banzhaf': 'orange',
-    'Home Delivery': 'purple'
-}
+DROPSITES = [
+    {
+        'name': 'Farm - Friday',
+        'memberLimit': None,
+        'color': 'pink',
+        'description': 'Junction City - Deck Family Farm (Friday)',
+        'allowOneTimeOrders': True
+    },
+    {
+        'name': 'Farm - Tuesday',
+        'memberLimit': None,
+        'color': 'pink',
+        'description': 'Junction City - Deck Family Farm (Tuesday)',
+        'allowOneTimeOrders': True
+    },
+    {
+        'name': 'W 11th',
+        'memberLimit': None,
+        'color': 'white',
+        'description': 'Eugene - W 11th and Van Buren (Saturday)',
+        'allowOneTimeOrders': False
+    },
+    {
+        'name': 'LCFM',
+        'memberLimit': None,
+        'color': 'blue',
+        'description': 'Eugene - Lane County Farmers Market (Saturday)',
+        'allowOneTimeOrders': True
+    },
+    {
+        'name': 'PSU',
+        'memberLimit': None,
+        'color': 'green',
+        'description': 'Portland - PSU Farmers Market (Saturday)',
+        'allowOneTimeOrders': True
+    },
+    {
+        'name': 'Hollywood',
+        'memberLimit': None,
+        'color': 'yellow',
+        'description': 'Portland - Hollywood Farmers Market (Saturday)',
+        'allowOneTimeOrders': True
+    },
+    {
+        'name': 'Banzhaf',
+        'memberLimit': None,
+        'color': 'orange',
+        'description': 'Corvallis - Member Drop Site (Saturday)',
+        'allowOneTimeOrders': False
+    },
+    # # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    # # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
+    # DROP_SITE_COLORS = {
+    # 'St Johns': 'purple',
+    # 'Woodstock': 'yellow',
+    # }
+]
 
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodstock', 'St Johns',
-                   'PSU', 'Hollywood', ]
+ORDER_WINDOWS = [
+    {
+        'startDay': 1,  # 1 is Monday
+        'startTime': '17:00',
+        'endDay': 3,
+        'endTime': '23:59',
+        'memberLimit': 200,
+        'dropsites': ['Farm - Friday', 'W 11th', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf'],
+        'homeDeliveryZips': ['97448', '97402', '97405', '97404']
+    }
+]
+
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
     ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
-    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '16:00', '', '', '', '', 'none'],
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '16:00', '', '', '',
+     '', 'none'],
     ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '9:00', '', '', '', '', 'none']
 ]
 
-
 # SETTINGS FOR ONE-TIME ORDERS
 # TODO make this 5% when we enable one-time orders
 MEMBER_ONE_TIME_ORDER_DISCOUNT = .00  # Percentage expressed as a decimal
 MINIMUM_ONE_TIME_ORDER_AMOUNT = 100  # Amount in dollars
-
-ONE_TIME_ORDER_DROP_SITE_CHOICES = (
-    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
-    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    # ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
-    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
-    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
-    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
-    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
-    ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
-)
 
 # SignRequest settings
 SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
@@ -99,7 +126,6 @@ SIGN_REQUEST_TEMPLATES = {
     3: '',
     4: ''
 }
-
 
 GOOGLE_API_KEY = None
 GOOGLE_GROUP_IDS = {
@@ -396,7 +422,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
 # SESSION_COOKIE_NAME = 'MnlYRc'
 SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
-SESSION_COOKIE_SECURE = True    # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SECURE = True  # Prevent cookies from being sent over HTTP; only HTTPS
 SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
 
 # CSRF_COOKIE_NAME = 'osQiXg'

@@ -14,6 +14,7 @@ from mezzanine.conf import settings
 from reportlab.graphics import shapes
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
+from ffcsa.core.dropsites import get_color
 from ffcsa.shop.invoice import generate_invoices
 from ffcsa.shop.models import Category, Product, OrderItem
 
@@ -115,12 +116,7 @@ def draw_label(label, width, height, order):
     font_size = 16
     name_width = stringWidth(drop_site, FONT_NAME, font_size)
 
-    if drop_site in settings.DROP_SITE_COLORS:
-        color = settings.DROP_SITE_COLORS[drop_site]
-        strokeColor = color if color is not 'white' else 'black'
-    else:
-        color = 'white'
-        strokeColor = 'white'
+    color, strokeColor = get_color(drop_site)
     # label.add(shapes.Circle(((height - 8) / 2) + 4, (height - 8) / 2, (height - 8) / 2, fillColor=color, strokeColor=strokeColor))
     rect_w = max(width / 2 + 4, name_width + 16)
     label.add(shapes.Rect(width - rect_w - 4, 4, rect_w, 32, rx=2,

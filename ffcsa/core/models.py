@@ -129,6 +129,14 @@ class Profile(models.Model):
 
         return False
 
+    def get_delivery_zip(self):
+        if not self.home_delivery:
+            return None
+
+        # ex address: 2050 Goodpasture Loop, Eugene, OR 97401, USA
+        address_components = self.delivery_address.split(',')
+        return address_components[2].strip().split(' ')[1]
+
 
 ###################
 #  DropSite
@@ -161,7 +169,8 @@ class Payment(models.Model):
 
     def __str__(self):
         return "%s, %s - %s - %s for $%s" % (
-        self.user.last_name, self.user.first_name, self.date, 'Credit' if self.is_credit else 'Payment', self.amount)
+            self.user.last_name, self.user.first_name, self.date, 'Credit' if self.is_credit else 'Payment',
+            self.amount)
 
 
 class Recipe(Page, RichText):

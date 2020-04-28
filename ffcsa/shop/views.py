@@ -80,9 +80,7 @@ def product(request, slug, template="shop/product.html",
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        if not request.user.profile.home_delivery and request.user.profile.drop_site not in [dropsite_info[0] for
-                                                                                             dropsite_info in
-                                                                                             settings.DROP_SITE_CHOICES]:
+        if not is_valid_dropsite(request.user):
             error(request,
                   "Your current dropsite is no longer available. "
                   "Please select a different dropsite before adding items to your cart.")

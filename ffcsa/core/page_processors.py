@@ -1,3 +1,4 @@
+from ffcsa.core.dropsites import is_valid_dropsite
 from ffcsa.shop.models import Product
 from ffcsa.shop.utils import recalculate_cart
 from django.contrib.messages import info, error
@@ -45,9 +46,7 @@ def recipe_processor(request, page):
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        if not request.user.profile.home_delivery and request.user.profile.drop_site not in [dropsite_info[0] for
-                                                                                             dropsite_info in
-                                                                                             settings.DROP_SITE_CHOICES]:
+        if not is_valid_dropsite(request.user):
             error(request,
                   "Your current dropsite is no longer available. "
                   "Please select a different dropsite before adding items to your cart.")
@@ -90,9 +89,7 @@ def weekly_box(request, page):
         if not request.user.profile.signed_membership_agreement:
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
-        if not request.user.profile.home_delivery and request.user.profile.drop_site not in [dropsite_info[0] for
-                                                                                             dropsite_info in
-                                                                                             settings.DROP_SITE_CHOICES]:
+        if not is_valid_dropsite(request.user):
             error(request,
                   "Your current dropsite is no longer available. "
                   "Please select a different dropsite before adding items to your cart.")
