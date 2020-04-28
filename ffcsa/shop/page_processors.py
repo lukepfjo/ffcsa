@@ -49,8 +49,9 @@ def category_processor(request, page):
             raise Exception(
                 "You must sign our membership agreement before you can make an order")
 
-        valid_dropsite = request.user.profile.drop_site in [dropsite_info[0] for dropsite_info in
-                                                            settings.DROP_SITE_CHOICES]
+        valid_dropsite = request.user.profile.home_delivery or request.user.profile.drop_site in [dropsite_info[0] for
+                                                                                                  dropsite_info in
+                                                                                                  settings.DROP_SITE_CHOICES]
         if not valid_dropsite:
             error(request,
                   "Your current dropsite is no longer available. "
