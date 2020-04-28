@@ -56,16 +56,17 @@ class Command(BaseCommand):
                 invoice_pages.extend(invoice.pages)
 
             # workaround for https://github.com/Kozea/WeasyPrint/issues/990
-            for invoice, order in generate_invoices(orders):
-                if order.drop_site in settings.MARKET_CHECKLISTS:
-                    # points to Items Ordered header
-                    # Lets rename to lastname
-                    bookmark = list(invoice.pages[0].bookmarks[0])
-                    bookmark[1] = order.billing_detail_last_name + " Market Invoice"
-                    invoice.pages[0].bookmarks[0] = tuple(bookmark)
-                    market_invoice_pages.extend(invoice.pages)
+            # for invoice, order in generate_invoices(orders):
+            #     if order.drop_site in settings.MARKET_CHECKLISTS:
+            #         # points to Items Ordered header
+            #         # Lets rename to lastname
+            #         bookmark = list(invoice.pages[0].bookmarks[0])
+            #         bookmark[1] = order.billing_detail_last_name + " Market Invoice"
+            #         invoice.pages[0].bookmarks[0] = tuple(bookmark)
+            #         market_invoice_pages.extend(invoice.pages)
 
-            doc = reports.copy(market_invoice_pages + reports.pages + invoice_pages)  # uses the metadata from reports
+            # doc = reports.copy(market_invoice_pages + reports.pages + invoice_pages)  # uses the metadata from reports
+            doc = reports.copy(reports.pages + invoice_pages)  # uses the metadata from reports
 
             # delivery_orders = orders.filter(drop_site='Home Delivery')
             # deliveries_csv = generate_deliveries_csv(delivery_orders)
