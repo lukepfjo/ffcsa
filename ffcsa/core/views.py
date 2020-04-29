@@ -285,6 +285,7 @@ def payments_update(request):
                 customer.source = stripeToken
                 customer.save()
                 # reset this so they don't receive error msg for failed ach verification
+                user.profile.payment_method = 'CC'
                 user.profile.ach_status = None
                 user.profile.save()
                 success(request, 'Your payment method has been updated.')
@@ -293,6 +294,7 @@ def payments_update(request):
                     user.profile.stripe_customer_id)
                 customer.source = stripeToken
                 customer.save()
+                user.profile.payment_method = 'ACH'
                 user.profile.ach_status = 'VERIFIED' if customer.sources.data[
                                                             0].status == 'verified' else 'NEW'
                 user.profile.save()
