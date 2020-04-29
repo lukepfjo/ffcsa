@@ -24,6 +24,7 @@ from ffcsa.shop.forms import (AddProductForm, CartItemFormSet,
                               DiscountForm, OrderForm)
 from ffcsa.shop.models import Product, ProductVariation, Order, Vendor
 from ffcsa.shop.models import DiscountCode
+from ffcsa.shop.orders import user_can_order
 from ffcsa.shop.utils import recalculate_cart, sign
 
 from ffcsa.core.models import Payment
@@ -71,19 +72,9 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
-        # TODO fix this for one-time orders
-        if not request.user.is_authenticated():
-            raise Exception(
-                "You must be authenticated in order to add products to your cart")
-
-        if not request.user.profile.signed_membership_agreement:
-            raise Exception(
-                "You must sign our membership agreement before you can make an order")
-
-        if not is_valid_dropsite(request.user):
-            error(request,
-                  "Your current dropsite is no longer available. "
-                  "Please select a different dropsite before adding items to your cart.")
+        can_order, err = user_can_order(request.user)
+        if not can_order:
+            error(request, err)
             return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
 
         if not request.cart.user_id:
