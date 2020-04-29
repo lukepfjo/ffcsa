@@ -531,6 +531,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "mezzanine.conf.context_processors.settings",
                 "mezzanine.pages.context_processors.page",
+                "ffcsa.shop.context_processors.shop_globals"
             ],
             "builtins": [
                 "mezzanine.template.loader_tags",

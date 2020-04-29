@@ -1,13 +1,6 @@
-from __future__ import unicode_literals
-
-from mezzanine.conf import settings
-
-name = "ffcsa.shop.context_processors.shop_globals"
-if name in settings.TEMPLATE_CONTEXT_PROCESSORS:
-    from warnings import warn
-
-    warn(name + " deprecated; use ffcsa.shop.middleware.ShopMiddleware")
+from ffcsa.core.dropsites import user_can_order
 
 
-    def shop_globals(request):
-        return {"cart": request.cart}
+def shop_globals(request):
+    can_order = request.user.is_authenticated() and user_can_order(request.user)
+    return {"can_order": can_order}

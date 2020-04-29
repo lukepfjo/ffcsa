@@ -96,11 +96,11 @@
                     <p class="mb-2">Producer: {{ variation.vendors.first }}</p>
                     {% if variation.has_price %}
                         {% if request.user.profile.is_member %}
-                            <span class="old-price">{{ variation.unit_price|currency }}</span>
                             {% if variation.on_sale %}
-                                {% trans "On sale:" %}
+                                <span class="old-price">{{ variation.unit_price|currency }}</span>
+                                On sale:
                             {% else %}
-                                {% trans "Member price:" %}
+                                {#                                Member price:#}
                             {% endif %}
                             <span class="price">{{ variation.member_price|currency }}</span>
                         {% else %}
@@ -121,7 +121,13 @@
             {% endfor %}
         </ul>
 
-        {% if request.user.is_authenticated and request.user.profile.signed_membership_agreement %}
+        {% if not request.user.is_authenticated %}
+            <p class="error-msg">Log In to place an order.</p>
+        {% elif not request.user.profile.signed_membership_agreement %}
+            <p class="error-msg">Please sign our membership agreement</p>
+        {% elif not can_order %}
+            <p class="error-msg">Order period has not opened.</p>
+        {% else %}
             {% errors_for add_product_form %}
 
             <form method="post" id="add-cart" class="shop-form">
@@ -136,10 +142,6 @@
                     {% endif %}
                 </div>
             </form>
-        {% elif request.user.is_authenticated and not request.user.profile.signed_membership_agreement %}
-            <p class="error-msg">{% trans "Please sign our membership agreement" %}</p>
-        {% else %}
-            <p class="error-msg">{% trans "Log In to place an order." %}</p>
         {% endif %}
 
     {% else %}

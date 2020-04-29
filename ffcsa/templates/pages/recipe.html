@@ -14,7 +14,7 @@
             {{ page.recipe.content|safe }}
         {% endeditable %}
 
-        {% if request.user.is_authenticated and request.user.profile.signed_membership_agreement %}
+        {% if can_order and request.user.profile.signed_membership_agreement %}
             <form method="post" id="add-all-recipe-form" class="add-recipe-form">
                 {% csrf_token %}
                 <div class="form-actions">
@@ -24,6 +24,8 @@
                            value="{% trans "Add All Items To Weekly Order" %}">
                 </div>
             </form>
+        {% else %}
+            <p class="mb-12"/>
         {% endif %}
 
     {% endblock content %}
@@ -45,26 +47,24 @@
                                     <h6>{{ p.product }}</h6>
                                 </div>
                             </a>
-                        {% if request.user.profile.signed_membership_agreement %}
-                            {% if can_order_dairy or not p.product.is_dairy %}
-                                {% if p.product.variations.first.has_stock %}
-                                    <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
-                                    <form method="post" class="product-quick-add-form form-group-sm">
-                                        {% csrf_token %}
-                                        <input type="number" class="form-control item-qty" placeholder="qty"
-                                               name="item_qty" value="{{ p.quantity }}"/>
-                                        <input type="hidden" name="item_id" value="{{ p.product.id }}"/>
-                                        <input type="submit" class="btn btn-primary btn-sm form-control" name="add_item"
-                                               value="{% trans "Add to Order" %}">
-                                    </form>
-                                {% else %}
-                                    <p class="text-danger text-center">Out of Stock</p>
-                                {% endif %}
+                            {% if not request.user.profile.signed_membership_agreement %}
+                                <p class="text-base text-center text-red-800">Please sign our member agreement</p>
+                            {% elif not can_order %}
+                                <p class="text-base text-center text-red-800">Order period has not opened</p>
+                            {% elif not p.product.variations.first.has_stock %}
+                                <p class="text-danger text-center">Out of Stock</p>
+                            {% elif can_order_dairy or not p.product.is_dairy %}
+                                <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
+                                <form method="post" class="product-quick-add-form form-group-sm">
+                                    {% csrf_token %}
+                                    <input type="number" class="form-control item-qty" placeholder="qty"
+                                           name="item_qty" value="{{ p.quantity }}"/>
+                                    <input type="hidden" name="item_id" value="{{ p.product.id }}"/>
+                                    <input type="submit" class="btn btn-primary btn-sm form-control"
+                                           name="add_item"
+                                           value="{% trans "Add to Order" %}">
+                                </form>
                             {% endif %}
-                            {% else %}
-                            <p class="text-base text-center text-red-800">Please sign our member
-                                agreement</p>
-                        {% endif %}
                         </div>
                     </div>
                 {% endif %}
