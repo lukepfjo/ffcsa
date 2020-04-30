@@ -1,17 +1,27 @@
+{% load shop_tags %}
+
 {% if not request.user.is_authenticated %}
     <div class="alert alert-warning non-field-error">FFCSA members please sign in to make your order</div>
-{% elif request.user.profile.signed_membership_agreement %}
-    <div class="alert alert-warning non-field-error"><strong>Please place order between Monday 6PM and Wednesday
-        Midnight.</strong>
-        <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
-        type and value. Supporting small farms means you get to experience seasonal variations!
-    </div>
-    {% include 'pages/dairy-product-alert.html' %}
-    <div style="margin-top:-15px" class="alert alert-info non-field-error"><b>Current
+{% elif not request.user.profile.signed_membership_agreement %}
+    {% include 'ffcsa_core/includes/membership_agreement_alert.html' %}
+{% else %}
+    <div class="alert alert-info non-field-error mb-2"><b>Current
         Dropsite:</b> {% if request.user.profile.home_delivery %}Home Delivery -
         {{ request.user.profile.delivery_address }}{% else %}{{ request.user.profile.drop_site }}{% endif %} <a
             class="border-0 btn btn-xs btn-primary ml-4" href="{% url "profile_update" %}">Update</a>
     </div>
+    {% include 'pages/dairy-product-alert.html' %}
+    {% if can_order %}
+        <div class="alert alert-warning non-field-error"><strong>The current order period will end
+            on {% order_period_end %}</strong>
+            <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
+            type and value. Supporting small farms means you get to experience seasonal variations!
+        </div>
+    {% else %}
+        <div class="alert alert-warning non-field-error">
+            <strong>Your next order period is from {% order_period_start %} to {% order_period_end %}</strong>
+        </div>
+    {% endif %}
 {% endif %}
 
 {% include 'ffcsa_core/includes/membership_agreement_alert.html' %}

@@ -33,6 +33,26 @@ def valid_order_period_for_user(user):
     return False
 
 
+def get_order_period_for_user(user):
+    window = None
+    if user.profile.home_delivery:
+        zip = user.profile.get_delivery_zip()
+
+        for window in settings.ORDER_WINDOWS:
+            if zip in window['homeDeliveryZips']:
+                break
+
+    else:
+        for window in settings.ORDER_WINDOWS:
+            if user.profile.drop_site in window['dropsites']:
+                break
+
+    if window is not None:
+        return _get_order_window_start(window), _get_order_window_end(window)
+
+    return None, None
+
+
 def _home_delivery_can_order(user):
     zip = user.profile.get_delivery_zip()
 

@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+
+from django.utils import formats
 from future.builtins import str
 
 from decimal import Decimal
@@ -7,9 +9,31 @@ import platform
 
 from django import template
 
+from ffcsa.shop.orders import get_order_period_for_user, valid_order_period_for_user
 from ffcsa.shop.utils import set_locale
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def order_period_end(context):
+    period_start, period_end = get_order_period_for_user(context.request.user)
+    date = formats.date_format(period_end, "l, F jS")
+    time = formats.date_format(period_end, "P")
+    return date + " at " + time
+
+
+@register.simple_tag(takes_context=True)
+def order_period_start(context):
+    period_start, period_end = get_order_period_for_user(context.request.user)
+    date = formats.date_format(period_start, "l, F jS")
+    time = formats.date_format(period_start, "P")
+    return date + " at " + time
+
+
+@register.simple_tag(takes_context=True)
+def is_order_cycle(context):
+    return valid_order_period_for_user(context.request.user)
 
 
 @register.filter

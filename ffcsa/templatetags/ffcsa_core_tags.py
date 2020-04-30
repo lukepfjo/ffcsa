@@ -23,27 +23,6 @@ def pickup_date_text(is_subscriber=False):
                                                    formats.date_format(delivery, "D F d"))
 
 
-@register.simple_tag()
-def order_week_start():
-    week_start = get_order_week_start()
-
-    return formats.date_format(week_start, "F d, Y")
-
-
-@register.simple_tag()
-def order_week_end():
-    order_week_end = get_order_week_end()
-
-    return formats.date_format(order_week_end, "F d, Y")
-
-
-@register.simple_tag()
-def is_order_cycle():
-    now = datetime.date.today()
-    week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
-    week_end = get_order_week_end()
-
-    return week_start.date() <= now <= week_end.date()
 
 
 @register.filter
