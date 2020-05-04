@@ -37,6 +37,7 @@ ADD_PRODUCT_ERRORS = {
     "no_stock": _("The selected options are currently not in stock."),
     "no_stock_quantity": _("The selected quantity is currently unavailable."),
     "over_budget": _("Adding the selected quantity would put you over your remaining budget."),
+    "not_available": _("The selected product is not available."),
     "invalid_dropsite": _("Your current dropsite is no longer available. "
         "Please select a different dropsite before adding items to your cart.")
 }
@@ -125,6 +126,8 @@ class AddProductForm(forms.Form):
                 error = "no_stock"
             elif not variation.has_stock(self.cleaned_data['quantity']):
                 error = "no_stock_quantity"
+            elif not variation.product.available:
+                error = "not_available"
             else:
                 # Validate user is under budget
                 quantity = self.cleaned_data['quantity']
