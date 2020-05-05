@@ -84,3 +84,6 @@ ADMINS = [('RJ', '%(admin_email)s')]
 STATICFILES_STORAGE = (
     "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 )
+
+CSRF_COOKIE_SECURE = True # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SECURE = True # Prevent cookies from being sent over HTTP; only HTTPS

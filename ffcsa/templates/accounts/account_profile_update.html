@@ -36,7 +36,7 @@
         <div class="panel panel-default">
             <div class="panel-body">
                 {% is_order_cycle as is_order_cycle %}
-                {% if not is_order_cycle %}
+                {% if valid_dropsite and not is_order_cycle %}
                     <p class="alert alert-warning">Any changes you make will not take affect until the next order
                         cycle.
                         If you have an urgent drop site change, send us an email to <a

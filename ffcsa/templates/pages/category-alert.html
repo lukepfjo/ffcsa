@@ -10,6 +10,12 @@
         {{ request.user.profile.delivery_address }}{% else %}{{ request.user.profile.drop_site }}{% endif %} <a
             class="border-0 btn btn-xs btn-primary ml-4" href="{% url "profile_update" %}">Update</a>
     </div>
+    {% if not valid_dropsite %}
+        <div class="alert alert-error non-field-error"><strong>Your dropsite is no longer available.</strong>
+            <a class="border-0 btn btn-xs btn-primary ml-4" href="{% url "profile_update" %}">Change it!</a>
+        </div>
+    {% endif %}
+
     {% include 'pages/dairy-product-alert.html' %}
     {% if can_order %}
         <div class="alert alert-warning non-field-error"><strong>The current order period will end
@@ -17,7 +23,7 @@
             <br/>Substitutions may be made due to changes in availability and any substituted items will be of similar
             type and value. Supporting small farms means you get to experience seasonal variations!
         </div>
-    {% else %}
+    {% elif valid_dropsite %}
         <div class="alert alert-warning non-field-error">
             <strong>Your next order period is from {% order_period_start %} to {% order_period_end %}</strong>
         </div>

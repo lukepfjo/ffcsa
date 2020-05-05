@@ -41,6 +41,12 @@ class Address(models.Model):
     zip = models.CharField(max_length=10)
     country = models.CharField(max_length=165)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['zip']),
+        ]
+
+
     def __str__(self):
         return '{}, {}, {} {}, {}'.format(self.street, self.city, self.state, self.zip, self.country)
 
@@ -150,6 +156,11 @@ class Profile(models.Model):
     num_adults = models.IntegerField("How many adults are in your family?", default=0,
                                      validators=[validators.MinValueValidator(1)]
                                      )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['drop_site']),
+        ]
 
     @property
     def joined_before_dec_2017(self):

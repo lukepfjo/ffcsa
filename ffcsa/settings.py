@@ -31,6 +31,22 @@ HOME_DELIVERY_ENABLED = True
 HOME_DELIVERY_CHARGE = 5
 FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 
+# A location can either be a zip code or a dropsite name
+DROP_LOCATION_GROUP_LIMITS = [
+    {
+        'limit': 80,
+        'locations': ['Hollywood', 'PSU']
+    },
+    {
+        'limit': 70,
+        'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', '97330', 'W 11th']
+    }
+]
+
+HOME_DELIVERY_ZIP_LIMITS = {
+    # '97448': 1
+}
+
 DROPSITES = [
     {
         'name': 'Farm - Friday',
@@ -76,7 +92,7 @@ DROPSITES = [
     },
     {
         'name': 'Banzhaf',
-        'memberLimit': None,
+        'memberLimit': 13,
         'color': 'orange',
         'description': 'Corvallis - Member Drop Site (Saturday)',
         'allowOneTimeOrders': False
@@ -422,11 +438,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
 # SESSION_COOKIE_NAME = 'MnlYRc'
 SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
-SESSION_COOKIE_SECURE = True  # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SECURE = False # Prevent cookies from being sent over HTTP; only HTTPS
 SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
 
 # CSRF_COOKIE_NAME = 'osQiXg'
-CSRF_COOKIE_SECURE = True  # Prevent cookies from being sent over HTTP; only HTTPS
+CSRF_COOKIE_SECURE = False # Prevent cookies from being sent over HTTP; only HTTPS
 CSRF_FAILURE_VIEW = 'ffcsa.shop.views.csrf_failure'
 
 SITE_ID = 1

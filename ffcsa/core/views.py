@@ -24,12 +24,14 @@ from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from django.views import View
+from django_common import http
 from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 from mezzanine.accounts import views
 
+from ffcsa.core.dropsites import get_full_drop_locations
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
 from ffcsa.core.forms import BasePaymentFormSet, ProfileForm, CreditOrderedProductForm
@@ -782,7 +784,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
     extra = 1 if len(ids) > 0 else 2
     can_delete = len(ids) > 0
 
-    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes', 'is_credit'), can_delete=can_delete,
+    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes', 'is_credit'),
+                                          can_delete=can_delete,
                                           extra=extra, formset=BasePaymentFormSet)
 
     if request.method == 'POST':
@@ -935,6 +938,13 @@ class ProductAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(title__icontains=self.q)
 
         return qs
+
+
+def home_delivery_check(request, zip):
+    return http.JsonResponse(
+        {
+            'is_full': zip in get_full_drop_locations()
+        })
 
 
 @method_decorator(csrf_exempt, name='dispatch')

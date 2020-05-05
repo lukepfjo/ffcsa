@@ -10,6 +10,7 @@ from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
 from ffcsa.core import sendinblue, dropsites
+from ffcsa.core.dropsites import get_full_drop_locations
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
@@ -74,6 +75,19 @@ def sanitize_phone_number(num):
     return num[:3] + '-' + num[3:6] + '-' + num[6:]
 
 
+class DropsiteSelectWidget(forms.Select):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._full_locations = get_full_drop_locations()
+
+    def create_option(self, *args, **kwargs):
+        opt = super().create_option(*args, **kwargs)
+        if opt['value'] in self._full_locations:
+            opt['attrs']['disabled'] = True
+            opt['label'] = '(Full) - ' + opt['label']
+        return opt
+
+
 class ProfileForm(accounts_forms.ProfileForm):
     # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
     username = None
@@ -89,15 +103,14 @@ class ProfileForm(accounts_forms.ProfileForm):
         # for some reason, the Profile model validators are not copied over to the form, so we add them here
         self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
-        self.fields['delivery_address'].widget.attrs['readonly'] = ''
-        self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
+        self.fields['delivery_address'].widget = forms.TextInput(attrs={'readonly': '', 'class': 'mb-3 mr-4'})
         self.fields['delivery_notes'].widget.attrs = {'rows': 3, 'cols': 40,
                                                       'placeholder': 'Any special notes to give to our delivery driver regarding your delivery/location.'}
 
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
-        self.fields['drop_site'] = forms.ChoiceField(
-            choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location")
+        self.fields['drop_site'] = forms.ChoiceField(widget=DropsiteSelectWidget(),
+                                                     choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location")
 
         if self.instance.id is not None:
             self.initial['drop_site'] = self.instance.profile.drop_site
@@ -149,11 +162,15 @@ class ProfileForm(accounts_forms.ProfileForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        if cleaned_data.get('home_delivery', False):
+        home_delivery = cleaned_data.get('home_delivery', False)
+        if home_delivery:
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
         elif not cleaned_data.get('drop_site', False):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
+
+        if not home_delivery:
+            cleaned_data['delivery_address'] = None
 
         return cleaned_data
 
@@ -229,7 +246,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
             # User has not received the notification before
             if len(user_dropsite_info) == 0:
-                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'],
+                                                                         params)
 
                 # If the email is successfully sent add an appropriate DropSiteInfo to the user
                 if date_last_modified is not False:
@@ -244,7 +262,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
                 user_dropsite_entry = user_dropsite_info[0]
                 if user_dropsite_entry.last_version_received != date_last_modified:
-                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'],
+                                                                       params)
 
                     # Don't update entry if email fails to send
                     if email_result is not False:
