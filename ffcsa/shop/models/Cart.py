@@ -108,7 +108,11 @@ class Cart(models.Model):
         if order_total >= settings.FREE_HOME_DELIVERY_ORDER_AMOUNT:
             return 0
 
-        return settings.HOME_DELIVERY_CHARGE
+        zip_code = user.profile.delivery_address.zip
+        if zip_code in settings.HOME_DELIVERY_FEE_BY_ZIP:
+            return settings.HOME_DELIVERY_FEE_BY_ZIP[zip_code]
+
+        return settings.DEFAULT_HOME_DELIVERY_CHARGE
 
     def discount(self):
         # TODO :: This will have to be changed to allow for public discount codes

@@ -103,7 +103,8 @@ class ProfileForm(accounts_forms.ProfileForm):
         # for some reason, the Profile model validators are not copied over to the form, so we add them here
         self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
-        self.fields['delivery_address'].widget = forms.TextInput(attrs={'readonly': '', 'class': 'mb-3 mr-4'})
+        self.fields['delivery_address'].widget.attrs['readonly'] = ''
+        self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
         self.fields['delivery_notes'].widget.attrs = {'rows': 3, 'cols': 40,
                                                       'placeholder': 'Any special notes to give to our delivery driver regarding your delivery/location.'}
 
@@ -213,7 +214,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         request = current_request()
         if not self._signup:
             # we can't set this on signup b/c the cart.user_id has not been set yet
-            if "home_delivery" in self.changed_data:
+            if "home_delivery" in self.changed_data or "delivery_address" in self.changed_data:
                 if user.profile.home_delivery:
                     set_home_delivery(request)
                 else:

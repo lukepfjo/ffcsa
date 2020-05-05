@@ -46,7 +46,6 @@ class Address(models.Model):
             models.Index(fields=['zip']),
         ]
 
-
     def __str__(self):
         return '{}, {}, {} {}, {}'.format(self.street, self.city, self.state, self.zip, self.country)
 
@@ -91,6 +90,9 @@ class AddressField(models.ForeignKey):
     def contribute_to_class(self, cls, name, virtual_only=False):
         super().contribute_to_class(cls, name, virtual_only=virtual_only)
         setattr(cls, self.name, AddressDescriptor(self))
+
+    def formfield(self, **kwargs):
+        return models.CharField().formfield(**kwargs)
 
 
 ###################
@@ -149,8 +151,8 @@ class Profile(models.Model):
     discount_code = models.ForeignKey(
         'shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
     home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery",
-                                        help_text="Home delivery is available in select areas for a ${} fee. This fee is waived for all orders over ${}.".format(
-                                            settings.HOME_DELIVERY_CHARGE, settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
+                                        help_text="Home delivery is available in select areas for a $5-10 fee, depending on location. This fee is waived for all orders over ${}.".format(
+                                            settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
     delivery_address = AddressField(null=True)
     delivery_notes = models.TextField("Special Delivery Notes", blank=True)
     num_adults = models.IntegerField("How many adults are in your family?", default=0,

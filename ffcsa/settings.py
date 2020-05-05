@@ -27,9 +27,13 @@ DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
 ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 5000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
+
 HOME_DELIVERY_ENABLED = True
-HOME_DELIVERY_CHARGE = 5
 FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
+HOME_DELIVERY_FEE_BY_ZIP = {
+    '97448': 10
+}
+DEFAULT_HOME_DELIVERY_CHARGE = 5
 
 # A location can either be a zip code or a dropsite name
 DROP_LOCATION_GROUP_LIMITS = [
@@ -38,7 +42,7 @@ DROP_LOCATION_GROUP_LIMITS = [
         'locations': ['Hollywood', 'PSU']
     },
     {
-        'limit': 70,
+        'limit': 130,
         'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', '97330', 'W 11th']
     }
 ]
