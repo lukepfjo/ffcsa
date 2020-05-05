@@ -105,15 +105,14 @@ class Command(BaseCommand):
                 }
 
                 if user.profile.home_delivery:
-                    # ex address: 2050 Goodpasture Loop, Eugene, OR 97401, USA
-                    address_components = user.profile.delivery_address.split(',')
+                    delivery_address = user.profile.delivery_address
                     order_dict.update(**{
                         'shipping_type': 'Home Delivery',
                         'shipping_total': cart.delivery_fee(),
-                        'shipping_detail_street': address_components[0].strip(),
-                        'shipping_detail_city': address_components[1].strip(),
-                        'shipping_detail_state': 'OR',
-                        'shipping_detail_postcode': user.profile.get_delivery_zip(),
+                        'shipping_detail_street': delivery_address.street,
+                        'shipping_detail_city': delivery_address.city,
+                        'shipping_detail_state': delivery_address.state,
+                        'shipping_detail_postcode': delivery_address.zip,
                         'shipping_instructions': user.profile.delivery_notes,
                     })
 

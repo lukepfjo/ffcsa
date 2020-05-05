@@ -36,7 +36,7 @@ def valid_order_period_for_user(user):
 def get_order_period_for_user(user):
     window = None
     if user.profile.home_delivery:
-        zip = user.profile.get_delivery_zip()
+        zip = user.profile.delivery_address.zip
 
         for window in settings.ORDER_WINDOWS:
             if zip in window['homeDeliveryZips']:
@@ -54,7 +54,7 @@ def get_order_period_for_user(user):
 
 
 def _home_delivery_can_order(user):
-    zip = user.profile.get_delivery_zip()
+    zip = user.profile.delivery_address.zip
 
     for window in settings.ORDER_WINDOWS:
         if zip in window['homeDeliveryZips']:
