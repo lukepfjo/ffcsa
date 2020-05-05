@@ -10,7 +10,7 @@
 {% block title %}
     {% nevercache %}
         {% load ffcsa_core_tags %}
-        {% pickup_date_text request.user.profile.is_subscribing_member %}
+        {% pickup_date_text %}
     {% endnevercache %}
 {% endblock %}
 

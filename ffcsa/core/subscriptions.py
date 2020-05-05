@@ -1,11 +1,11 @@
 import stripe
-import datetime
 
 from django.utils import formats
 from mezzanine.utils.email import send_mail_template
 from mezzanine.conf import settings
 
-from ffcsa.core.utils import get_friday_pickup_date, ORDER_CUTOFF_DAY, get_order_week_start, next_weekday
+from ffcsa.core.dropsites import get_pickup_date
+from ffcsa.shop.orders import valid_order_period_for_user, get_order_period_for_user
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Fee'
@@ -108,16 +108,11 @@ def create_stripe_subscription(user):
 
 
 def send_first_payment_email(user):
-    now = datetime.datetime.now()
-    can_order_now = 1 <= now.weekday() < ORDER_CUTOFF_DAY
-    week_start = next_weekday(get_order_week_start(), 0)  # get the monday of order week
-
-    pickup = get_friday_pickup_date()
-    if user.profile.home_delivery or user.profile.drop_site.lower().strip() != 'farm':
-        pickup = pickup + datetime.timedelta(1)
+    can_order_now = valid_order_period_for_user(user)
+    week_start, week_end = get_order_period_for_user(user)
 
     context = {
-        'pickup_date': formats.date_format(pickup, "D F d"),
+        'pickup_date': formats.date_format(get_pickup_date(user), "D F d"),
         'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
         'home_delivery': user.profile.home_delivery,
         'can_order_now': can_order_now,

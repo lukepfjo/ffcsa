@@ -24,7 +24,6 @@ MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
     ('Flowers', (['flowers'], {}, None)),
 ])
 DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
-ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 5000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 
@@ -51,55 +50,68 @@ HOME_DELIVERY_ZIP_LIMITS = {
     # '97448': 1
 }
 
+# day of week home delivery will happen for a given zip code
+HOME_DELIVERY_DAY = {
+    # '97448': 3,
+    'default': 6
+}
+
 DROPSITES = [
     {
         'name': 'Farm - Friday',
         'memberLimit': None,
         'color': 'pink',
         'description': 'Junction City - Deck Family Farm (Friday)',
-        'allowOneTimeOrders': True
+        'allowOneTimeOrders': True,
+        'pickupDay': 5,
     },
     {
         'name': 'Farm - Tuesday',
         'memberLimit': None,
         'color': 'pink',
         'description': 'Junction City - Deck Family Farm (Tuesday)',
-        'allowOneTimeOrders': True
+        'allowOneTimeOrders': True,
+        'pickupDay': 3,
     },
     {
         'name': 'W 11th',
         'memberLimit': None,
         'color': 'white',
         'description': 'Eugene - W 11th and Van Buren (Saturday)',
-        'allowOneTimeOrders': False
+        'allowOneTimeOrders': False,
+        'pickupDay': 6,
     },
     {
         'name': 'LCFM',
         'memberLimit': None,
         'color': 'blue',
         'description': 'Eugene - Lane County Farmers Market (Saturday)',
-        'allowOneTimeOrders': True
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
     },
     {
         'name': 'PSU',
         'memberLimit': None,
         'color': 'green',
         'description': 'Portland - PSU Farmers Market (Saturday)',
-        'allowOneTimeOrders': True
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
     },
     {
         'name': 'Hollywood',
         'memberLimit': None,
         'color': 'yellow',
         'description': 'Portland - Hollywood Farmers Market (Saturday)',
-        'allowOneTimeOrders': True
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
     },
     {
         'name': 'Banzhaf',
         'memberLimit': 13,
         'color': 'orange',
         'description': 'Corvallis - Member Drop Site (Saturday)',
-        'allowOneTimeOrders': False
+        'allowOneTimeOrders': False,
+        'pickupDay': 6,
     },
     # # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
     # # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
@@ -442,11 +454,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
 # SESSION_COOKIE_NAME = 'MnlYRc'
 SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
-SESSION_COOKIE_SECURE = False # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SECURE = False  # Prevent cookies from being sent over HTTP; only HTTPS
 SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
 
 # CSRF_COOKIE_NAME = 'osQiXg'
-CSRF_COOKIE_SECURE = False # Prevent cookies from being sent over HTTP; only HTTPS
+CSRF_COOKIE_SECURE = False  # Prevent cookies from being sent over HTTP; only HTTPS
 CSRF_FAILURE_VIEW = 'ffcsa.shop.views.csrf_failure'
 
 SITE_ID = 1

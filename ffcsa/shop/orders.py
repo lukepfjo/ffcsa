@@ -2,6 +2,7 @@ import datetime
 
 from ffcsa import settings
 from ffcsa.core.dropsites import is_valid_dropsite
+from ffcsa.core.utils import get_next_day
 
 
 def user_can_order(user):
@@ -69,7 +70,7 @@ def _is_order_window(window):
 
 def _get_order_window_start(window):
     week_end = _get_order_window_end(window)
-    week_start = _get_next_day(window['startDay'])
+    week_start = get_next_day(window['startDay'])
 
     if week_start >= week_end:
         week_start = week_start - datetime.timedelta(7)
@@ -79,19 +80,6 @@ def _get_order_window_start(window):
 
 
 def _get_order_window_end(window):
-    week_end = _get_next_day(window['endDay'])
+    week_end = get_next_day(window['endDay'])
     hour, minute = window['endTime'].split(':')
     return week_end.replace(hour=int(hour), minute=int(minute), second=59, microsecond=0)
-
-
-def _get_next_day(day):
-    """
-    Returns a datetime in the future for the next day number (1 - 7 (Mon - Sun))
-    """
-    now = datetime.datetime.now()
-
-    if now.isoweekday() <= day:
-        delta = day - now.isoweekday()
-    else:
-        delta = 7 - (now.isoweekday() - day)
-    return now + datetime.timedelta(delta)

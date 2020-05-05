@@ -29,7 +29,6 @@ from ffcsa.shop.utils import recalculate_cart, sign
 
 from ffcsa.core.models import Payment
 from ffcsa.core.forms import CartDinnerForm
-from ffcsa.core.utils import get_friday_pickup_date
 
 try:
     from weasyprint import HTML
@@ -208,7 +207,8 @@ def cart(request, template="shop/cart.html",
     context = {
         "cart_formset": cart_formset,
         'cart_dinner_form': cart_dinner_form,
-        'dinner_week': get_friday_pickup_date().day <= 7
+        # TODO fixme
+        # 'dinner_week': get_friday_pickup_date().day <= 7
     }
     context.update(extra_context or {})
     settings.clear_cache()

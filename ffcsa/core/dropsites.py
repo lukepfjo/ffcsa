@@ -3,6 +3,8 @@ from collections import Set
 from django.conf import settings
 from django.db import connection
 
+from ffcsa.core.utils import get_next_day
+
 _DROPSITE_DICT = {}
 DROPSITE_CHOICES = []
 
@@ -14,6 +16,20 @@ for dropsite in settings.DROPSITES:
 
 def is_valid_dropsite(user):
     return user.profile.home_delivery or user.profile.drop_site in _DROPSITE_DICT
+
+
+def get_pickup_date(user):
+    from ffcsa.shop.orders import get_order_period_for_user
+    week_start, week_end = get_order_period_for_user(user)
+
+    if user.profile.home_delivery:
+        zip = user.profile.delivery_address.zip
+        day = settings.HOME_DELIVERY_DAY[zip] if zip in settings.HOME_DELIVERY_DAY else settings.HOME_DELIVERY_DAY[
+            'default']
+    else:
+        day = _DROPSITE_DICT[user.profile.drop_site]['pickupDay']
+
+    return get_next_day(day, week_start)
 
 
 def get_full_drop_locations():

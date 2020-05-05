@@ -5,24 +5,20 @@ from django.template.loader import get_template
 from django import forms
 from django.utils import formats
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext
 from mezzanine import template
-from ffcsa.core.utils import ORDER_CUTOFF_DAY, DAYS_IN_WEEK, get_friday_pickup_date, get_order_week_start, \
-    get_order_week_end, next_weekday
+
+from ffcsa.core.dropsites import get_pickup_date
 
 register = template.Library()
 
 
-@register.simple_tag()
-def pickup_date_text(is_subscriber=False):
-    pickup = get_friday_pickup_date()
-    delivery = pickup + datetime.timedelta(1)
+@register.simple_tag(takes_context=True)
+def pickup_date_text(context):
+    user = context['request'].user
+    pickup = get_pickup_date(user)
 
-    return "{} for pickup {} & delivery {}".format("Weekly order" if is_subscriber else "Order",
-                                                   formats.date_format(pickup, "D F d"),
-                                                   formats.date_format(delivery, "D F d"))
-
-
+    return "{} for pickup or delivery on {}".format("Weekly order" if user.profile.is_subscribing_member else "Order",
+                                                    formats.date_format(pickup, "l, F jS"))
 
 
 @register.filter
