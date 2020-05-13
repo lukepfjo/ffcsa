@@ -30,19 +30,26 @@ FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
 HOME_DELIVERY_ENABLED = True
 FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
 HOME_DELIVERY_FEE_BY_ZIP = {
-    '97448': 10
+    # '97448': 10
 }
 DEFAULT_HOME_DELIVERY_CHARGE = 5
 
 # A location can either be a zip code or a dropsite name
 DROP_LOCATION_GROUP_LIMITS = [
+    # Portland
     {
-        'limit': 80,
+        'limit': 100,
         'locations': ['Hollywood', 'PSU']
     },
+    # Corvallis
     {
-        'limit': 130,
-        'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', '97330', 'W 11th']
+        'limit': 55,
+        'locations': ['97330', '97331', '97333', 'Banzhaf'],
+    },
+    # Eugene
+    {
+        'limit': 140,
+        'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', 'W 11th']
     }
 ]
 
@@ -52,14 +59,16 @@ HOME_DELIVERY_ZIP_LIMITS = {
 
 # day of week home delivery will happen for a given zip code
 HOME_DELIVERY_DAY = {
-    # '97448': 3,
-    'default': 6
+    '97330': 6,
+    '97331': 6,
+    '97333': 6,
+    'default': 3
 }
 
 DROPSITES = [
     {
         'name': 'Farm - Friday',
-        'memberLimit': None,
+        'memberLimit': 50,
         'color': 'pink',
         'description': 'Junction City - Deck Family Farm (Friday)',
         'allowOneTimeOrders': True,
@@ -67,23 +76,23 @@ DROPSITES = [
     },
     {
         'name': 'Farm - Tuesday',
-        'memberLimit': None,
+        'memberLimit': 50,
         'color': 'pink',
         'description': 'Junction City - Deck Family Farm (Tuesday)',
         'allowOneTimeOrders': True,
-        'pickupDay': 3,
+        'pickupDay': 2,
     },
     {
         'name': 'W 11th',
-        'memberLimit': None,
+        'memberLimit': 30,
         'color': 'white',
-        'description': 'Eugene - W 11th and Van Buren (Saturday)',
+        'description': 'Eugene - W 11th and Van Buren (Wednesday)',
         'allowOneTimeOrders': False,
-        'pickupDay': 6,
+        'pickupDay': 3,
     },
     {
         'name': 'LCFM',
-        'memberLimit': None,
+        'memberLimit': 30,
         'color': 'blue',
         'description': 'Eugene - Lane County Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
@@ -91,7 +100,7 @@ DROPSITES = [
     },
     {
         'name': 'PSU',
-        'memberLimit': None,
+        'memberLimit': 35,
         'color': 'green',
         'description': 'Portland - PSU Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
@@ -99,7 +108,7 @@ DROPSITES = [
     },
     {
         'name': 'Hollywood',
-        'memberLimit': None,
+        'memberLimit': 50,
         'color': 'yellow',
         'description': 'Portland - Hollywood Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
@@ -107,7 +116,7 @@ DROPSITES = [
     },
     {
         'name': 'Banzhaf',
-        'memberLimit': 13,
+        'memberLimit': 20,
         'color': 'orange',
         'description': 'Corvallis - Member Drop Site (Saturday)',
         'allowOneTimeOrders': False,
@@ -124,12 +133,21 @@ DROPSITES = [
 ORDER_WINDOWS = [
     {
         'startDay': 1,  # 1 is Monday
-        'startTime': '17:00',
+        'startTime': '18:00',
         'endDay': 3,
         'endTime': '23:59',
-        'memberLimit': 200,
-        'dropsites': ['Farm - Friday', 'W 11th', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf'],
-        'homeDeliveryZips': ['97448', '97402', '97405', '97404']
+        'memberLimit': 220,
+        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf'],
+        'homeDeliveryZips': ['97330', '97331', '97333']
+    },
+    {
+        'startDay': 5,  # 1 is Monday
+        'startTime': '19:00',
+        'endDay': 7,
+        'endTime': '23:59',
+        'memberLimit': 220,
+        'dropsites': ['Farm - Tuesday', 'W 11th'],
+        'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
 
