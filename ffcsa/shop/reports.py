@@ -74,13 +74,13 @@ def generate_weekly_order_reports(date):
     if checklist:
         docs.append(checklist)
 
-    checklist = generate_home_delivery_checklists(date)
-    if checklist:
-        docs.append(checklist)
+    # checklist = generate_home_delivery_checklists(date)
+    # if checklist:
+    #     docs.append(checklist)
 
-    notes = generate_home_delivery_notes(date)
-    if notes:
-        docs.append(notes)
+    # notes = generate_home_delivery_notes(date)
+    # if notes:
+    #     docs.append(notes)
 
     checklist = generate_master_checklist(date)
     if checklist:
