@@ -1,0 +1,120 @@
+{% extends "pages/page.html" %}
+
+{% load mezzanine_tags shop_tags i18n static %}
+{% block body_id %}recipe{% endblock %}
+
+
+{% block main %}{{ block.super }}
+
+    {% include 'pages/category-alert.html' %}
+
+    {% block content %}
+        <h3>{% editable page.title %}{{ page.title }}{% endeditable %}</h3>
+        {% editable page.recipe.content %}
+            {{ page.recipe.content|safe }}
+        {% endeditable %}
+
+        {% if can_order and request.user.profile.signed_membership_agreement %}
+            <form method="post" id="add-all-recipe-form" class="add-recipe-form">
+                {% csrf_token %}
+                <div class="form-actions">
+                    {# This is necessary b/c we capture the submit event, send a google analytics event, then use form.submit which doesn't include the button as the submittor and the backend doesn't know this form is submitted#}
+                    <input type="hidden" name="add_box_items" value="true"/>
+                    <input type="submit" name="add_box_items" class="btn btn-primary btn-lg center-block"
+                           value="{% trans "Add All Items To Weekly Order" %}">
+                </div>
+            </form>
+        {% else %}
+            <p class="mb-12"/>
+        {% endif %}
+
+    {% endblock content %}
+
+    {% if products.paginator.count != 0 %}
+
+        <div class="row product-list">
+            {% for p in products.object_list %}
+                {% if p.product.available %}
+                    <div class="col-xs-6 col-sm-4 col-lg-3 product-thumb">
+                        <div class="thumbnail">
+                            <a href="{{ p.product.get_absolute_url }}">
+                                {% if p.product.image %}
+                                    <img src="{{ MEDIA_URL }}{% thumbnail p.product.image 148 148 %}">
+                                {% else %}
+                                    <img class="placeholder" src="{% static 'img/logo.png' %}"/>
+                                {% endif %}
+                                <div class="caption">
+                                    <h6>{{ p.product }}</h6>
+                                </div>
+                            </a>
+                            {% if not request.user.profile.signed_membership_agreement %}
+                                <p class="text-base text-center text-red-800">Please sign our member agreement</p>
+                            {% elif not can_order %}
+                                <p class="text-base text-center text-red-800">Order period has not opened</p>
+                            {% elif not p.product.variations.first.has_stock %}
+                                <p class="text-danger text-center">Out of Stock</p>
+                            {% elif can_order_dairy or not p.product.is_dairy %}
+                                <p class="price text-center mb-4">{{ p.product.price|currency }}</p>
+                                <form method="post" class="product-quick-add-form form-group-sm">
+                                    {% csrf_token %}
+                                    <input type="number" class="form-control item-qty" placeholder="qty"
+                                           name="item_qty" value="{{ p.quantity }}"/>
+                                    <input type="hidden" name="item_id" value="{{ p.product.id }}"/>
+                                    <input type="submit" class="btn btn-primary btn-sm form-control"
+                                           name="add_item"
+                                           value="{% trans "Add to Order" %}">
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% pagination_for products %}
+
+    {% endif %}
+
+{% endblock %}
+
+{% block js %}
+    {{ block.super }}
+    {% if settings.GOOGLE_ANALYTICS_ID and not request.user.is_staff %}
+        <script>
+          // https://developers.google.com/analytics/devguides/collection/analyticsjs/sending-hits
+          // Gets a reference to the form element, assuming
+          // it contains the id attribute "signup-form".
+          var form = document.getElementById('add-all-recipe-form')
+
+          // Adds a listener for the "submit" event.
+          form.addEventListener('submit', function (event) {
+
+            // Prevents the browser from submitting the form
+            // and thus unloading the current page.
+            event.preventDefault()
+
+            // Creates a timeout to call `submitForm` after one second.
+            setTimeout(submitForm, 1000)
+
+            // Keeps track of whether or not the form has been submitted.
+            // This prevents the form from being submitted twice in cases
+            // where `hitCallback` fires normally.
+            var formSubmitted = false
+
+            function submitForm () {
+              if (!formSubmitted) {
+                formSubmitted = true
+                form.submit()
+              }
+            }
+
+            // Sends the event to Google Analytics and
+            // resubmits the form once the hit is done.
+            {#ga('send', 'event', 'Signup Form', 'submit', {#}
+            ga('send', 'event', 'Recipe', 'Add', 'Add All Items', {
+              hitCallback: submitForm,
+            })
+          })
+        </script>
+    {% endif %}
+{% endblock %}

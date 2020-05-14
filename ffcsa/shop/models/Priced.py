@@ -1,8 +1,10 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+from mezzanine.conf import settings
 
 from ffcsa.shop import fields
 
@@ -13,6 +15,7 @@ class Priced(models.Model):
     ``Product`` and ``ProductVariation`` models.
     """
 
+    # TODO :: Rename "Member Price" to "Nonmember Price" or "Base price"?
     unit_price = fields.MoneyField(_("Member Price"), blank=False)
     sale_id = models.IntegerField(null=True)
     sale_price = fields.MoneyField(_("Sale price"))
@@ -55,7 +58,17 @@ class Priced(models.Model):
             return self.sale_price
         elif self.has_price():
             return self.unit_price
+
         return Decimal("0")
+
+    @property
+    def member_price(self):
+        base_price = self.price()
+        return base_price - (base_price * Decimal(settings.MEMBER_ONE_TIME_ORDER_DISCOUNT))
+
+    @property
+    def member_unit_price(self):
+        return self.unit_price - (self.unit_price * Decimal(settings.MEMBER_ONE_TIME_ORDER_DISCOUNT))
 
     def copy_price_fields_to(self, obj_to):
         """

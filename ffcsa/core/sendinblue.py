@@ -6,6 +6,8 @@ from urllib.parse import quote as make_url_safe
 import requests
 import requests.exceptions
 
+from ffcsa.core import dropsites
+
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
 
@@ -89,8 +91,8 @@ def _initialize_drop_site_lists():
             logger.critical('The connection to Sendinblue failed while trying to initialize the drop site list. '
                             'Using placeholder IDs.')
 
-            stub_ids = (_ for _ in range(len(settings.DROP_SITE_CHOICES)))
-            return {ds[0]: ds_id for ds, ds_id in zip(settings.DROP_SITE_CHOICES, stub_ids)}
+            stub_ids = (_ for _ in range(len(dropsites.DROPSITE_CHOICES)))
+            return {ds[0]: ds_id for ds, ds_id in zip(dropsites.DROPSITE_CHOICES, stub_ids)}
 
         else:
             raise ex
@@ -100,7 +102,7 @@ def _initialize_drop_site_lists():
                      if _list['name'].startswith('Dropsite')}
 
     # Get the names of the drop_sites from settings.py and diff them with the folders on SIB
-    missing_on_sib = [d[0] for d in settings.DROP_SITE_CHOICES if d[0] not in drop_site_ids.keys()]
+    missing_on_sib = [d[0] for d in dropsites.DROPSITE_CHOICES if d[0] not in drop_site_ids.keys()]
 
     if HOME_DELIVERY_LIST not in drop_site_ids.keys():
         missing_on_sib.append(HOME_DELIVERY_LIST)
@@ -217,7 +219,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
         return True, ''
 
     if drop_site not in _DROP_SITE_IDS.keys():
-        msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+        msg = 'Drop site {} does not exist in settings.DROPSITES'.format(drop_site)
         logger.error(msg)
         return False, msg
 
@@ -275,9 +277,8 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
-    if drop_site is not None and drop_site != HOME_DELIVERY_LIST and drop_site not in (_[0] for _ in
-                                                                                       settings.DROP_SITE_CHOICES):
-        msg = 'Drop site {} does not exist in settings.DROP_SITE_CHOICES'.format(drop_site)
+    if drop_site is not None and drop_site != HOME_DELIVERY_LIST and drop_site not in dropsites._DROPSITE_DICT:
+        msg = 'Drop site {} does not exist in settings.DROPSITES'.format(drop_site)
         logger.error(msg)
         return False, msg
 
@@ -376,7 +377,8 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
             logger.error(msg)
             return False, msg
 
-        logger.error('SendInBlue error: %s - Identifier: %s - Body: %s - Old User Info: %s', str(ex), identifier, body, old_user_info)
+        logger.error('SendInBlue error: %s - Identifier: %s - Body: %s - Old User Info: %s', str(ex), identifier, body,
+                     old_user_info)
         return False, str(ex)
 
     return True, ''

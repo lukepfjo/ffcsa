@@ -5,6 +5,7 @@ static/*
 *.ipynb
 
 node_modules
+tmp
 
 credentials.json
 token.pickle

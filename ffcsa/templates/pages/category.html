@@ -1,0 +1,111 @@
+{% extends "pages/page.html" %}
+
+{% load mezzanine_tags shop_tags i18n ffcsa_core_tags static %}
+{% block body_id %}category{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <script src="{% static "shop/js/category_product_variations.js" %}"></script>
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .product-quick-add-form .incrementor {
+            justify-content: center;
+        }
+
+    </style>
+{% endblock %}
+
+
+{% block main %}{{ block.super }}
+
+    {% include 'pages/category-alert.html' %}
+
+    {% block content %}
+        {% editable page.category.content %}
+            {{ page.category.content|safe }}
+        {% endeditable %}
+    {% endblock content %}
+
+    {% if child_categories %}
+        {% include 'pages/category-list.html' with categories=child_categories %}
+    {% endif %}
+
+    {% if products.paginator.count != 0 %}
+
+        <div class="flex flex-wrap product-list -mx-2 -mb-12">
+            {% for product in products.object_list %}
+                {% if product.available %}
+                    <div class="w-full sm:w-1/3 lg:w-1/4 px-2 mb-12 self-stretch">
+                        <div class="h-full overflow-hidden border rounded-lg border-gray-300 hover:border-gray-500 hover:border-2 flex flex-col">
+                            {#                            <a class="text-gray-900 hover:no-underline hover:text-gray-900 flex flex-col h-full"#}
+                            {#                               href="{{ product.get_absolute_url }}">#}
+                            {% if product.image %}
+                                <a href="{{ product.get_absolute_url }}" class="w-full">
+                                    <img class="mx-auto" src="{{ MEDIA_URL }}{% thumbnail product.image 250 250 %}"></a>
+                            {% else %}
+                                <a href="{{ product.get_absolute_url }}" class="w-full">
+                                    <img class="placeholder" src="{% static 'img/logo.png' %}"/>
+                                </a>
+                            {% endif %}
+                            <form method="post"
+                                  class="product-quick-add-form form-group-sm px-2 pb-4 flex-grow flex flex-col">
+                                <div class="flex-grow flex flex-col -mb-3">
+                                    <a href="{{ product.get_absolute_url }}"
+                                       class="flex flex-col flex-grow text-gray-900 hover:no-underline focus:text-gray-900 focus:outline-none hover:text-gray-900">
+                                        <div class="font-bold text-xl mt-4 border-b border-dashed pb-10">{{ product }}</div>
+                                        <ul id="variations" class="ml-0 my-4 text-center text-gray-800">
+                                            {% for variation in product.variations.all %}
+                                                <li id="variation-{{ variation.sku }}"
+                                                    {% if not variation.default %}style="display:none;"{% endif %}>
+                                                    {% if variation.on_sale %}
+                                                        <span class="line-through text-gray-400">{{ variation.unit_price|currency }}</span>
+                                                        {% trans "On sale:" %}
+                                                    {% endif %}
+                                                    <span class="">{{ variation.price|currency }}</span>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <div class="flex-grow mb-6">{{ product.content|truncate:140 }}</div>
+                                    </a>
+                                    {% with has_stock=product|product_has_stock %}
+                                        {% if not request.user.profile.signed_membership_agreement or not can_order %}
+                                            {# DO Nothing #}
+                                        {% elif not has_stock %}
+                                            <p class="text-danger text-center">Out of Stock</p>
+                                        {% elif can_order_dairy or not product.is_dairy %}
+                                            {% errors_for product.add_form %}
+                                            {% fields_for product.add_form show_required=False show_label=False include_media=False %}
+                                        {% endif %}
+                                    {% endwith %}
+                                    {#                                        {% endif %}#}
+                                </div>
+                                <div>
+                                    {% if not request.user.profile.signed_membership_agreement %}
+                                        <p class="text-base text-center text-red-800">Please sign our member
+                                            agreement</p>
+                                        {#                                    {% elif product.is_dairy and not request.user.profile.join_dairy_program %}#}
+                                    {% elif not can_order %}
+                                        <p class="text-base text-center text-red-800">Order period has not opened</p>
+                                    {% elif product.is_dairy and not can_order_dairy %}
+                                        <p class="text-base text-center text-red-800">Ask us about our Raw Dairy program
+                                            to order.</p>
+                                    {% elif product|product_has_stock %}
+                                        <input type="submit" class="btn btn-primary btn-sm form-control"
+                                               name="add_item" value="{% trans "Add to Order" %}">
+                                    {% endif %}
+                                </div>
+                            </form>
+                            {#                            </a>#}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        {% pagination_for products %}
+
+    {% endif %}
+
+{% endblock %}

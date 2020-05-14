@@ -24,43 +24,136 @@ MARKET_CHECKLIST_COLUMN_CATEGORIES = OrderedDict([
     ('Flowers', (['flowers'], {}, None)),
 ])
 DFF_ORDER_TICKET_EXCLUDE_CATEGORIES = ['raw dairy']
-ORDER_CUTOFF_DAY = 3
 SIGNUP_FEE_IN_CENTS = 5000
 FEED_A_FRIEND_USER = 'feed.a.friend.ffcsa.fund'
-HOME_DELIVERY_ENABLED = True
-HOME_DELIVERY_CHARGE = 5
-FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
-DROP_SITE_CHOICES = (
-    ('Farm', 'Junction City - Deck Family Farm (Friday)'),
-    # ('19th St', 'Eugene - 19th and Jefferson (Saturday)'),
-    # ('Roosevelt', 'Eugene - Roosevelt and Chambers (Saturday)'),
-    ('W 11th', 'Eugene - W 11th and Van Buren (Saturday)'),
-    # ('Corner Market', 'Eugene - The Corner Market (Saturday)'),
-    ('LCFM', 'Eugene - Lane County Farmers Market (Saturday)'),
-    ('Hollywood', 'Portland - Hollywood Farmers Market (Saturday)'),
-    ('PSU', 'Portland - PSU Farmers Market (Saturday)'),
-    # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
-    # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
-    ('Banzhaf', 'Corvallis - Member Drop Site (Saturday 12pm-2pm)'),
-)
 
-DROP_SITE_COLORS = {
-    'Farm': 'pink',
-    # 'Corner Market': 'white',
-    'LCFM': 'blue',
-    # '19th St': 'blue',
-    # 'Roosevelt': 'white',
-    'W 11th': 'white',
-    'Hollywood': 'yellow',
-    'PSU': 'green',
-    'St Johns': 'purple',
-    'Woodstock': 'yellow',
-    'Banzhaf': 'orange',
-    'Home Delivery': 'purple'
+HOME_DELIVERY_ENABLED = True
+FREE_HOME_DELIVERY_ORDER_AMOUNT = 125
+HOME_DELIVERY_FEE_BY_ZIP = {
+    # '97448': 10
+}
+DEFAULT_HOME_DELIVERY_CHARGE = 5
+
+INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU']
+INVITE_CODE = 'PDX_2020'
+
+# A location can either be a zip code or a dropsite name
+DROP_LOCATION_GROUP_LIMITS = [
+    # Portland
+    {
+        'limit': 100,
+        'locations': ['Hollywood', 'PSU']
+    },
+    # Corvallis
+    {
+        'limit': 55,
+        'locations': ['97330', '97331', '97333', 'Banzhaf'],
+    },
+    # Eugene
+    {
+        'limit': 140,
+        'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', 'W 11th']
+    }
+]
+
+HOME_DELIVERY_ZIP_LIMITS = {
+    # '97448': 1
 }
 
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm', 'Woodstock', 'St Johns',
-                   'PSU', 'Hollywood', ]
+# day of week home delivery will happen for a given zip code
+HOME_DELIVERY_DAY = {
+    '97330': 6,
+    '97331': 6,
+    '97333': 6,
+    'default': 3
+}
+
+DROPSITES = [
+    {
+        'name': 'Farm - Friday',
+        'memberLimit': 50,
+        'color': 'pink',
+        'description': 'Junction City - Deck Family Farm (Friday)',
+        'allowOneTimeOrders': True,
+        'pickupDay': 5,
+    },
+    {
+        'name': 'Farm - Tuesday',
+        'memberLimit': 50,
+        'color': 'pink',
+        'description': 'Junction City - Deck Family Farm (Tuesday)',
+        'allowOneTimeOrders': True,
+        'pickupDay': 2,
+    },
+    {
+        'name': 'W 11th',
+        'memberLimit': 30,
+        'color': 'white',
+        'description': 'Eugene - W 11th & Van Buren (Wednesday)',
+        'allowOneTimeOrders': False,
+        'pickupDay': 3,
+    },
+    {
+        'name': 'LCFM',
+        'memberLimit': 30,
+        'color': 'blue',
+        'description': 'Eugene - Lane County Farmers Market (Saturday)',
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
+    },
+    {
+        'name': 'PSU',
+        'memberLimit': 35,
+        'color': 'green',
+        'description': 'Portland - PSU Farmers Market (Saturday)',
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
+    },
+    {
+        'name': 'Hollywood',
+        'memberLimit': 50,
+        'color': 'yellow',
+        'description': 'Portland - Hollywood Farmers Market (Saturday)',
+        'allowOneTimeOrders': True,
+        'pickupDay': 6,
+    },
+    {
+        'name': 'Banzhaf',
+        'memberLimit': 20,
+        'color': 'orange',
+        'description': 'Corvallis - NW Walnut & NW Aspen (Saturday)',
+        'allowOneTimeOrders': False,
+        'pickupDay': 6,
+    },
+    # # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
+    # # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
+    # DROP_SITE_COLORS = {
+    # 'St Johns': 'purple',
+    # 'Woodstock': 'yellow',
+    # }
+]
+
+ORDER_WINDOWS = [
+    {
+        'startDay': 1,  # 1 is Monday
+        'startTime': '18:00',
+        'endDay': 3,
+        'endTime': '23:59',
+        'memberLimit': 220,
+        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf'],
+        'homeDeliveryZips': ['97330', '97331', '97333']
+    },
+    {
+        'startDay': 5,  # 1 is Monday
+        'startTime': '19:00',
+        'endDay': 7,
+        'endTime': '23:59',
+        'memberLimit': 220,
+        'dropsites': ['Farm - Tuesday', 'W 11th'],
+        'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
+    }
+]
+
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
     # ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
@@ -70,6 +163,11 @@ STANDING_DELIVERIES = [
     ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '9:00', '', '', '', '', 'none']
 ]
+
+# SETTINGS FOR ONE-TIME ORDERS
+# TODO make this 5% when we enable one-time orders
+MEMBER_ONE_TIME_ORDER_DISCOUNT = .00  # Percentage expressed as a decimal
+MINIMUM_ONE_TIME_ORDER_AMOUNT = 100  # Amount in dollars
 
 # SignRequest settings
 SIGN_REQUEST_SUBDOMAIN = 'ffcsa'
@@ -144,7 +242,6 @@ ROLLBAR = {
 
 INVITE_CODE_LENGTH = 20
 INVITE_CODE_USAGE_WINDOW = 7
-INVITE_CODE_EXPIRY_DAYS = 0
 
 ######################
 # SHOP SETTINGS #
@@ -216,9 +313,11 @@ SHOP_USE_VARIATIONS = True
 SHOP_USE_UPSELL_PRODUCTS = False
 SHOP_USE_RELATED_PRODUCTS = False
 SHOP_USE_RATINGS = False
+# TODO: enable for one-time orders
+# SHOP_PAYMENT_STEP_ENABLED = True
 SHOP_PAYMENT_STEP_ENABLED = False
 SHOP_DEFAULT_SHIPPING_VALUE = 0
-SHOP_CHECKOUT_ACCOUNT_REQUIRED = True
+SHOP_CHECKOUT_ACCOUNT_REQUIRED = False
 SHOP_CATEGORY_USE_FEATURED_IMAGE = True
 SHOP_PRODUCT_SORT_OPTIONS = (('Title', 'title'), ('Recently added', '-date_added'),)
 SHOP_CART_EXPIRY_MINUTES = 535600  # valid for 365 days
@@ -370,8 +469,16 @@ DEBUG = False
 # Whether a user's session cookie expires when the Web browser is closed.
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# The age of session cookies, in seconds.
-# SESSION_COOKIE_AGE = 2419200
+# Session cookies are used for anonymous users
+# SESSION_COOKIE_AGE = 2419200    # The age of session cookies, in seconds. 2419200 = 4 weeks
+# SESSION_COOKIE_NAME = 'MnlYRc'
+SESSION_COOKIE_HTTPONLY = True  # Prevent access to cookies from JavaScript.
+SESSION_COOKIE_SECURE = False  # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SAMESITE = True  # Prevent cookies from being sent cross-site in any and all cases
+
+# CSRF_COOKIE_NAME = 'osQiXg'
+CSRF_COOKIE_SECURE = False  # Prevent cookies from being sent over HTTP; only HTTPS
+CSRF_FAILURE_VIEW = 'ffcsa.shop.views.csrf_failure'
 
 SITE_ID = 1
 
@@ -384,6 +491,8 @@ AUTHENTICATION_BACKENDS = ["mezzanine.core.auth_backends.MezzanineBackend"]
 # The numeric mode to set newly-uploaded files to. The value should be
 # a mode you'd pass directly to os.chmod.
 FILE_UPLOAD_PERMISSIONS = 0o644
+
+ATOMIC_REQUESTS = False
 
 #############
 # DATABASES #
@@ -433,14 +542,14 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, STATIC_URL.strip("/"))
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder'
+    # 'compressor.finders.CompressorFinder'
 ]
 
-COMPRESS_POSTCSS_BINARY = 'node_modules/postcss-cli/bin/postcss'
+# COMPRESS_POSTCSS_BINARY = 'node_modules/postcss-cli/bin/postcss'
 
 COMPRESS_PRECOMPILERS = (
     # type="text/css" must be set on stylesheet
-    ('text/css', 'compressor_postcss.PostCSSFilter'),
+    # ('text/css', 'compressor_postcss.PostCSSFilter'),
 )
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -458,7 +567,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(PROJECT_ROOT, "original_templates")
+            # os.path.join(PROJECT_ROOT, "original_templates")
+            os.path.join(PROJECT_ROOT, "templates")
         ],
         "OPTIONS": {
             "context_processors": [
@@ -472,6 +582,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "mezzanine.conf.context_processors.settings",
                 "mezzanine.pages.context_processors.page",
+                "ffcsa.shop.context_processors.shop_globals"
             ],
             "builtins": [
                 "mezzanine.template.loader_tags",
@@ -495,7 +606,7 @@ if DJANGO_VERSION < (1, 9):
 INSTALLED_APPS = (
     'dal',
     'dal_select2',
-    "ffcsa.theme",
+    "ffcsa",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -520,6 +631,8 @@ INSTALLED_APPS = (
     'nested_admin',
     'anymail',
     # "mezzanine.mobile",
+
+    'webpack_loader'
 )
 
 # List of middleware classes to use. Order is important; in the request phase,
@@ -568,7 +681,7 @@ PACKAGE_NAME_GRAPPELLI = "grappelli_safe"
 OPTIONAL_APPS = (
     "debug_toolbar",
     "django_extensions",
-    "compressor",
+    # "compressor",
     PACKAGE_NAME_FILEBROWSER,
     PACKAGE_NAME_GRAPPELLI,
 )
@@ -595,6 +708,14 @@ if os.path.exists(f):
     module.__file__ = f
     sys.modules[module_name] = module
     exec(open(f, "rb").read())
+
+WEBPACK_LOADER = {
+    "DEFAULT": {
+        "STATS_FILE": os.path.join(
+            BASE_DIR, "static", "webpack-stats-%s.json" % ("dev" if DEBUG else "prod")
+        )
+    }
+}
 
 ####################
 # DYNAMIC SETTINGS #

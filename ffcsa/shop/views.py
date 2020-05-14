@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.messages import info, error
 from django.core.urlresolvers import reverse
 from django.db.models import Sum
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.template.defaultfilters import slugify
 from django.template.loader import get_template
@@ -24,11 +24,11 @@ from ffcsa.shop.forms import (AddProductForm, CartItemFormSet,
                               DiscountForm, OrderForm)
 from ffcsa.shop.models import Product, ProductVariation, Order, Vendor
 from ffcsa.shop.models import DiscountCode
+from ffcsa.shop.orders import user_can_order
 from ffcsa.shop.utils import recalculate_cart, sign
 
 from ffcsa.core.models import Payment
 from ffcsa.core.forms import CartDinnerForm
-from ffcsa.core.utils import get_friday_pickup_date
 
 try:
     from weasyprint import HTML
@@ -71,20 +71,9 @@ def product(request, slug, template="shop/product.html",
     add_product_form = form_class(request.POST or None, product=product,
                                   initial=initial_data, cart=request.cart)
     if request.method == "POST":
-        if not request.user.is_authenticated():
-            raise Exception(
-                "You must be authenticated in order to add products to your cart")
-
-        if not request.user.profile.signed_membership_agreement:
-            raise Exception(
-                "You must sign our membership agreement before you can make an order")
-
-        if not request.user.profile.home_delivery and request.user.profile.drop_site not in [dropsite_info[0] for
-                                                                                             dropsite_info in
-                                                                                             settings.DROP_SITE_CHOICES]:
-            error(request,
-                  "Your current dropsite is no longer available. "
-                  "Please select a different dropsite before adding items to your cart.")
+        can_order, err = user_can_order(request.user)
+        if not can_order:
+            error(request, err)
             return redirect(request.META.get('HTTP_REFERER', 'shop_cart'))
 
         if not request.cart.user_id:
@@ -170,9 +159,11 @@ def cart(request, template="shop/cart.html",
     """
     Display cart and handle removing items from the cart.
     """
+
     cart_formset = cart_formset_class(instance=request.cart)
     discount_form = discount_form_class(request, request.POST or None)
     cart_dinner_form = CartDinnerForm(request, request.POST or None)
+
     if request.method == "POST":
         valid = True
         if request.POST.get("update_cart"):
@@ -216,13 +207,15 @@ def cart(request, template="shop/cart.html",
     context = {
         "cart_formset": cart_formset,
         'cart_dinner_form': cart_dinner_form,
-        'dinner_week': get_friday_pickup_date().day <= 7
+        # TODO fixme
+        # 'dinner_week': get_friday_pickup_date().day <= 7
     }
     context.update(extra_context or {})
     settings.clear_cache()
     if (settings.SHOP_DISCOUNT_FIELD_IN_CART and
             DiscountCode.objects.active().exists()):
         context["discount_form"] = discount_form
+
     return TemplateResponse(request, template, context)
 
 
@@ -295,6 +288,7 @@ def checkout_steps(request, form_class=OrderForm, extra_context=None):
             except checkout.CheckoutError as e:
                 checkout_errors.append(e)
 
+            # TODO :: Modify this to use scheduled ordering
             # FINAL CHECKOUT STEP - run payment handler and process order.
             if step == checkout.CHECKOUT_STEP_LAST and not checkout_errors:
                 # Create and save the initial order object so that
@@ -462,3 +456,11 @@ def invoice_resend_email(request, order_id):
         else:
             redirect_to = reverse("shop_order_history")
     return redirect(redirect_to)
+
+
+@never_cache
+def csrf_failure(request, reason=""):
+    prev_url = request.META.get('HTTP_REFERER', '/')
+    reasons = {'CSRF cookie not set.': 'Cookies must be enabled to use this site.'}
+    default = 'Security Error: Your CSRF token failed to validate. Please try again.'
+    return HttpResponseForbidden(_(reasons.get(reason, default)) + '<br/><a href="{}">Back</a>'.format(prev_url))

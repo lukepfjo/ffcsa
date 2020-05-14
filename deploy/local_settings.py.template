@@ -79,4 +79,11 @@ GOOGLE_ANALYTICS_ID = "UA-96409336-1"
 
 ADMINS = [('RJ', '%(admin_email)s')]
 
-COMPRESS_OFFLINE = True
+#COMPRESS_OFFLINE = True
+
+STATICFILES_STORAGE = (
+    "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+)
+
+CSRF_COOKIE_SECURE = True # Prevent cookies from being sent over HTTP; only HTTPS
+SESSION_COOKIE_SECURE = True # Prevent cookies from being sent over HTTP; only HTTPS

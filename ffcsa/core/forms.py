@@ -9,7 +9,8 @@ from mezzanine.conf import settings
 from mezzanine.core.request import current_request
 from mezzanine.utils.email import send_mail_template
 
-from ffcsa.core import sendinblue
+from ffcsa.core import sendinblue, dropsites
+from ffcsa.core.dropsites import get_full_drop_locations
 from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
@@ -74,6 +75,19 @@ def sanitize_phone_number(num):
     return num[:3] + '-' + num[3:6] + '-' + num[6:]
 
 
+class DropsiteSelectWidget(forms.Select):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._full_locations = get_full_drop_locations()
+
+    def create_option(self, *args, **kwargs):
+        opt = super().create_option(*args, **kwargs)
+        if opt['value'] in self._full_locations:
+            opt['attrs']['disabled'] = True
+            opt['label'] = '(Full) - ' + opt['label']
+        return opt
+
+
 class ProfileForm(accounts_forms.ProfileForm):
     # NOTE: Any fields on the profile that we don't include in this form need to be added to settings.py ACCOUNTS_PROFILE_FORM_EXCLUDE_FIELDS
     username = None
@@ -89,6 +103,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         # for some reason, the Profile model validators are not copied over to the form, so we add them here
         self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
+        # self.fields['delivery_address'].required = False
         self.fields['delivery_address'].widget.attrs['readonly'] = ''
         self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
         self.fields['delivery_notes'].widget.attrs = {'rows': 3, 'cols': 40,
@@ -96,8 +111,9 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
-        self.fields['drop_site'] = forms.ChoiceField(
-            choices=settings.DROP_SITE_CHOICES, label="Drop Site Location")
+        self.fields['drop_site'] = forms.ChoiceField(widget=DropsiteSelectWidget(),
+                                                     choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location",
+                                                     help_text="Our Portland dropsites are currently full. <a target='_blank' href='https://26403a96.sibforms.com/serve/MUIEAPzhRhr0DZ5DOA6nD0vQ2bGQgPxIE93B2DAYFcbFPiwXaU5SvLqa2xRxtpEwnJ39QS4v2uXlDRxsANLuMlk40J6Cs0rx-Z-rny-9LQuj7nTsb06XyMDY3eb3jljQwkMYwm4dvZnL-xKLW4ZH6ou40aq5zCh0U1sbyHA4ezmcCbZzCTQ9MKUbn9L0O8aEmADU-OxOXV3CPYP2'>Join our waitlist</a> to be notified when a spot opens up.")
 
         if self.instance.id is not None:
             self.initial['drop_site'] = self.instance.profile.drop_site
@@ -109,6 +125,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                       "for 6 months, with a minimum payment of $172 per month.")
 
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
+            self.fields['invite_code'] = forms.CharField(label="Invite Code (Portland dropsites only)",
+                                                         required=False)
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
                                                                 required=True)
             self.fields['communication_method'] = forms.ChoiceField(
@@ -126,6 +144,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             self.fields['num_adults'].widget = forms.HiddenInput()
+            self.fields['drop_site'].help_text = None
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']
@@ -149,11 +168,22 @@ class ProfileForm(accounts_forms.ProfileForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        if cleaned_data.get('home_delivery', False):
+        home_delivery = cleaned_data.get('home_delivery', False)
+        if home_delivery:
             if not cleaned_data['delivery_address']:
                 self.add_error('delivery_address', 'Please provide an address for your delivery.')
         elif not cleaned_data.get('drop_site', False):
             self.add_error('drop_site', 'Please either choose a drop_site or home delivery.')
+
+        if not home_delivery:
+            cleaned_data['delivery_address'] = None
+
+            if self._signup and cleaned_data.get(
+                    'drop_site') in settings.INVITE_ONLY_PORTLAND_MARKETS and cleaned_data.get('invite_code',
+                                                                                               None) != settings.INVITE_CODE:
+                self.add_error('invite_code', '')
+                self.add_error(None,
+                               'Due to limited capacity, Portland dropsites are invite only. Either enter your invite code below or join our waitlist to be notified when a spot opens up.')
 
         return cleaned_data
 
@@ -196,7 +226,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         request = current_request()
         if not self._signup:
             # we can't set this on signup b/c the cart.user_id has not been set yet
-            if "home_delivery" in self.changed_data:
+            if "home_delivery" in self.changed_data or "delivery_address" in self.changed_data:
                 if user.profile.home_delivery:
                     set_home_delivery(request)
                 else:
@@ -229,7 +259,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
             # User has not received the notification before
             if len(user_dropsite_info) == 0:
-                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+                date_last_modified = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'],
+                                                                         params)
 
                 # If the email is successfully sent add an appropriate DropSiteInfo to the user
                 if date_last_modified is not False:
@@ -244,7 +275,8 @@ class ProfileForm(accounts_forms.ProfileForm):
 
                 user_dropsite_entry = user_dropsite_info[0]
                 if user_dropsite_entry.last_version_received != date_last_modified:
-                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'], params)
+                    email_result = sendinblue.send_transactional_email(sib_template_name, self.cleaned_data['email'],
+                                                                       params)
 
                     # Don't update entry if email fails to send
                     if email_result is not False:

@@ -12,7 +12,6 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages import error, info, success
 from django.contrib.sites.models import Site
-from django.db.models import Q
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -24,12 +23,14 @@ from django.utils.http import is_safe_url
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.views.decorators.http import require_POST
 from django.views import View
+from django_common import http
 from mezzanine.conf import settings
 from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 from mezzanine.accounts import views
 
+from ffcsa.core.dropsites import get_full_drop_locations
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
 from ffcsa.shop.models import Category, Order, Product
 from ffcsa.core.forms import BasePaymentFormSet, ProfileForm, CreditOrderedProductForm
@@ -46,8 +47,7 @@ from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
                                       update_stripe_subscription)
 from ffcsa.shop.utils import set_home_delivery, clear_shipping
 
-from .utils import (ORDER_CUTOFF_DAY,
-                    get_order_week_start, next_weekday)
+from .utils import (ORDER_CUTOFF_DAY, next_weekday)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
@@ -662,6 +662,7 @@ def stripe_webhooks(request):
 def admin_attending_dinner(request, template="admin/attending_dinner.html"):
     today = datetime.date.today()
 
+    # TODO fixme
     if today.weekday() < ORDER_CUTOFF_DAY:
         delta = ORDER_CUTOFF_DAY - today.weekday()
         order_date = today + datetime.timedelta(delta) - datetime.timedelta(7)
@@ -718,8 +719,9 @@ def member_order_history(request, template="admin/member_order_history.html"):
 
     data = []
 
-    next_order_day = next_weekday(
-        get_order_week_start(), ORDER_CUTOFF_DAY)  # get the order day
+    # TODO fixme
+    now = datetime.datetime.now()
+    next_order_day = next_weekday(now, ORDER_CUTOFF_DAY)  # get the order day
 
     wk = next_order_day - datetime.timedelta(7)
     weeks = [wk]
@@ -784,7 +786,8 @@ def admin_bulk_payments(request, template="admin/bulk_payments.html"):
     extra = 1 if len(ids) > 0 else 2
     can_delete = len(ids) > 0
 
-    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes', 'is_credit'), can_delete=can_delete,
+    PaymentFormSet = modelformset_factory(Payment, fields=('user', 'date', 'amount', 'notes', 'is_credit'),
+                                          can_delete=can_delete,
                                           extra=extra, formset=BasePaymentFormSet)
 
     if request.method == 'POST':
@@ -937,6 +940,13 @@ class ProductAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(title__icontains=self.q)
 
         return qs
+
+
+def home_delivery_check(request, zip):
+    return http.JsonResponse(
+        {
+            'is_full': zip in get_full_drop_locations()
+        })
 
 
 @method_decorator(csrf_exempt, name='dispatch')

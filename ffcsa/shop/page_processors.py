@@ -10,6 +10,7 @@ from mezzanine.utils.views import paginate
 
 from ffcsa.shop.forms import AddProductForm
 from ffcsa.shop.models import Category, Product, ProductVariation
+from ffcsa.shop.orders import user_can_order
 from ffcsa.shop.utils import recalculate_cart
 
 
@@ -45,19 +46,12 @@ def category_processor(request, page):
         sku = request.POST.get("variation")
         quantity = request.POST.get("quantity")
 
-        if not request.user.profile.signed_membership_agreement:
-            raise Exception(
-                "You must sign our membership agreement before you can make an order")
+        can_order, err = user_can_order(request.user)
+        if not can_order:
+            error(request, err)
+            return
 
-        valid_dropsite = request.user.profile.home_delivery or request.user.profile.drop_site in [dropsite_info[0] for
-                                                                                                  dropsite_info in
-                                                                                                  settings.DROP_SITE_CHOICES]
-        if not valid_dropsite:
-            error(request,
-                  "Your current dropsite is no longer available. "
-                  "Please select a different dropsite before adding items to your cart.")
-
-        elif valid_dropsite and sku and quantity:
+        if sku and quantity:
             try:
                 variation = ProductVariation.objects.get(sku=sku)
                 # use AddProductForm b/c it does some validation w/ inventories, etc

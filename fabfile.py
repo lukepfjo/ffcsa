@@ -2,6 +2,7 @@ from __future__ import print_function, unicode_literals
 from future.builtins import open
 
 import os
+import tempfile
 import re
 import sys
 from contextlib import contextmanager
@@ -53,8 +54,6 @@ env.email_host_user = conf.get("EMAIL_HOST_USER", "")
 env.email_host = conf.get("EMAIL_HOST", "")
 env.email_host_password = conf.get("EMAIL_HOST_PASSWORD", "")
 env.admin_email = conf.get("ADMIN_EMAIL", "")
-env.convert_orders_day = conf.get("CONVERT_ORDERS_DAY", 4)
-env.order_reminder_email_day = conf.get("ORDER_REMINDER_EMAIL_DAY", 3)
 env.google_api_key = conf.get("GOOGLE_API_KEY", "")
 env.sign_request_api_key = conf.get("SIGN_REQUEST_API_KEY", "")
 env.sendinblue_api_key = conf.get("SENDINBLUE_API_KEY", "")
@@ -716,3 +715,21 @@ def all():
     install()
     if create():
         deploy()
+
+@task
+def dev():
+    with tempfile.NamedTemporaryFile('w') as f:
+        # https://gist.github.com/jiaaro/b2e1b7c705022c2cf56888152a999f65
+        f.write(
+            """\
+trap "exit" INT TERM
+trap "kill 0" EXIT
+PYTHONWARNINGS=always python manage.py runserver 0.0.0.0:%(port)s &
+HOST=%(host)s npm run dev &
+for job in $(jobs -p); do wait $job; done
+"""
+            % {"port": 8000, "host": "127.0.0.1"}
+        )
+        f.flush()
+
+        local("bash %s" % f.name)
