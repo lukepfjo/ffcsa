@@ -34,6 +34,9 @@ HOME_DELIVERY_FEE_BY_ZIP = {
 }
 DEFAULT_HOME_DELIVERY_CHARGE = 5
 
+INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU']
+INVITE_CODE = 'PDX_2020'
+
 # A location can either be a zip code or a dropsite name
 DROP_LOCATION_GROUP_LIMITS = [
     # Portland
@@ -86,7 +89,7 @@ DROPSITES = [
         'name': 'W 11th',
         'memberLimit': 30,
         'color': 'white',
-        'description': 'Eugene - W 11th and Van Buren (Wednesday)',
+        'description': 'Eugene - W 11th & Van Buren (Wednesday)',
         'allowOneTimeOrders': False,
         'pickupDay': 3,
     },
@@ -118,7 +121,7 @@ DROPSITES = [
         'name': 'Banzhaf',
         'memberLimit': 20,
         'color': 'orange',
-        'description': 'Corvallis - Member Drop Site (Saturday)',
+        'description': 'Corvallis - NW Walnut & NW Aspen (Saturday)',
         'allowOneTimeOrders': False,
         'pickupDay': 6,
     },
@@ -240,7 +243,6 @@ ROLLBAR = {
 
 INVITE_CODE_LENGTH = 20
 INVITE_CODE_USAGE_WINDOW = 7
-INVITE_CODE_EXPIRY_DAYS = 0
 
 ######################
 # SHOP SETTINGS #

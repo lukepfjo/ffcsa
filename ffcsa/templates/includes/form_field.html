@@ -20,7 +20,7 @@
             </p>
         {% endif %}
         {% if field.help_text %}
-            <p class="help-block">{{ field.help_text }}</p>
+            <p class="help-block">{{ field.help_text|safe }}</p>
         {% elif not field.label or not show_label %}
             {% if field.field.required and show_required and not field|is_select %}
                 <p class="help-block">{% trans "required" %}</p>

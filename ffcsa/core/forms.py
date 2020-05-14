@@ -103,6 +103,7 @@ class ProfileForm(accounts_forms.ProfileForm):
         # for some reason, the Profile model validators are not copied over to the form, so we add them here
         self.fields['num_adults'].validators.append(validators.MinValueValidator(1))
 
+        # self.fields['delivery_address'].required = False
         self.fields['delivery_address'].widget.attrs['readonly'] = ''
         self.fields['delivery_address'].widget.attrs['class'] = 'mb-3 mr-4'
         self.fields['delivery_notes'].widget.attrs = {'rows': 3, 'cols': 40,
@@ -111,7 +112,8 @@ class ProfileForm(accounts_forms.ProfileForm):
         self.fields['phone_number'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['phone_number_2'].widget.attrs['placeholder'] = '123-456-7890'
         self.fields['drop_site'] = forms.ChoiceField(widget=DropsiteSelectWidget(),
-                                                     choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location")
+                                                     choices=dropsites.DROPSITE_CHOICES, label="Drop Site Location",
+                                                     help_text="Our Portland dropsites are currently full. <a href='https://26403a96.sibforms.com/serve/MUIEAPzhRhr0DZ5DOA6nD0vQ2bGQgPxIE93B2DAYFcbFPiwXaU5SvLqa2xRxtpEwnJ39QS4v2uXlDRxsANLuMlk40J6Cs0rx-Z-rny-9LQuj7nTsb06XyMDY3eb3jljQwkMYwm4dvZnL-xKLW4ZH6ou40aq5zCh0U1sbyHA4ezmcCbZzCTQ9MKUbn9L0O8aEmADU-OxOXV3CPYP2'>Join our waitlist</a> to be notified when a spot opens up.")
 
         if self.instance.id is not None:
             self.initial['drop_site'] = self.instance.profile.drop_site
@@ -123,6 +125,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                       "for 6 months, with a minimum payment of $172 per month.")
 
             # self.fields[''] = forms.FileField(label="Signed Member Product Liability Agreement",
+            self.fields['invite_code'] = forms.CharField(label="Invite Code (Portland dropsites only)",
+                                                         required=False)
             self.fields['best_time_to_reach'] = forms.CharField(label="What is the best time to reach you?",
                                                                 required=True)
             self.fields['communication_method'] = forms.ChoiceField(
@@ -140,6 +144,7 @@ class ProfileForm(accounts_forms.ProfileForm):
             self.fields['payment_agreement'].widget = forms.HiddenInput()
             self.fields['join_dairy_program'].widget = forms.HiddenInput()
             self.fields['num_adults'].widget = forms.HiddenInput()
+            self.fields['drop_site'].help_text = None
 
         if not settings.HOME_DELIVERY_ENABLED:
             del self.fields['home_delivery']
@@ -172,6 +177,13 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         if not home_delivery:
             cleaned_data['delivery_address'] = None
+
+            if self._signup and cleaned_data.get(
+                    'drop_site') in settings.INVITE_ONLY_PORTLAND_MARKETS and cleaned_data.get('invite_code',
+                                                                                               None) != settings.INVITE_CODE:
+                self.add_error('invite_code', '')
+                self.add_error(None,
+                               'Due to limited capacity, Portland dropsites are invite only. Either enter your invite code below or join our waitlist to be notified when a spot opens up.')
 
         return cleaned_data
 

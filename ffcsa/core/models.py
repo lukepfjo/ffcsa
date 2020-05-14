@@ -1,6 +1,7 @@
 import datetime
 import json
 
+from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import validators
@@ -53,7 +54,7 @@ class Address(models.Model):
 class AddressDescriptor(ForwardManyToOneDescriptor):
 
     def _to_python(self, value):
-        if value is None:
+        if value is None or value == '':
             return None
 
         if isinstance(value, Address):
@@ -92,7 +93,12 @@ class AddressField(models.ForeignKey):
         setattr(cls, self.name, AddressDescriptor(self))
 
     def formfield(self, **kwargs):
-        return models.CharField().formfield(**kwargs)
+        defaults = {
+            'form_class': forms.CharField
+        }
+        defaults.update(kwargs)
+        return models.Field.formfield(self, **defaults)
+        # return models.CharField().formfield(**kwargs)
 
 
 ###################
@@ -151,9 +157,9 @@ class Profile(models.Model):
     discount_code = models.ForeignKey(
         'shop.DiscountCode', blank=True, null=True, on_delete=models.PROTECT)
     home_delivery = models.BooleanField(default=False, verbose_name="Home Delivery",
-                                        help_text="Home delivery is available in select areas for a $5-10 fee, depending on location. This fee is waived for all orders over ${}.".format(
+                                        help_text="Available in Eugene, Corvallis, and Springfield for a $5 fee. This fee is waived for all orders over ${}.".format(
                                             settings.FREE_HOME_DELIVERY_ORDER_AMOUNT))
-    delivery_address = AddressField(null=True)
+    delivery_address = AddressField(null=True, blank=True)
     delivery_notes = models.TextField("Special Delivery Notes", blank=True)
     num_adults = models.IntegerField("How many adults are in your family?", default=0,
                                      validators=[validators.MinValueValidator(1)]
