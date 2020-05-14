@@ -81,8 +81,13 @@ ADMINS = [('RJ', '%(admin_email)s')]
 
 #COMPRESS_OFFLINE = True
 
+STATICFILES_IGNORE = [
+    'css/style.css'
+]
+
 STATICFILES_STORAGE = (
-    "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    #"django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+    "ffcsa.staticfiles.ExcludableManifestStaticFilesStorage"
 )
 
 CSRF_COOKIE_SECURE = True # Prevent cookies from being sent over HTTP; only HTTPS

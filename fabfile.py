@@ -663,7 +663,8 @@ def deploy():
         upload_template_and_reload(name)
     with project():
         run("npm install")
-        manage("compress")
+        run("npm run prod")
+        # manage("compress")
         manage("collectstatic -v 0 --noinput")
         manage("migrate --noinput")
     restart()
