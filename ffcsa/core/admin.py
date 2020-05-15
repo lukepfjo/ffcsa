@@ -49,6 +49,26 @@ user_list_filter.append('profile__home_delivery')
 user_list_filter.append('profile__join_dairy_program')
 
 
+def formfield_for_dbfield(self, db_field, request, **kwargs):
+    if db_field.name == "delivery_address":
+        return db_field.formfield(**kwargs)
+
+    return super(accounts_base.ProfileInline, self).formfield_for_dbfield(db_field, request, **kwargs)
+
+
+class ProfileAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['delivery_address'].widget.attrs['class'] = 'vTextField'
+        if self.instance:
+            self.initial['delivery_address'] = str(self.instance.delivery_address)
+
+
+accounts_base.ProfileInline.formfield_for_dbfield = formfield_for_dbfield
+accounts_base.ProfileInline.form = ProfileAdminForm
+
+
 class UserProfileAdmin(accounts_base.UserProfileAdmin):
     fieldsets = user_fieldsets
     list_filter = tuple(user_list_filter)
