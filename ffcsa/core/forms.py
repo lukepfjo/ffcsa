@@ -15,6 +15,7 @@ from ffcsa.core.google import update_contact as update_google_contact
 from ffcsa.core.models import DropSiteInfo, PHONE_REGEX
 from ffcsa.core.utils import give_emoji_free_text
 from ffcsa.shop.models import OrderItem
+from ffcsa.shop.orders import get_order_period_for_user
 from ffcsa.shop.utils import clear_shipping, set_home_delivery, recalculate_remaining_budget
 
 
@@ -188,6 +189,8 @@ class ProfileForm(accounts_forms.ProfileForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
+        old_order_period_start = get_order_period_for_user(self.instance)
+
         with transaction.atomic():
             user = super(ProfileForm, self).save(*args, **kwargs)
 
@@ -225,6 +228,13 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         request = current_request()
         if not self._signup:
+            # clear cart if order period changed
+            if "home_delivery" in self.changed_data or "delivery_address" in self.changed_data or "drop_site" in self.changed_data:
+                new_order_period_start = get_order_period_for_user(user)
+                if old_order_period_start != new_order_period_start:
+                    request.cart.clear()
+                    recalculate_remaining_budget(request)
+
             # we can't set this on signup b/c the cart.user_id has not been set yet
             if "home_delivery" in self.changed_data or "delivery_address" in self.changed_data:
                 if user.profile.home_delivery:
