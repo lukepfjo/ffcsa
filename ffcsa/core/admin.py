@@ -62,7 +62,7 @@ class ProfileAdminForm(forms.ModelForm):
 
         self.fields['delivery_address'].widget.attrs['class'] = 'vTextField'
         if self.instance:
-            self.initial['delivery_address'] = str(self.instance.delivery_address)
+            self.initial['delivery_address'] = str(self.instance.delivery_address) if self.instance.home_delivery else ''
 
 
 accounts_base.ProfileInline.formfield_for_dbfield = formfield_for_dbfield

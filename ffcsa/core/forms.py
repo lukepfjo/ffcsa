@@ -189,7 +189,8 @@ class ProfileForm(accounts_forms.ProfileForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        old_order_period_start = get_order_period_for_user(self.instance)
+        old_order_period_start = get_order_period_for_user(self.instance) if hasattr(self.instance,
+                                                                                     'profile') else None, None
 
         with transaction.atomic():
             user = super(ProfileForm, self).save(*args, **kwargs)
