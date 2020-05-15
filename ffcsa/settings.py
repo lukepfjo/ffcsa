@@ -34,19 +34,19 @@ HOME_DELIVERY_FEE_BY_ZIP = {
 }
 DEFAULT_HOME_DELIVERY_CHARGE = 5
 
-INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU']
+INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU', 'Cully']
 INVITE_CODE = 'PDX_2020'
 
 # A location can either be a zip code or a dropsite name
 DROP_LOCATION_GROUP_LIMITS = [
     # Portland
     {
-        'limit': 100,
-        'locations': ['Hollywood', 'PSU']
+        'limit': 115,
+        'locations': ['Hollywood', 'PSU', 'Cully']
     },
     # Corvallis
     {
-        'limit': 55,
+        'limit': 60,
         'locations': ['97330', '97331', '97333', 'Banzhaf'],
     },
     # Eugene
@@ -71,7 +71,7 @@ HOME_DELIVERY_DAY = {
 DROPSITES = [
     {
         'name': 'Farm - Friday',
-        'memberLimit': 50,
+        'memberLimit': 30,
         'color': 'pink',
         'description': 'Junction City - Deck Family Farm (Friday)',
         'allowOneTimeOrders': True,
@@ -95,7 +95,7 @@ DROPSITES = [
     },
     {
         'name': 'LCFM',
-        'memberLimit': 30,
+        'memberLimit': 40,
         'color': 'blue',
         'description': 'Eugene - Lane County Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
@@ -103,7 +103,7 @@ DROPSITES = [
     },
     {
         'name': 'PSU',
-        'memberLimit': 35,
+        'memberLimit': 40,
         'color': 'green',
         'description': 'Portland - PSU Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
@@ -111,15 +111,23 @@ DROPSITES = [
     },
     {
         'name': 'Hollywood',
-        'memberLimit': 50,
+        'memberLimit': 60,
         'color': 'yellow',
         'description': 'Portland - Hollywood Farmers Market (Saturday)',
         'allowOneTimeOrders': True,
         'pickupDay': 6,
     },
     {
+        'name': 'Cully',
+        'memberLimit': 30,
+        'color': 'yellow',
+        'description': 'Portland - Killingsworth & NE 60th (Saturday)',
+        'allowOneTimeOrders': False,
+        'pickupDay': 6,
+    },
+    {
         'name': 'Banzhaf',
-        'memberLimit': 20,
+        'memberLimit': 25,
         'color': 'orange',
         'description': 'Corvallis - NW Walnut & NW Aspen (Saturday)',
         'allowOneTimeOrders': False,
@@ -145,7 +153,7 @@ ORDER_WINDOWS = [
     },
     {
         'startDay': 5,  # 1 is Monday
-        'startTime': '19:00',
+        'startTime': '18:00',
         'endDay': 7,
         'endTime': '23:59',
         'memberLimit': 220,
@@ -201,10 +209,12 @@ SENDINBLUE_LISTS = {
 
 SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     'Banzhaf': 27,
-    'Farm': 31,
-    'Hollywood': 30,
+    'Farm - Friday': 31,
+    'Farm - Tuesday': 50,
     'LCFM': 28,
+    'Hollywood': 30,
     'PSU': 29,
+    'Cully': 51,
     'Home Delivery': 32,
     'W 11th': 26,
     # 'St Johns': 9,
