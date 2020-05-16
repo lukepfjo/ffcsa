@@ -20,7 +20,7 @@ def user_can_order(user):
     if not valid_order_period_for_user(user):
         return False, "Your order period has not opened."
 
-    return True
+    return True, ""
 
 
 def valid_order_period_for_user(user):

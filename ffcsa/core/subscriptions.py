@@ -117,6 +117,7 @@ def send_first_payment_email(user):
         'home_delivery': user.profile.home_delivery,
         'can_order_now': can_order_now,
         'order_week_start': formats.date_format(week_start, "D F d"),
+        'order_week_end': formats.date_format(week_end, "D F d"),
     }
     send_mail_template(
         "Welcome to the FFCSA!",

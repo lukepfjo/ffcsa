@@ -153,7 +153,7 @@ ORDER_WINDOWS = [
     },
     {
         'startDay': 5,  # 1 is Monday
-        'startTime': '18:00',
+        'startTime': '20:00',
         'endDay': 7,
         'endTime': '23:59',
         'memberLimit': 220,
