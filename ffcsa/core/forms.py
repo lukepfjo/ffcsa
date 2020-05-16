@@ -216,9 +216,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                 user.profile.weekly_emails = True
                 user.profile.no_plastic_bags = False
 
-                home_delivery = self.cleaned_data.get('home_delivery', None)
-                sib_template_name = drop_site if home_delivery is None else 'Home Delivery'
-                drop_site_list = drop_site if home_delivery is None else sendinblue.HOME_DELIVERY_LIST
+                sib_template_name = 'Home Delivery' if user.profile.home_delivery else drop_site
+                drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
 
                 sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
                                               self.cleaned_data['last_name'], drop_site_list,
