@@ -34,7 +34,7 @@ HOME_DELIVERY_FEE_BY_ZIP = {
 }
 DEFAULT_HOME_DELIVERY_CHARGE = 5
 
-INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU', 'Cully']
+INVITE_ONLY_PORTLAND_MARKETS = ['Hollywood', 'PSU', 'Cully', 'St Johns']
 INVITE_CODE = 'PDX_2020'
 
 # A location can either be a zip code or a dropsite name
@@ -42,7 +42,7 @@ DROP_LOCATION_GROUP_LIMITS = [
     # Portland
     {
         'limit': 115,
-        'locations': ['Hollywood', 'PSU', 'Cully']
+        'locations': ['Hollywood', 'PSU', 'Cully', 'St Johns']
     },
     # Corvallis
     {
@@ -126,6 +126,14 @@ DROPSITES = [
         'pickupDay': 6,
     },
     {
+        'name': 'St Johns',
+        'memberLimit': 20,
+        'color': 'purple',
+        'description': 'Portland - St Johns Farmers Market (Saturday)',
+        'allowOneTimeOrders': False,
+        'pickupDay': 6,
+    },
+    {
         'name': 'Banzhaf',
         'memberLimit': 25,
         'color': 'orange',
@@ -133,10 +141,8 @@ DROPSITES = [
         'allowOneTimeOrders': False,
         'pickupDay': 6,
     },
-    # # ('St Johns', 'Portland - St Johns Farmers Market (Saturday)'),
     # # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
     # DROP_SITE_COLORS = {
-    # 'St Johns': 'purple',
     # 'Woodstock': 'yellow',
     # }
 ]
@@ -148,7 +154,7 @@ ORDER_WINDOWS = [
         'endDay': 3,
         'endTime': '23:59',
         'memberLimit': 220,
-        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf'],
+        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf', 'Cully', 'St Johns'],
         'homeDeliveryZips': ['97330', '97331', '97333']
     },
     {
@@ -161,11 +167,14 @@ ORDER_WINDOWS = [
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
+                   'St Johns', 'PSU', 'Hollywood', 'Cully']
 
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
     # ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
-    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '16:00', '', '', '', '', 'none'],
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '16:00', '', '', '',
+     '', 'none'],
     ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
@@ -217,7 +226,7 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     'Cully': 51,
     'Home Delivery': 32,
     'W 11th': 26,
-    # 'St Johns': 9,
+    'St Johns': 58,
     # 'Woodstock': 10,
     # '19th St.': 1,
     # 'Corner Market': 3,
