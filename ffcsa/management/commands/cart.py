@@ -5,6 +5,7 @@ from django.db.models import Sum, OuterRef, Subquery, IntegerField
 from django.utils import formats
 from mezzanine.utils.email import send_mail_template
 
+from ffcsa.core.dropsites import get_pickup_date
 from ffcsa.core.utils import get_current_friday_pickup_date
 from ffcsa.shop.models import Cart, Order, ProductVariation, CartItem
 from django.contrib.auth import get_user_model
@@ -127,9 +128,10 @@ class Command(BaseCommand):
 
                 order.save()
 
-                pickup = get_current_friday_pickup_date()
-                if user.profile.home_delivery or user.profile.drop_site.lower().strip() != 'farm':
-                    pickup = pickup + datetime.timedelta(1)
+                pickup_date = get_pickup_date(user)
+                pickup = formats.date_format(pickup_date, "D F d")
+                if user.profile.home_delivery:
+                    pickup = pickup + " or  " + formats.date_format(pickup_date + datetime.timedelta(1), "D F d")
 
                 sub_pickup = 'for home delivery' if user.profile.home_delivery else 'for pickup at: {}'.format(
                     user.profile.drop_site)
@@ -142,7 +144,7 @@ class Command(BaseCommand):
                     context={
                         'first_name': user.first_name,
                         'home_delivery': user.profile.home_delivery,
-                        'pickup_date': formats.date_format(pickup, "D F d"),
+                        'pickup_date': pickup,
                         'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
                     }
                 )

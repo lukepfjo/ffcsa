@@ -92,7 +92,7 @@ def get_full_drop_locations():
 
 def get_color(dropsite_name):
     if dropsite_name == 'Home Delivery':
-        return 'purple'
+        return 'purple', 'black'
 
     ds = _DROPSITE_DICT[dropsite_name]
     color = ds['color'] if ds else 'white'
