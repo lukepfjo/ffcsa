@@ -128,9 +128,11 @@ class Command(BaseCommand):
 
                 order.save()
 
-                pickup_date = get_pickup_date(user)
+                # We subtract 7 days b/c the order window has closed and get_pickup_date will return the date of
+                # pickup for the next order window
+                pickup_date = get_pickup_date(user) - datetime.timedelta(7)
                 pickup = formats.date_format(pickup_date, "D F d")
-                if user.profile.home_delivery:
+                if user.profile.home_delivery and user.profile.delivery_address.city != 'Corvallis':
                     pickup = pickup + " or  " + formats.date_format(pickup_date + datetime.timedelta(1), "D F d")
 
                 sub_pickup = 'for home delivery' if user.profile.home_delivery else 'for pickup at: {}'.format(

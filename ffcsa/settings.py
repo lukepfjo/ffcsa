@@ -149,8 +149,8 @@ DROPSITES = [
 
 ORDER_WINDOWS = [
     {
-        'startDay': 1,  # 1 is Monday
-        'startTime': '18:00',
+        'startDay': 2,  # 1 is Monday
+        'startTime': '10:00',
         'endDay': 3,
         'endTime': '23:59',
         'memberLimit': 220,
@@ -158,8 +158,8 @@ ORDER_WINDOWS = [
         'homeDeliveryZips': ['97330', '97331', '97333']
     },
     {
-        'startDay': 5,  # 1 is Monday
-        'startTime': '20:00',
+        'startDay': 6,  # 1 is Monday
+        'startTime': '10:00',
         'endDay': 7,
         'endTime': '23:59',
         'memberLimit': 220,
