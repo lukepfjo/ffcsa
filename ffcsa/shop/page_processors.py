@@ -77,7 +77,7 @@ def category_processor(request, page):
 
     products.sort_by = sort_by
     sub_categories = page.category.children.published()
-    child_categories = Category.objects.filter(id__in=sub_categories)
+    child_categories = Category.objects.filter(id__in=sub_categories, products__available=True).distinct()
 
     can_order_dairy = request.user.is_authenticated() and request.user.profile.can_order_dairy
     return {

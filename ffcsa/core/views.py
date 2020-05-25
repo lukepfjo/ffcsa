@@ -12,6 +12,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages import error, info, success
 from django.contrib.sites.models import Site
+from django.db.models import Q
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
@@ -54,7 +55,10 @@ logger = logging.getLogger(__name__)
 
 
 def shop_home(request, template="shop_home.html"):
-    root_categories = Category.objects.published().filter(parent__isnull=True)
+    root_categories = Category.objects.published().filter(
+        Q(products__available=True) | Q(id__in=Category.objects.filter(parent__isnull=False).values('parent_id').distinct()),
+        parent__isnull=True
+    ).distinct()
     recipes = Recipe.objects.published().filter(slug='recipes').first()
 
     context = {
