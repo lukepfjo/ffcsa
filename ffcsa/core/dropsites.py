@@ -94,9 +94,9 @@ def get_color(dropsite_name):
     if dropsite_name == 'Home Delivery':
         return 'purple', 'black'
 
-    ds = _DROPSITE_DICT[dropsite_name]
-    color = ds['color'] if ds else 'white'
-    if not ds:
+    in_dict = dropsite_name in _DROPSITE_DICT
+    color = _DROPSITE_DICT[dropsite_name]['color'] if in_dict else 'white'
+    if not in_dict:
         strokeColor = 'white'
     else:
         strokeColor = color if color is not 'white' else 'black'
