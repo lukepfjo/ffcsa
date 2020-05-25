@@ -116,7 +116,7 @@ def send_first_payment_email(user):
         'drop_site': 'Home Delivery' if user.profile.home_delivery else user.profile.drop_site,
         'home_delivery': user.profile.home_delivery,
         'can_order_now': can_order_now,
-        'order_week_start': formats.date_format(week_start, "D F d"),
+        'order_week_start': formats.date_format(week_start, "D F d") + ' at ' + formats.date_format(week_start, "P"),
         'order_week_end': formats.date_format(week_end, "D F d"),
     }
     send_mail_template(
