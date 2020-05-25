@@ -217,12 +217,8 @@ class ProfileForm(accounts_forms.ProfileForm):
                 user.profile.no_plastic_bags = False
 
                 sib_template_name = 'Home Delivery' if user.profile.home_delivery else drop_site
-                drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
 
-                sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
-                                              self.cleaned_data['last_name'], drop_site_list,
-                                              self.cleaned_data['phone_number'], sendinblue.NEW_USER_LISTS,
-                                              sendinblue.NEW_USER_LISTS_TO_REMOVE)
+                sendinblue.update_or_add_user(user, sendinblue.NEW_USER_LISTS, sendinblue.NEW_USER_LISTS_TO_REMOVE)
 
             user.profile.save()
 
@@ -251,13 +247,10 @@ class ProfileForm(accounts_forms.ProfileForm):
             update_google_contact(user)
 
             # The following NOPs if settings.SENDINBLUE_ENABLED == False
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else drop_site
             weekly_email_lists = ['WEEKLY_NEWSLETTER']
             lists_to_add = weekly_email_lists if user.profile.weekly_emails else None
             lists_to_remove = weekly_email_lists if not user.profile.weekly_emails else None
-            sendinblue.update_or_add_user(self.cleaned_data['email'], self.cleaned_data['first_name'],
-                                          self.cleaned_data['last_name'], drop_site_list,
-                                          self.cleaned_data['phone_number'], lists_to_add, lists_to_remove)
+            sendinblue.update_or_add_user(user, lists_to_add, lists_to_remove)
 
         # Send drop site information (or home delivery instructions)
         if settings.SENDINBLUE_ENABLED and \

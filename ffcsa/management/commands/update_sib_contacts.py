@@ -15,8 +15,6 @@ class Command(BaseCommand):
         thirty_days = (datetime.now() - timedelta(days=30)).date()
 
         for user in get_user_model().objects.filter(is_active=True):
-            drop_site_list = sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site
-
             # active if they have a subscription, or have signed up in the last 30 days, or have made an order
             # in the last 60 days (pay-in-advance members don't have a subscription)
             is_active = bool(user.profile.stripe_subscription_id) or user.date_joined.date() >= thirty_days or \
@@ -25,6 +23,7 @@ class Command(BaseCommand):
 
             lists_to_add = []
             lists_to_remove = []
+            remove_member = False
 
             if is_active:
                 lists_to_add.extend(['MEMBERS', 'WEEKLY_REMINDER'])
@@ -32,9 +31,6 @@ class Command(BaseCommand):
                 if user.profile.weekly_emails:
                     lists_to_add.append('WEEKLY_NEWSLETTER')
             else:
-                lists_to_remove.extend(['MEMBERS'])
-                lists_to_add.extend((['FORMER_MEMBERS']))
-                drop_site_list = None
+                remove_member = True
 
-            sendinblue.update_or_add_user(user.email, user.first_name, user.last_name, drop_site_list,
-                                          user.profile.phone_number, lists_to_add, lists_to_remove)
+            sendinblue.update_or_add_user(user, lists_to_add, lists_to_remove, remove_member=remove_member)

@@ -1,3 +1,4 @@
+import calendar
 import json
 import logging
 
@@ -7,6 +8,7 @@ import requests
 import requests.exceptions
 
 from ffcsa.core import dropsites
+from ffcsa.shop.orders import get_order_window_for_user
 
 if __name__ == '__main__':
     from ffcsa.ffcsa import settings
@@ -33,7 +35,8 @@ NEW_USER_LISTS = ['WEEKLY_NEWSLETTER', 'WEEKLY_REMINDER', 'MEMBERS']
 
 NEW_USER_LISTS_TO_REMOVE = ['PROSPECTIVE_MEMBERS']
 
-HOME_DELIVERY_LIST = 'Home Delivery'
+_HOME_DELIVERY_LIST = 'Home Delivery - {}'
+_PACKOUT_DAY_LIST = 'Packout - {}'
 
 
 # --------
@@ -104,8 +107,10 @@ def _initialize_drop_site_lists():
     # Get the names of the drop_sites from settings.py and diff them with the folders on SIB
     missing_on_sib = [d[0] for d in dropsites.DROPSITE_CHOICES if d[0] not in drop_site_ids.keys()]
 
-    if HOME_DELIVERY_LIST not in drop_site_ids.keys():
-        missing_on_sib.append(HOME_DELIVERY_LIST)
+    for city in settings.HOME_DELIVERY_CITIES:
+        list = _HOME_DELIVERY_LIST.format(city)
+        if list not in drop_site_ids.keys():
+            missing_on_sib.append(list)
 
     for missing_drop_site in missing_on_sib:
         list_name = 'Dropsite - {}'.format(missing_drop_site)
@@ -117,8 +122,47 @@ def _initialize_drop_site_lists():
     return drop_site_ids
 
 
+def _initialize_packout_day_lists():
+    # If the order window packout day in settings.py do not have corresponding lists on SIB, this will create them
+
+    # 50 is the max results the api will return.
+    existing_lists = send_request('contacts/folders/{}/lists'.format(settings.SENDINBLUE_PACKOUT_DAY_FOLDER_ID),
+                                  query={'limit': 50})
+
+    day_ids = {_list['name']: int(_list['id'])
+               for _list in existing_lists['lists']
+               if _list['name'].startswith('Packout')} if existing_lists else {}
+
+    # Get the names of the drop_sites from settings.py and diff them with the folders on SIB
+    missing_on_sib = []
+
+    for window in settings.ORDER_WINDOWS:
+        list_name = _PACKOUT_DAY_LIST.format(calendar.day_name[window['packDay'] - 1])
+        if list_name not in day_ids.keys():
+            missing_on_sib.append(list_name)
+
+    for list_name in missing_on_sib:
+        logger.warning('Packout day list "{}" is missing on Sendinblue; creating...'.format(list_name))
+        response = send_request('contacts/lists', method='POST',
+                                data={'name': list_name, 'folderId': settings.SENDINBLUE_PACKOUT_DAY_FOLDER_ID})
+        day_ids[list_name] = int(response['id'])
+
+    return day_ids
+
+
 if settings.SENDINBLUE_ENABLED:
     _DROP_SITE_IDS = _initialize_drop_site_lists()
+    _PACKOUT_DAY_IDS = _initialize_packout_day_lists()
+
+
+def get_packout_list_for_user(user):
+    list_name = None
+
+    window = get_order_window_for_user(user)
+    if window:
+        list_name = _PACKOUT_DAY_LIST.format(calendar.day_name[window['packDay'] - 1])
+
+    return list_name
 
 
 # --------
@@ -190,6 +234,11 @@ def get_user(email=None, phone_number=None):
     list_ids = user['listIds']
     drop_site = [name for name, site_list_id in _DROP_SITE_IDS.items() if site_list_id in list_ids]
     drop_site = drop_site[0] if len(drop_site) != 0 else None
+    packout_list = None
+    for list_name, id in _PACKOUT_DAY_IDS.items():
+        if id in list_ids:
+            packout_list = list_name
+            break
 
     return {
         'identifier': user['email'],
@@ -198,6 +247,7 @@ def get_user(email=None, phone_number=None):
         'last_name': attributes.get('LASTNAME', None),
         'phone_number': attributes.get('sms', attributes).get('SMS', None),
         'drop_site': drop_site,
+        'packout_list': packout_list,
         'list_ids': list_ids
     }
 
@@ -258,18 +308,14 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
     return True, ''
 
 
-def update_or_add_user(email, first_name, last_name, drop_site, phone_number=None,
-                       lists_to_add=None, lists_to_remove=None):
+def update_or_add_user(user, lists_to_add=None, lists_to_remove=None, remove_member=False):
     """
     Updates a user on SIB, or creates a new one should they not exist
 
-    @param email: Email of user to be updated
-    @param first_name: User's first name
-    @param last_name: User's last name
-    @param drop_site: Drop site name, ex: 'Hollywood', or None to remove
-    @param phone_number: User's cellphone number, not required
+    @param user: User object
     @param lists_to_add: List of list names that the user desires to be on (other than drop site)
     @param lists_to_remove: List of list names the user does not want to be on (other than drop site)
+    @param remove_member: Is this user being removed from active membership
 
     @return: (True, '') on success, (False, '<some error message>') on failure
     """
@@ -277,12 +323,25 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     if not settings.SENDINBLUE_ENABLED:
         return True, ''
 
-    if drop_site is not None and drop_site != HOME_DELIVERY_LIST and drop_site not in dropsites._DROPSITE_DICT:
+    if lists_to_add is None:
+        lists_to_add = []
+    if lists_to_remove is None:
+        lists_to_remove = []
+
+    drop_site = _HOME_DELIVERY_LIST.format(user.profile.delivery_address.city) if user.profile.home_delivery \
+        else user.profile.drop_site
+
+    if remove_member:
+        lists_to_add.extend(['FORMER_MEMBERS'])
+        lists_to_remove.extend(['MEMBERS', 'WEEKLY_REMINDER'])
+        drop_site = None
+
+    if not remove_member and not user.profile.home_delivery and drop_site not in dropsites._DROPSITE_DICT:
         msg = 'Drop site {} does not exist in settings.DROPSITES'.format(drop_site)
         logger.error(msg)
         return False, msg
 
-    phone_number = _format_phone_number(phone_number) if phone_number is not None else None
+    phone_number = _format_phone_number(user.profile.phone_number) if user.profile.phone_number is not None else None
     if phone_number is False:
         msg = 'Invalid phone number'
         logger.error(msg)
@@ -292,49 +351,51 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
 
     # Diff the old and new user info
     try:
-        old_user_info = get_user(email, phone_number)
+        old_user_info = get_user(user.email, phone_number)
     except Exception as ex:
         logger.error(ex)
         return False, str(ex)
 
     # User could not be found on Sendinblue; create a new one
     if not old_user_info:
-        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number)
+        add_success, add_msg = add_user(user.email, user.first_name, user.last_name, drop_site, phone_number)
 
         if not add_success:
             logger.error(add_msg)
             return False, add_msg
 
-        old_user_info = get_user(email, phone_number)
+        old_user_info = get_user(user.email, phone_number)
 
     # Tried to add a user with a phone number that already exists in SIB
     if not old_user_info:
-        logger.info('New SIB user {} has existing phone number {}; dropping phone number.'.format(email, phone_number))
-        add_success, add_msg = add_user(email, first_name, last_name, drop_site, phone_number=None)
+        logger.info(
+            'New SIB user {} has existing phone number {}; dropping phone number.'.format(user.email, phone_number))
+        add_success, add_msg = add_user(user.email, user.first_name, user.last_name, drop_site, phone_number=None)
 
         if not add_success:
             logger.error(add_msg)
             return False, add_msg
 
-        old_user_info = get_user(email, phone_number)
+        old_user_info = get_user(user.email, phone_number)
 
     # Something unexpected went wrong; if this message is seen it should be debugged
     if not old_user_info:
         msg = 'Unexpectedly failed to add or update user with this info:\n' + \
               'Email: "{}" FNAME: "{}" LNAME: "{}" DROPSITE: "{}" PHONE: "{}"'.format(
-                  email, first_name, last_name, drop_site, phone_number)
+                  user.email, user.first_name, user.last_name, drop_site, phone_number)
         logger.error(msg)
         return False, msg
 
     identifier = old_user_info.pop('identifier')
 
-    new_user_info = {'email': email, 'first_name': first_name, 'last_name': last_name,
-                     'drop_site': drop_site, 'phone_number': phone_number}
+    packout_list = get_packout_list_for_user(user)
+    new_user_info = {'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name,
+                     'drop_site': drop_site, 'phone_number': phone_number, 'packout_list': packout_list}
 
     to_set = [(k, v) for k, v in new_user_info.items() if old_user_info[k] != v]
 
     # Nothing to update
-    if len(to_set) == 0 and lists_to_add is None and lists_to_remove is None:
+    if len(to_set) == 0 and len(lists_to_add) == 0 and len(lists_to_remove) == 0:
         return True, ''
 
     # Loop through and set attributes in query to their SIB equivalent
@@ -356,11 +417,17 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
         if old_user_drop_site is not None:
             body['unlinkListIds'].append(int(_DROP_SITE_IDS[old_user_drop_site]))
 
+    # Swap packout day or remove
+    old_user_packout_list = old_user_info['packout_list']
+    if old_user_packout_list != packout_list:
+        if not remove_member and packout_list is not None:
+            body['listIds'].append(int(_PACKOUT_DAY_IDS[packout_list]))
+        if old_user_packout_list is not None:
+            body['unlinkListIds'].append(int(_PACKOUT_DAY_IDS[old_user_packout_list]))
+
     # Add/remove lists
-    if lists_to_add is not None:
-        body['listIds'].extend([int(settings.SENDINBLUE_LISTS[desired]) for desired in lists_to_add])
-    if lists_to_remove is not None:
-        body['unlinkListIds'].extend([int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in lists_to_remove])
+    body['listIds'].extend([int(settings.SENDINBLUE_LISTS[desired]) for desired in lists_to_add])
+    body['unlinkListIds'].extend([int(settings.SENDINBLUE_LISTS[unwanted]) for unwanted in lists_to_remove])
 
     # Remove empty lists from query
     if len(body['listIds']) == 0:
@@ -384,18 +451,12 @@ def update_or_add_user(email, first_name, last_name, drop_site, phone_number=Non
     return True, ''
 
 
-def on_user_cancel_subscription(email, first_name, last_name):
-    return update_or_add_user(email, first_name, last_name,
-                              drop_site=None,
-                              lists_to_add=['FORMER_MEMBERS'],
-                              lists_to_remove=['MEMBERS', 'WEEKLY_REMINDER'])
+def on_user_cancel_subscription(user):
+    return update_or_add_user(user, remove_member=True)
 
 
-def on_user_resubscribe(email, first_name, last_name, drop_site):
-    return update_or_add_user(email, first_name, last_name,
-                              drop_site=drop_site,
-                              lists_to_add=['MEMBERS'],
-                              lists_to_remove=['FORMER_MEMBERS'])
+def on_user_resubscribe(user):
+    return update_or_add_user(user, lists_to_add=['MEMBERS'], lists_to_remove=['FORMER_MEMBERS'])
 
 
 # --------

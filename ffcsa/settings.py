@@ -60,6 +60,8 @@ HOME_DELIVERY_ZIP_LIMITS = {
     # '97448': 1
 }
 
+HOME_DELIVERY_CITIES = ['Eugene', 'Junction City', 'Springfield', 'Corvallis']
+
 # day of week home delivery will happen for a given zip code
 HOME_DELIVERY_DAY = {
     '97330': 6,
@@ -153,6 +155,7 @@ ORDER_WINDOWS = [
         'startTime': '10:00',
         'endDay': 3,
         'endTime': '23:59',
+        'packDay': 5,
         'memberLimit': 220,
         'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf', 'Cully', 'St Johns'],
         'homeDeliveryZips': ['97330', '97331', '97333']
@@ -162,6 +165,7 @@ ORDER_WINDOWS = [
         'startTime': '10:00',
         'endDay': 7,
         'endTime': '23:59',
+        'packDay': 2,
         'memberLimit': 220,
         'dropsites': ['Farm - Tuesday', 'W 11th'],
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
@@ -235,6 +239,7 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
 SENDINBLUE_DROP_SITE_FOLDER = 'Dropsites'
 # Can be found via https://developers.sendinblue.com/reference#getfolders-1
 SENDINBLUE_DROP_SITE_FOLDER_ID = 39
+SENDINBLUE_PACKOUT_DAY_FOLDER_ID = 44
 
 # Rollbar settings
 

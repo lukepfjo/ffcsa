@@ -56,7 +56,8 @@ logger = logging.getLogger(__name__)
 
 def shop_home(request, template="shop_home.html"):
     root_categories = Category.objects.published().filter(
-        Q(products__available=True) | Q(id__in=Category.objects.filter(parent__isnull=False).values('parent_id').distinct()),
+        Q(products__available=True) | Q(
+            id__in=Category.objects.filter(parent__isnull=False).values('parent_id').distinct()),
         parent__isnull=True
     ).distinct()
     recipes = Recipe.objects.published().filter(slug='recipes').first()
@@ -82,13 +83,10 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
         info(request, "Successfully signed up")
         auth_login(request, new_user)
 
-        drop_site = sendinblue.HOME_DELIVERY_LIST if new_user.profile.home_delivery else form.cleaned_data.get(
-            'drop_site')
-
         c = {
             'user': "{} {}".format(new_user.first_name, new_user.last_name),
             'user_url': request.build_absolute_uri(reverse("admin:auth_user_change", args=(new_user.id,))),
-            'drop_site': drop_site,
+            'drop_site': 'Home Delivery' if new_user.profile.home_delivery else form.cleaned_data.get('drop_site'),
             'phone_number': form.cleaned_data['phone_number'],
             'phone_number_2': form.cleaned_data['phone_number_2'],
             'email': form.cleaned_data.get('email', ''),
@@ -244,8 +242,7 @@ def payments_subscribe(request):
                 errors.append('Unknown Payment Type')
 
             if resubscribed:
-                sendinblue.on_user_resubscribe(user.email, user.first_name, user.last_name,
-                                               sendinblue.HOME_DELIVERY_LIST if user.profile.home_delivery else user.profile.drop_site)
+                sendinblue.on_user_resubscribe(user)
 
     except stripe.error.CardError as e:
         body = e.json_body
@@ -643,7 +640,7 @@ def stripe_webhooks(request):
             payments_url = request.build_absolute_uri(reverse("payments"))
             send_subscription_canceled_email(user, date, payments_url)
 
-            sendinblue.on_user_cancel_subscription(user.email, user.first_name, user.last_name)
+            sendinblue.on_user_cancel_subscription(user)
 
     except ValueError as e:
         logger.error('Stripe webhook value error: ', e)

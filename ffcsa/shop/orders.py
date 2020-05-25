@@ -34,7 +34,13 @@ def valid_order_period_for_user(user):
     return False
 
 
-def get_order_period(drop_site=None, zip=None):
+def get_order_window_for_user(user):
+    zip = user.profile.delivery_address.zip if user.profile.home_delivery else None
+    drop_site = user.profile.drop_site if not user.profile.home_delivery else None
+    return get_order_window(drop_site, zip)
+
+
+def get_order_window(drop_site=None, zip=None):
     if drop_site is None and zip is None:
         raise Exception('Either drop_site or zip is required')
 
@@ -48,6 +54,12 @@ def get_order_period(drop_site=None, zip=None):
         for window in settings.ORDER_WINDOWS:
             if drop_site in window['dropsites']:
                 break
+
+    return window
+
+
+def get_order_period(drop_site=None, zip=None):
+    window = get_order_window(drop_site, zip)
 
     if window is not None:
         return _get_order_window_start(window), _get_order_window_end(window)
