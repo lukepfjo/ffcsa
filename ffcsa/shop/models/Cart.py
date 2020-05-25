@@ -200,7 +200,7 @@ class Cart(models.Model):
         # Discount applies to cart total if not product specific.
         products = discount.all_products()
         if products.count() == 0:
-            return discount.calculate(self.total_price() - total)  # - total to account for discount
+            return discount.calculate(self.item_total_price() - total)  # - total to account for discount
 
         # Create a list of skus in the cart that are applicable to
         # the discount, and total the discount for appllicable items.
