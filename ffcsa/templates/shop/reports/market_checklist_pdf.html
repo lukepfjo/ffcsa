@@ -47,6 +47,8 @@
 <table class="items">
     <tr>
         <th>Last Name</th>
+        <th>Phone</th>
+        <th>Alt Phone</th>
         {% for val in headers %}
             <th class="num">{{ val }}</th>
         {% endfor %}
@@ -56,6 +58,8 @@
     {% for user in users %}
         <tr>
             <td>{{ user.last_name }}</td>
+            <td>{{ user.phone }}</td>
+            <td>{{ user.phone_2 }}</td>
             {% for val in headers %}
                 <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>
             {% endfor %}

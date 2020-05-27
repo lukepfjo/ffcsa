@@ -385,6 +385,8 @@ def generate_market_checklists(date):
     for drop_site in settings.MARKET_CHECKLISTS:
         annotations = {
             'last_name': F('billing_detail_last_name'),
+            'phone': F('billing_detail_phone'),
+            'phone_2': F('billing_detail_phone_2'),
         }
         qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
