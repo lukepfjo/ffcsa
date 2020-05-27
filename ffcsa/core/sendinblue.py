@@ -205,7 +205,7 @@ def get_user(email=None, phone_number=None):
         raise Exception('Either email or phone_number must be provided')
 
     # Look up user, trying email first (if provided)
-    identifier = email if email is not None else phone_number
+    identifier = email.lower() if email is not None else phone_number
     user = None
     try:
         user = send_request('contacts/{}'.format(make_url_safe(identifier)))
@@ -283,7 +283,7 @@ def add_user(email, first_name, last_name, drop_site, phone_number=None):
 
     body = {
         'updateEnabled': False,
-        'email': email,
+        'email': email.lower(),
         'attributes': {
             'FIRSTNAME': first_name,
             'LASTNAME': last_name,
@@ -389,7 +389,7 @@ def update_or_add_user(user, lists_to_add=None, lists_to_remove=None, remove_mem
     identifier = old_user_info.pop('identifier')
 
     packout_list = get_packout_list_for_user(user)
-    new_user_info = {'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name,
+    new_user_info = {'email': user.email.lower(), 'first_name': user.first_name, 'last_name': user.last_name,
                      'drop_site': drop_site, 'phone_number': phone_number, 'packout_list': packout_list}
 
     to_set = [(k, v) for k, v in new_user_info.items() if old_user_info[k] != v]
