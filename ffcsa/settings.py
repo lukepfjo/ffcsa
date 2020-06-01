@@ -177,12 +177,12 @@ DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday'
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
     # ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
-    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '16:00', '', '', '',
+    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '12:00', '', '', '',
      '', 'none'],
     ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
-    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '9:00', '', '', '', '', 'none']
+    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '10:00', '', '', '', '', 'none']
 ]
 
 # SETTINGS FOR ONE-TIME ORDERS
