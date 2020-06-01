@@ -879,7 +879,7 @@ def admin_credit_ordered_product(request, template="admin/credit_ordered_product
                                                                           time__lt=date + datetime.timedelta(days=1),
                                                                           items__description__in=products).distinct()
 
-        base_msg = 'missing products on {}:'.format(date)
+        base_msg = 'missing products on {}'.format(date)
         for o in orders_to_credit:
             amt = 0
             items = []
@@ -904,6 +904,7 @@ def admin_credit_ordered_product(request, template="admin/credit_ordered_product
                         'first_name': p.user.first_name,
                         'date': date,
                         'amount': p.amount,
+                        'product_msg': p.notes.split(':')[1],
                         'msg': form.cleaned_data.get('msg', None),
                         'payments_url': request.build_absolute_uri(reverse("payments"))
                     }

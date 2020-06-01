@@ -1,6 +1,6 @@
 <p>Hi {{ first_name }}!</p>
 
-<p>A credit of ${{ amount }} has been applied to your account for your order on {{ date }}.</p>
+<p>A credit of ${{ amount }} has been applied to your account for your order on {{ date }} for the following items: {{ product_msg }}.</p>
 
 {% if payments_url %}
     <p>You can view this credit by visiting <a href="{{ payments_url }}">{{ payments_url }}</a></p>
