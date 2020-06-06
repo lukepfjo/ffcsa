@@ -122,7 +122,7 @@ DROPSITES = [
     {
         'name': 'Cully',
         'memberLimit': 30,
-        'color': 'yellow',
+        'color': 'red',
         'description': 'Portland - Killingsworth & NE 60th (Saturday)',
         'allowOneTimeOrders': False,
         'pickupDay': 6,
@@ -171,8 +171,8 @@ ORDER_WINDOWS = [
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
-                   'St Johns', 'PSU', 'Hollywood', 'Cully']
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock', 'Cully',
+                   'St Johns', 'PSU', 'Hollywood']
 
 STANDING_DELIVERIES = [
     # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
