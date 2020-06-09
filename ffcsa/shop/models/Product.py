@@ -201,9 +201,10 @@ class ProductVariation(with_metaclass(ProductVariationMetaclass, Priced)):
     image = models.ForeignKey("ProductImage", verbose_name=_("Image"),
                               null=True, blank=True, on_delete=models.SET_NULL)
     num_in_stock = None
-    is_frozen = models.BooleanField(default=False)
+    is_frozen = models.BooleanField(default=False,
+                                    help_text="Is this product frozen and should be packed with other frozen items into a cooler?")
     extra = models.IntegerField("% Extra", blank=True, null=True,
-                                help_text="The % extra to order. The extra ordered will be rounded to the nearest whole number.")
+                                help_text="The % extra to order. This is used when a product is sold by the #, but it is difficult to weigh exactly to the # during pack out. The larger the item, the higher this % should be. The extra ordered will be rounded to the nearest whole number.")
 
     vendors = models.ManyToManyField('shop.Vendor', verbose_name="Vendors", related_name="variations",
                                      through='shop.VendorProductVariation')

@@ -26,9 +26,11 @@ class Priced(models.Model):
                                        null=True)
 
     weekly_inventory = models.BooleanField(
-        _("Weekly Inventory"), blank=False, default=False)
+        _("Weekly Inventory"), blank=False, default=False,
+        help_text="Does the “number in stock” for this product reset each week? If so, this should be checked.")
     in_inventory = models.BooleanField(
-        _("FFCSA Inventory"), default=False, blank=False, null=False)
+        _("FFCSA Inventory"), default=False, blank=False, null=False,
+        help_text="Is this product already purchased and we do not need to place an order? If so, this should be checked")
     vendor_price = fields.MoneyField(_("Vendor price"), blank=False)
 
     class Meta:
