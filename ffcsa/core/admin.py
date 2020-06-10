@@ -25,8 +25,7 @@ from .models import Payment, Recipe, RecipeProduct
 
 User = get_user_model()
 
-accounts_base.ProfileInline.readonly_fields = [
-    'payment_method', 'ach_status', 'google_person_id']
+accounts_base.ProfileInline.readonly_fields = ['google_person_id']
 accounts_base.ProfileInline.fieldsets = (
     (None, {'fields': ('phone_number', 'phone_number_2', 'notes', 'num_adults', 'invoice_notes')}),
     ('Payments', {'fields': (
