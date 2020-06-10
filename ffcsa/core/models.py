@@ -126,11 +126,11 @@ class Profile(models.Model):
         blank=True, null=True, max_length=255)
     stripe_subscription_id = models.CharField(
         blank=True, null=True, max_length=255)
-    payment_method = models.CharField(blank=False, null=True,
+    payment_method = models.CharField(blank=True, null=True,
                                       choices=[
                                           ('CC', 'Credit Card'), ('ACH', 'Bank Account'), ('CRYPTO', 'Crypto')],
                                       max_length=255)
-    ach_status = models.CharField(blank=False, null=True, max_length=20,
+    ach_status = models.CharField(blank=True, null=True, max_length=20,
                                   choices=[('NEW', 'Unverified'), ('VERIFYING', 'Verifying'), ('VERIFIED', 'Verified'),
                                            ('FAILED', 'Verification Failed')])
     paid_signup_fee = models.BooleanField(default=False)
