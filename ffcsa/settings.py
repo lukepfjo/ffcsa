@@ -182,7 +182,7 @@ STANDING_DELIVERIES = [
     ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '', 'none'],
     ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
-    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '8', '4:00', '10:00', '', '', '', '', 'none']
+    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '15', '4:00', '10:00', '', '', '', '', 'none']
 ]
 
 # SETTINGS FOR ONE-TIME ORDERS
