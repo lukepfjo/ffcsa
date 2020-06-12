@@ -46,7 +46,7 @@ def generate_weekly_order_reports(date):
 
     # frozen items bulk list
     # zip_files.append(("frozen_bulk_{}_packlist.pdf".format(date), generate_frozen_items_report(date, qs)))
-    docs.append(generate_frozen_items_report(date, qs))
+    # docs.append(generate_frozen_items_report(date, qs))
 
     # FFCSA Inventory Products
     # zip_files.append(("ffcsa_inventory_{}.pdf".format(date), generate_ffcsa_inventory_packlist(date, qs)))
@@ -121,7 +121,11 @@ def get_vendor_orders(date, qs):
         items.append(item)
 
     for vendor_title, items in vendor_items.items():
-        items.sort(key=lambda x: x['description'])
+        if vendor_title.lower() == 'deck family farm':
+            # we sort so we can use the django regroup filter
+            items.sort(key=lambda x: (x['category'], x['description']))
+        else:
+            items.sort(key=lambda x: x['description'])
         context = {
             "items": items,
             "vendor": vendor_title,
@@ -158,10 +162,11 @@ def generate_ffcsa_inventory_packlist(date, qs):
     Generate a picklist for ffcsa_inventory products that are not on the
     grains & bean packlist or the frozen item packlist
     """
-    exclude_filter = Q()
-    for cat in settings.FROZEN_PRODUCT_CATEGORIES:  # + settings.GRAIN_BEANS_CATEGORIES:
-        exclude_filter = exclude_filter | Q(category__icontains=cat)
-    filter = Q(in_inventory=True, is_frozen=False) & ~exclude_filter
+    # exclude_filter = Q()
+    # for cat in settings.FROZEN_PRODUCT_CATEGORIES:  # + settings.GRAIN_BEANS_CATEGORIES:
+    #     exclude_filter = exclude_filter | Q(category__icontains=cat)
+    # filter = Q(in_inventory=True, is_frozen=False) & ~exclude_filter
+    filter = Q(in_inventory=True)
     items = qs.filter(filter).order_by('category', 'description')
     context = {
         "items": items,
