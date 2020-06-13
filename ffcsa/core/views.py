@@ -877,7 +877,8 @@ def admin_credit_ordered_product(request, template="admin/credit_ordered_product
 
         orders_to_credit = Order.objects.prefetch_related('items').filter(time__gte=date,
                                                                           time__lt=date + datetime.timedelta(days=1),
-                                                                          items__description__in=products).distinct()
+                                                                          items__description__in=products).exclude(
+            user_id__isnull=True).distinct()
 
         base_msg = 'missing products on {}'.format(date)
         for o in orders_to_credit:
@@ -886,7 +887,8 @@ def admin_credit_ordered_product(request, template="admin/credit_ordered_product
             for i in o.items.filter(description__in=products):
                 items.append(i.description)
                 amt = amt + i.total_price
-            credits.append(Payment(user_id=o.user_id, notes='{}: {}'.format(base_msg, ' & '.join(items)), amount=amt))
+            credits.append(Payment(user_id=o.user_id, notes='{}: {}'.format(base_msg, ' & '.join(items)), amount=amt,
+                                   is_credit=True))
 
         Payment.objects.bulk_create(credits)
         success(request, "Successfully credited {} members".format(len(credits)))
