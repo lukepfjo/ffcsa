@@ -110,8 +110,7 @@ def handle_webhook(event):
         logger.warning('Invalid SignRequest event signature')
         return HttpResponse(status=400)
 
-    if event['status'] != 'ok' or event_type in (
-            'convert_error', 'sending_error', 'declined', 'cancelled', 'expired', 'signer_email_bounced'):
+    if event['status'] != 'ok' or event_type in ('convert_error', 'sending_error'):
         send_error_email(event)
     elif event_type == 'signer_signed':
         User = get_user_model()

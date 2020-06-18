@@ -67,6 +67,11 @@ HOME_DELIVERY_DAY = {
     '97330': 6,
     '97331': 6,
     '97333': 6,
+    '97401': 4,
+    '97404': 4,
+    '97408': 4,
+    '97477': 4,
+    '97448': 4,
     'default': 3
 }
 
@@ -171,19 +176,46 @@ ORDER_WINDOWS = [
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock', 'Cully',
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
+                   'Cully',
                    'St Johns', 'PSU', 'Hollywood']
 
-STANDING_DELIVERIES = [
-    # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
-    # ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
-    ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '12:00', '', '', '',
-     '', 'none'],
-    ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '', 'none'],
-    ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '', 'none'],
-    ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '', '', 'none'],
-    ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '15', '4:00', '10:00', '', '', '', '', 'none']
-]
+DELIVERY_CSVS = {
+    1: [
+        {
+            'name': 'Wednesday',
+            'zipCodes': ['97402', '97403', '97405'],
+            'standingDeliveries': [
+                ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '15', '4:00', '10:00', '', '',
+                 '', '', 'none']
+            ]
+        },
+        {
+            'name': 'Thursday',
+            'zipCodes': ['97401', '97404', '97408', '97477', '97448'],
+            'standingDeliveries': [
+                # ['669 Greenwood St, Junction City, OR 97448', 'Post Office', '', '', '', '4', '', '', '', '', '', '', 'none'],
+            ]
+        }
+    ],
+    4: [
+        {
+            'name': 'Saturday',
+            'zipCodes': ['97330', '97331', '97333'],
+            'standingDeliveries': [
+                # ['Address', 'Name', 'Phone', 'Email', 'Notes', 'duration', 'tw start', 'tw end', 'Boxes', 'dairy', 'meat', 'flowers', 'notifications']
+                ['3843 NW Arrowood Circle, Corvallis, OR 97330', 'Banzhaf Dropsite', '', '', '', '8', '7:00', '12:00',
+                 '', '', '', '', 'none'],
+                ['1007 SE 3rd St, Corvallis, OR 97333', '1st Alt South', '', '', '', '10', '', '', '', '', '', '',
+                 'none'],
+                ['2855 NW Grant Ave, Corvallis, OR 97330', '1st Alt North', '', '', '', '10', '', '', '', '', '', '',
+                 'none'],
+                ['922 NW Circle Blvd, Corvallis, OR 97330', 'Market of Choice', '', '', '', '10', '', '', '', '', '',
+                 '', 'none'],
+            ]
+        },
+    ]
+}
 
 # SETTINGS FOR ONE-TIME ORDERS
 # TODO make this 5% when we enable one-time orders
