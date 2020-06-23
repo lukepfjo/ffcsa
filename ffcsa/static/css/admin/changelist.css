@@ -1,0 +1,28 @@
+#changelist.filtered .changelist-content {
+    width: auto;
+}
+
+#changelist form table input[type=text],
+#changelist form table input[type=password],
+#changelist form table input[type=email],
+#changelist form table input[type=url],
+#changelist form table input[type=number] {
+    padding: 5px 3px 4px;
+    height: 10px;
+}
+
+#changelist form table .radiolist label {
+    line-height: 12px;
+}
+
+#changelist form table tbody td,
+#changelist form table tbody th {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    line-height: 12px;
+    vertical-align: middle;
+}
+
+.field-admin_link a {
+    white-space: nowrap;
+}
