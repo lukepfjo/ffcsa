@@ -40,7 +40,7 @@ class Command(BaseCommand):
             last_order = Order.objects.all_for_user(user).order_by('-time').first()
 
             # If the user has less then $20 remaining and the
-            if last_order is None or remaining_budget < 10 or last_order.time.date() < two_months_date:
+            if last_order is None or (remaining_budget < 10 and last_order.time.date() < two_months_date):
                 user.is_active = False
                 user.save()
                 print('Deactivating user: {}'.format(user))
