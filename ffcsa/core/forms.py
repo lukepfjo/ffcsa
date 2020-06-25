@@ -235,11 +235,13 @@ class ProfileForm(accounts_forms.ProfileForm):
             if "home_delivery" in self.changed_data or "delivery_address" in self.changed_data:
                 if user.profile.home_delivery:
                     set_home_delivery(request)
+                    sib_template_name = 'Home Delivery'
                 else:
                     clear_shipping(request)
+                    sib_template_name = drop_site
+
                 recalculate_remaining_budget(request)
 
-                sib_template_name = 'Home Delivery'
 
             elif 'drop_site' in self.changed_data:
                 sib_template_name = drop_site
@@ -254,7 +256,9 @@ class ProfileForm(accounts_forms.ProfileForm):
 
         # Send drop site information (or home delivery instructions)
         if settings.SENDINBLUE_ENABLED and \
-                (self._signup or ('drop_site' in self.changed_data) or ('home_delivery' in self.changed_data)):
+                (self._signup or
+                 'drop_site' in self.changed_data or
+                 'home_delivery' in self.changed_data or 'delivery_address' in self.changed_data):
 
             user_dropsite_info_set = user.profile.dropsiteinfo_set.all()
             user_dropsite_info = list(user_dropsite_info_set.filter(drop_site_template_name=sib_template_name))
