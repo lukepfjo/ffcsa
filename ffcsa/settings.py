@@ -49,11 +49,16 @@ DROP_LOCATION_GROUP_LIMITS = [
         'limit': 60,
         'locations': ['97330', '97331', '97333', 'Banzhaf'],
     },
-    # Eugene
+    # Eugene - Wed
     {
-        'limit': 140,
-        'locations': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448', 'W 11th']
-    }
+        'limit': 100,
+        'locations': ['97402', '97403', '97405', 'W 11th', 'Friendly']
+    },
+    # Eugene - Thur
+    {
+        'limit': 100,
+        'locations': ['97401', '97404', '97477', '97408', '97448']
+    },
 ]
 
 HOME_DELIVERY_ZIP_LIMITS = {
@@ -97,6 +102,14 @@ DROPSITES = [
         'memberLimit': 30,
         'color': 'white',
         'description': 'Eugene - W 11th & Van Buren (Wednesday)',
+        'allowOneTimeOrders': False,
+        'pickupDay': 3,
+    },
+    {
+        'name': 'Friendly',
+        'memberLimit': 30,
+        'color': 'green',
+        'description': 'Eugene - Adams & 25th (Wednesday)',
         'allowOneTimeOrders': False,
         'pickupDay': 3,
     },
@@ -172,13 +185,12 @@ ORDER_WINDOWS = [
         'endTime': '23:59',
         'packDay': 2,
         'memberLimit': 220,
-        'dropsites': ['Farm - Tuesday', 'W 11th'],
+        'dropsites': ['Farm - Tuesday', 'W 11th', 'Friendly'],
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
-                   'Cully',
-                   'St Johns', 'PSU', 'Hollywood']
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Friendly', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
+                   'Cully', 'St Johns', 'PSU', 'Hollywood']
 
 DELIVERY_CSVS = {
     1: [
@@ -262,6 +274,7 @@ SENDINBLUE_TRANSACTIONAL_TEMPLATES = {
     'Cully': 51,
     'Home Delivery': 32,
     'W 11th': 26,
+    'Friendly': 82,
     'St Johns': 58,
     # 'Woodstock': 10,
     # '19th St.': 1,
