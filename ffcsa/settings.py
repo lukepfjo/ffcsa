@@ -189,7 +189,8 @@ ORDER_WINDOWS = [
         'homeDeliveryZips': ['97401', '97402', '97403', '97404', '97405', '97477', '97408', '97448']
     }
 ]
-DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Friendly', 'Farm - Friday', 'Farm - Tuesday', 'Woodstock',
+DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Friendly', 'Farm - Friday', 'Farm - Tuesday',
+                   'Woodstock',
                    'Cully', 'St Johns', 'PSU', 'Hollywood']
 
 DELIVERY_CSVS = {
@@ -199,6 +200,8 @@ DELIVERY_CSVS = {
             'zipCodes': ['97402', '97403', '97405'],
             'standingDeliveries': [
                 ['1122 W 11th Avenue, Eugene, OR 97402', 'W 11th Dropsite', '', '', '', '15', '4:00', '10:00', '', '',
+                 '', '', 'none'],
+                ['2675 Adams St, Eugene, OR 97405', 'Friendly', '', '', '', '15', '4:00', '10:00', '', '',
                  '', '', 'none']
             ]
         },
