@@ -109,7 +109,7 @@ DROPSITES = [
         'name': 'Friendly',
         'memberLimit': 30,
         'color': 'green',
-        'description': 'Eugene - Adams & 25th (Wednesday)',
+        'description': 'Eugene - Adams & 26th (Wednesday)',
         'allowOneTimeOrders': False,
         'pickupDay': 3,
     },
