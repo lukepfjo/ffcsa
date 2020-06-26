@@ -30,6 +30,7 @@ from mezzanine.core.models import CONTENT_STATUS_PUBLISHED
 from mezzanine.utils.email import send_mail_template
 from mezzanine.utils.views import paginate
 from mezzanine.accounts import views
+from signrequest_client.rest import ApiException
 
 from ffcsa.core.dropsites import get_full_drop_locations
 from ffcsa.shop.actions.order_actions import DEFAULT_GROUP_KEY
@@ -99,7 +100,11 @@ def signup(request, template="accounts/account_signup.html", extra_context=None)
             'payments_url': request.build_absolute_uri(reverse("payments")),
         }
 
-        signrequest.send_sign_request(new_user, True)
+        try:
+            signrequest.send_sign_request(new_user, True)
+        except ApiException as e:
+            # don't prevent the user from signing up. They can re-send the sign request document later
+            logger.error(e)
         add_google_contact(new_user)
 
         subject = "New User Signup"
@@ -966,6 +971,9 @@ class SignRequest(View):
         except signrequest.DocSignedError:
             messages.info(request,
                           'You have already signed the agreement. Please refresh the page and contact fullfarmcsa@deckfamilyfarm.com if are still asked to sign the membership agreement.')
+        except ApiException:
+            messages.error(request,
+                           'There was an error sending the agreement. If this continues to occur, please contact fullfarmcsa@deckfamilyfarm.com and we will help you out.')
 
         referer = request.META.get('HTTP_REFERER', None)
         if referer and request.get_host() in referer:
