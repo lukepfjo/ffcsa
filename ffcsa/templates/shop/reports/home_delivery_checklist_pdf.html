@@ -59,7 +59,7 @@
     {% for user in users %}
         <tr>
             <td>{{ user.shipping_street }}, {{ user.shipping_city }}, OR</td>
-            <td>{{ user.last_name }}</td>
+            <td>{{ user.last_name }}, {{ user.first_name }}</td>
             <td>{% if user.shipping_ins %}yes{% endif %}</td>
             {% for val in headers %}
                 <td class="num">{{ user | get_item:val | default_if_none:'' }}</td>

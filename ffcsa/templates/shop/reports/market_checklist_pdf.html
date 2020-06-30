@@ -57,7 +57,7 @@
     <tbody>
     {% for user in users %}
         <tr>
-            <td>{{ user.last_name }}</td>
+            <td>{{ user.last_name }}, {{ user.first_name }}</td>
             <td>{{ user.phone }}</td>
             <td>{{ user.phone_2 }}</td>
             {% for val in headers %}
