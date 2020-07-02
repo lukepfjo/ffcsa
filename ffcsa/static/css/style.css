@@ -15,8 +15,8 @@
 /* ==== overwrite bootstrap standard ==== */
 @import url('overwrite.css');
 @import url('animate.css');
-@import url('../skins/default.css');
-@import url('shop.css');
+/* @import url('../skins/default.css'); */
+/* @import url('shop.css'); */
 
 /* ===================================
 1. General
@@ -2222,5 +2222,3 @@ Google Maps AUtocomplete
 .pac-container {
     z-index: 2000;
 }
-
-@import url('../skins/default.css');
