@@ -180,11 +180,12 @@ def generate_dairy_packlist(date):
     items = OrderItem.objects \
         .filter(order__time__date=date, category__icontains='raw dairy') \
         .select_related('order') \
-        .order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
+        .order_by('order__drop_site', 'order__billing_detail_last_name', 'order__billing_detail_first_name',
+                  'description')
     order_items = OrderedDict()
     for k, v in groupby(items, key=lambda x: x.order.drop_site):
         i = OrderedDict()
-        for k2, v2 in groupby(v, key=lambda x: x.order.billing_detail_last_name):
+        for k2, v2 in groupby(v, key=lambda x: (x.order.billing_detail_last_name, x.order.billing_detail_first_name)):
             i[k2] = list(v2)
 
         order_items[k] = i
@@ -233,14 +234,17 @@ def generate_frozen_items_packlist(date, qs):
     for cat in settings.FROZEN_ITEM_PACKLIST_EXCLUDED_CATEGORIES:
         exclude_filter = exclude_filter & ~Q(category__icontains=cat)
     items = get_frozen_items(
-        qs.values('description', 'quantity', 'order__drop_site', 'order__billing_detail_last_name'),
+        qs.values('description', 'quantity', 'order__drop_site', 'order__billing_detail_last_name',
+                  'order__billing_detail_first_name'),
         exclude_filter
-    ).order_by('order__drop_site', 'order__billing_detail_last_name', 'description')
+    ).order_by('order__drop_site', 'order__billing_detail_last_name', 'order__billing_detail_first_name',
+               'description')
 
     order_items = OrderedDict()
     for k, v in groupby(items, key=lambda x: x['order__drop_site']):
         i = OrderedDict()
-        for k2, v2 in groupby(v, key=lambda x: x['order__billing_detail_last_name']):
+        for k2, v2 in groupby(v, key=lambda x: (
+        x['order__billing_detail_last_name'], x['order__billing_detail_first_name'])):
             i[k2] = list(v2)
 
         order_items[k] = i
@@ -344,7 +348,7 @@ def generate_home_delivery_notes(date):
     orders = Order.objects.filter(drop_site=drop_site, time__date=date,
                                   shipping_instructions__isnull=False) \
         .exclude(shipping_instructions__exact='') \
-        .order_by('billing_detail_last_name')
+        .order_by('billing_detail_last_name', 'billing_detail_first_name')
 
     orders = list(orders)
 
@@ -361,13 +365,14 @@ def generate_home_delivery_checklists(date):
 
     annotations = {
         'last_name': F('billing_detail_last_name'),
+        'first_name': F('billing_detail_first_name'),
         'shipping_street': F('shipping_detail_street'),
         'shipping_city': F('shipping_detail_city'),
         'shipping_ins': F('shipping_instructions'),
     }
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
-    qs = qs.values(*columns).order_by('billing_detail_last_name')
+    qs = qs.values(*columns).order_by('billing_detail_last_name', 'billing_detail_first_name')
     users = list(qs)
 
     if len(users) == 0:
@@ -390,12 +395,13 @@ def generate_market_checklists(date):
     for drop_site in settings.MARKET_CHECKLISTS:
         annotations = {
             'last_name': F('billing_detail_last_name'),
+            'first_name': F('billing_detail_first_name'),
             'phone': F('billing_detail_phone'),
             'phone_2': F('billing_detail_phone_2'),
         }
         qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
 
-        qs = qs.values(*columns).order_by('last_name')
+        qs = qs.values(*columns).order_by('last_name', 'first_name')
         users = list(qs)
 
         if len(users) == 0:

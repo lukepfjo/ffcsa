@@ -47,7 +47,7 @@
     <tbody>
     {% for order in orders %}
         <tr>
-            <td>{{ order.billing_detail_last_name }}</td>
+            <td>{{ order.billing_detail_last_name }}, {{ order.billing_detail_first_name }}</td>
             <td>{{ order.shipping_instructions }}</td>
         </tr>
     {% endfor %}

@@ -102,7 +102,7 @@
         <ul class="items">
             {% for item in list %}
                 <li>
-                    <span class="item">{{ item.order.billing_detail_last_name }}</span>
+                    <span class="item">{{ item.order.billing_detail_last_name }}, {{ item.order.billing_detail_first_name }}</span>
                     <span class="num qty">{{ item.quantity }}</span>
                     <span class="checklist"></span>
                 </li>

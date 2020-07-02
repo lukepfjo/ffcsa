@@ -122,8 +122,8 @@
         <h4 class="checklist">Packed</h4>
     </li>
 
-    {% for last_name, order_items in items.items %}
-        <li class="last_name">{{ last_name }}</li>
+    {% for name, order_items in items.items %}
+        <li class="last_name">{{ name.0 }}, {{ name.1 }}</li>
 
         <ul class="items">
             {% for item in order_items %}
