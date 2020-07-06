@@ -1,0 +1,59 @@
+/* @import url('mezzanine.css'); */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+/* === custom components === */
+@import url("components/toggle-switch.css");
+@import url("components/spinner.css");
+@import url("components/button.css");
+/* === this needs to follow custom components */
+@import "tailwindcss/utilities";
+/* ==== Google font ==== */
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif:400,400italic,700|Open+Sans:300,400,600,700');
+/* === prettify === */
+@import url('../js/google-code-prettify/prettify.css');
+/* === fontawesome === */
+@import url('font-awesome.css');
+/* === custom icon === */
+@import url('custom-fonts.css');
+/* ==== overwrite bootstrap standard ==== */
+/* @import url('overwrite.css'); */
+/* @import url('animate.css'); */
+/* @import url('../skins/default.css'); */
+/* @import url('shop.css'); */
+
+/* ===================================
+1. General
+==================================== */
+.subheader {
+    font-size: 19.5pt;
+    color: theme(colors.dff.brown.6);
+}
+
+.subheader-green {
+    color: theme(colors.dff.green.3);
+}
+
+.text-brown-6 {
+    color: theme(colors.dff.brown.6);
+}
+
+.text-brown-7 {
+    color: theme(colors.dff.brown.7);
+}
+
+/* ===================================
+2. Specialty
+==================================== */
+
+/* Mostly for header "Member Sign In" text */
+a.text-brown-7:hover {
+    color: #28130b;
+}
+
+/*========================
+Google Maps Autocomplete
+========================*/
+
+.pac-container {
+    z-index: 2000;
+}

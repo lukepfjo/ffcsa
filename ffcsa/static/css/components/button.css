@@ -1,0 +1,31 @@
+a.btn {
+    -webkit-appearance: button;
+    -moz-appearance: button;
+    appearance: button;
+    text-decoration: none;
+}
+
+.btn {
+    background-color: theme(colors.dff.orange.3);
+    @apply text-white font-bold text-2xl py-2 px-4 rounded-md shadow-xl;
+}
+
+.btn:hover {
+    background-color: #d95320;
+}
+
+.btn-light-orange {
+    background-color: theme(colors.dff.orange.2);
+}
+
+.btn-light-orange:hover {
+    background-color: theme(colors.dff.orange.1); /* TODO */
+}
+
+.btn-green {
+    background-color: theme(colors.dff.green.3);
+}
+
+.btn-green:hover {
+    background-color: theme(colors.dff.green.2); /* TODO */
+}

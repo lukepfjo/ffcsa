@@ -24,8 +24,8 @@
             {% block extra_css %}{% endblock %}
         {% endcompress %}
 
-        {% render_bundle "manifest" "css" %}
-        {% render_bundle "style" "css" %}
+        {# {% render_bundle "manifest" "css" %} #}
+        {# {% render_bundle "style" "css" %} #}
 
         {% compress js %}
             <script src="{% static "mezzanine/js/"|add:settings.JQUERY_FILENAME %}"></script>
@@ -62,12 +62,15 @@
     <body id="{% block body_id %}body{% endblock %}">
         <div id="wrapper">
             <header>
-                <div class="navbar navbar-static-top" role="navigation">
-                    <div class="container">
-                        <div class="navbar-header">
-                            {% if settings.SITE_TITLE %}
-                                <a class="navbar-brand" href="/">{{ settings.SITE_TITLE }}</a>
-                            {% endif %}
+                <div class="" role="navigation">
+                    <div class="mx-10 my-6 flex justify-between">
+                        <a href="/" class="inline-block w-2/5">
+                            <img class="h-13" style="max-height: 90px" src="static/img/dff-logo-long.png">
+                        </a>
+                        
+                        <div class="flex items-center"> <!-- Interactive -->
+                            <a href="/sign-in" class="text-brown-7 font-bold text-2xl" style="margin-right: 30px">MEMBER SIGN IN</a>
+                            <a href="/sign-up" id="sign-in" class="btn text-lg" style="padding: 10px 18px">BECOME A MEMBER</a>
                         </div>
                     </div>
                 </div>
@@ -91,16 +94,12 @@
                 
                 {% block topbar %}{% endblock %}
                 
-                <section id="">
-                    <div class="container">
-                        <div class="row">
-                            {% block main_wrapper %}
-                                <div class="">
-                                    {% block main %}{% endblock %}
-                                </div>
-                            {% endblock %}
+                <section id="main-section">
+                    {% block main_wrapper %}
+                        <div class="">
+                            {% block main %}{% endblock %}
                         </div>
-                    </div>
+                    {% endblock %}
                 </section>
             {% endblock %}
         
@@ -119,8 +118,8 @@
             </script>
         {% endcompress %}
 
-        {% render_bundle "manifest" "js" %}
-        {% render_bundle "style" "js" %}
+        {# {% render_bundle "manifest" "js" %} #}
+        {# {% render_bundle "style" "js" %} #}
 
         {% block js %}{% endblock %}
 
