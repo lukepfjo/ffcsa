@@ -51,7 +51,7 @@ DROP_LOCATION_GROUP_LIMITS = [
     },
     # Eugene - Wed
     {
-        'limit': 100,
+        'limit': 140,
         'locations': ['97402', '97403', '97405', 'W 11th', 'Friendly']
     },
     # Eugene - Thur
