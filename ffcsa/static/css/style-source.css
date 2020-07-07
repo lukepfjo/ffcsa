@@ -10,7 +10,7 @@
 /* ==== Google font ==== */
 @import url('https://fonts.googleapis.com/css?family=Noto+Serif:400,400italic,700|Open+Sans:300,400,600,700');
 /* === prettify === */
-@import url('../js/google-code-prettify/prettify.css');
+/* @import url('../js/google-code-prettify/prettify.css'); */
 /* === fontawesome === */
 @import url('font-awesome.css');
 /* === custom icon === */
@@ -26,20 +26,22 @@
 ==================================== */
 .subheader {
     font-size: 19.5pt;
-    color: theme(colors.dff.brown.6);
+    color: theme(colors.brown.6);
 }
 
 .subheader-green {
-    color: theme(colors.dff.green.3);
+    color: theme(colors.green.3);
 }
 
+/*
 .text-brown-6 {
-    color: theme(colors.dff.brown.6);
+    color: theme(colors.brown.6);
 }
 
 .text-brown-7 {
-    color: theme(colors.dff.brown.7);
+    color: theme(colors.brown.7);
 }
+*/
 
 /* ===================================
 2. Specialty

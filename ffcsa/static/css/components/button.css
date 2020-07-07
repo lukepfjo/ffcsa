@@ -6,7 +6,7 @@ a.btn {
 }
 
 .btn {
-    background-color: theme(colors.dff.orange.3);
+    background-color: theme(colors.orange.3);
     @apply text-white font-bold text-2xl py-2 px-4 rounded-md shadow-xl;
 }
 
@@ -15,17 +15,17 @@ a.btn {
 }
 
 .btn-light-orange {
-    background-color: theme(colors.dff.orange.2);
+    background-color: theme(colors.orange.2);
 }
 
 .btn-light-orange:hover {
-    background-color: theme(colors.dff.orange.1); /* TODO */
+    background-color: theme(colors.orange.1); /* TODO */
 }
 
 .btn-green {
-    background-color: theme(colors.dff.green.3);
+    background-color: theme(colors.green.3);
 }
 
 .btn-green:hover {
-    background-color: theme(colors.dff.green.2); /* TODO */
+    background-color: theme(colors.green.2); /* TODO */
 }
