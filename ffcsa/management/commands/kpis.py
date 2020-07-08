@@ -33,10 +33,16 @@ class Command(BaseCommand):
                 """
             cursor.execute(query.format(one_month_ago, yesterday, excluded_users))
             avg_order_last_month = cursor.fetchall()[0][0]
+            cursor.execute(
+                query.format(one_month_ago - timedelta(days=365), yesterday - timedelta(days=365), excluded_users))
+            avg_order_last_month_last_year = cursor.fetchall()[0][0]
 
             # average $ / order YTD
             cursor.execute(query.format(jan_first, yesterday, excluded_users))
             avg_order_ytd = cursor.fetchall()[0][0]
+            cursor.execute(
+                query.format(jan_first - timedelta(days=365), yesterday - timedelta(days=365), excluded_users))
+            avg_order_ytd_last_year = cursor.fetchall()[0][0]
 
             # of engaged members over the past month
             query = """
@@ -46,6 +52,8 @@ class Command(BaseCommand):
                 """
             cursor.execute(query.format(one_month_ago, yesterday))
             number_of_engaged_members = cursor.fetchall()[0][0]
+            cursor.execute(query.format(one_month_ago - timedelta(days=365), yesterday - timedelta(days=365)))
+            number_of_engaged_members_last_year = cursor.fetchall()[0][0]
 
             # of members
             query = """
@@ -63,9 +71,14 @@ class Command(BaseCommand):
         
         Avg $ / order: ${}
         Avg $ / order YTD: ${}
+        Avg $ / order last year: ${}
+        Avg $ / order YTD last year: ${}
         # of engaged members: {}
+        # of engaged members last year: {}
         # of members: {}
-        """.format(yesterday, avg_order_last_month, avg_order_ytd, number_of_engaged_members, number_of_members)
+        """.format(yesterday, avg_order_last_month, avg_order_ytd, avg_order_last_month_last_year,
+                   avg_order_ytd_last_year, number_of_engaged_members, number_of_engaged_members_last_year,
+                   number_of_members)
 
         print(msg)
         send_mail(
