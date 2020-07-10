@@ -67,21 +67,43 @@
         <![endif]-->
 
         {% block extra_head %}{% endblock %}
+        
+        <script>
+            function header_dropdown_onclick() {
+                document.querySelector('#header-dropdown-menu').classList.toggle('hidden');
+            }
+        </script>
+            
     </head>
 
     <body id="{% block body_id %}body{% endblock %}">
         <div id="wrapper">
             <header>
                 <div class="" role="navigation">
-                    <div class="mx-10 my-6 flex justify-between">
-                        <a href="/" class="inline-block w-2/5">
+                    <div class="flex justify-between mx-4 my-5 lg:mx-10 lg:my-6 ">
+                        <a href="/" class="inline-block w-3/5 lg:w-2/5">
                             <img class="h-13" style="max-height: 90px" src="static/img/dff-logo-long.png">
                         </a>
                         
-                        <div class="flex items-center"> <!-- Interactive -->
+                        <!-- Desktop menu -->
+                        <div class="items-center hidden lg:flex">
                             <a href="/sign-in" class="text-brown-7 font-bold text-2xl" style="margin-right: 30px">MEMBER SIGN IN</a>
                             <a href="/sign-up" id="sign-in" class="btn text-lg" style="padding: 10px 18px">BECOME A MEMBER</a>
                         </div>
+                        
+                        <!-- Mobile menu -->
+                        <div class="flex lg:hidden" onclick="header_dropdown_onclick()">
+                            <svg id="header-hamburger-stack" class="self-center" viewBox="0 0 100 80" width="40" height="40">
+                                <rect width="90" height="15"></rect>
+                                <rect y="30" width="90" height="15"></rect>
+                                <rect y="60" width="90" height="15"></rect>
+                            </svg>
+                            
+                            <div id="header-dropdown-menu" class="hidden">
+                                <a href="/sign-in" class="text-brown-7 font-bold text-xl">MEMBER SIGN IN</a>
+                                <a href="/sign-up" class="text-brown-7 font-bold text-xl">BECOME A MEMBER</a>
+                            </div>
+                        <div>
                     </div>
                 </div>
             </header>

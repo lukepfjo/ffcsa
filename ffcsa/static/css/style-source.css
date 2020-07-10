@@ -52,6 +52,24 @@ a.text-brown-7:hover {
     color: #28130b;
 }
 
+#header-dropdown-menu:not(.hidden) {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    
+    position: absolute;
+    
+    height: 100px;
+    padding: 10px;
+    
+    right: 20px;
+    top: 80px;
+
+    background-color: white;    
+    box-shadow: #353535 2px 4px 7px;
+    border: black 1px solid;
+}
+
 /*========================
 Google Maps Autocomplete
 ========================*/
