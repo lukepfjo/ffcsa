@@ -13,3 +13,10 @@
 
 # De-activate non active users
  0 3 * * 1 %(user)s %(manage)s deactivate_non_engaged_users
+
+# Send KPI email
+ 0 2 10 * * %(user)s %(manage)s kpis
+
+# Send outstanding balance email
+ 0 1 9 * * %(user)s %(manage)s outstanding_member_credits
+ 0 1 24 * * %(user)s %(manage)s outstanding_member_credits
