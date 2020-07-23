@@ -70,6 +70,12 @@ a.text-brown-7:hover {
     border: black 1px solid;
 }
 
+/* Used for homepage cover image */
+.bg-overlay-dark {
+     background-color: rgba(20, 20, 20, .5);
+     background-blend-mode: multiply;
+}
+
 /*========================
 Google Maps Autocomplete
 ========================*/
