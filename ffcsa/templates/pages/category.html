@@ -67,7 +67,7 @@
                                                 </li>
                                             {% endfor %}
                                         </ul>
-                                        <div class="flex-grow mb-6">{{ product.content|truncate:140 }}</div>
+                                        <div class="flex-grow mb-6">{{ product.content|truncate:140|striptags}}</div>
                                     </a>
                                     {% with has_stock=product|product_has_stock %}
                                         {% if not request.user.profile.signed_membership_agreement or not can_order %}
