@@ -161,6 +161,15 @@ DROPSITES = [
         'allowOneTimeOrders': False,
         'pickupDay': 6,
     },
+    {
+        'name': 'Zafar',
+        'memberLimit': 1,
+        'color': 'white',
+        'description': 'Portland - Zafar Residence (Saturday)',
+        'allowOneTimeOrders': False,
+        'private': True,
+        'pickupDay': 6,
+    },
     # # ('Woodstock', 'Portland - Woodstock Farmers Market (Sunday)'),
     # DROP_SITE_COLORS = {
     # 'Woodstock': 'yellow',

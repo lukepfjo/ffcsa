@@ -1,5 +1,3 @@
-from collections import Set
-
 from django.conf import settings
 from django.db import connection
 
@@ -7,10 +5,13 @@ from ffcsa.core.utils import get_next_day
 
 _DROPSITE_DICT = {}
 DROPSITE_CHOICES = []
+PRIVATE_DROPSITES = []
 
 for dropsite in settings.DROPSITES:
     name = dropsite['name']
     DROPSITE_CHOICES.append((name, dropsite['description']))
+    if dropsite.get('private', False):
+        PRIVATE_DROPSITES.append(name)
     _DROPSITE_DICT[name] = dropsite
 
 
