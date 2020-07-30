@@ -132,8 +132,6 @@ class Command(BaseCommand):
                 # pickup for the next order window
                 pickup_date = get_pickup_date(user) - datetime.timedelta(7)
                 pickup = formats.date_format(pickup_date, "D F d")
-                if user.profile.home_delivery and user.profile.delivery_address.city != 'Corvallis':
-                    pickup = pickup + " or  " + formats.date_format(pickup_date + datetime.timedelta(1), "D F d")
 
                 sub_pickup = 'for home delivery' if user.profile.home_delivery else 'for pickup at: {}'.format(
                     user.profile.drop_site)

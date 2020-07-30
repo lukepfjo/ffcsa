@@ -6,7 +6,8 @@
     {% if home_delivery %}Your order will be <b>delivered on {{ pickup_date }}</b>. In the next day or two, you will
         receive a notification with an estimated delivery time.
     {% else %}
-        Your order will be available for pickup on {{ pickup_date }} at the following drop site: <b>{{ drop_site }}.</b>
+        Your order will be available for <b>pickup on {{ pickup_date }}</b> at the following drop site:
+        <b>{{ drop_site }}.</b>
         Please see the dropsite information email for drop site details and pickup times.
     {% endif %}
 </p>

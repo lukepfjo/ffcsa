@@ -42,7 +42,7 @@ DROP_LOCATION_GROUP_LIMITS = [
     # Portland
     {
         'limit': 115,
-        'locations': ['Hollywood', 'PSU', 'Cully', 'St Johns']
+        'locations': ['Hollywood', 'PSU', 'Cully', 'St Johns', 'Zafar']
     },
     # Corvallis
     {
@@ -184,7 +184,7 @@ ORDER_WINDOWS = [
         'endTime': '23:59',
         'packDay': 5,
         'memberLimit': 220,
-        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf', 'Cully', 'St Johns'],
+        'dropsites': ['Farm - Friday', 'LCFM', 'Hollywood', 'PSU', 'Banzhaf', 'Cully', 'St Johns', 'Zafar'],
         'homeDeliveryZips': ['97330', '97331', '97333']
     },
     {
@@ -199,8 +199,7 @@ ORDER_WINDOWS = [
     }
 ]
 DROP_SITE_ORDER = ['LCFM', 'Banzhaf', 'Home Delivery', 'W 11th', 'Friendly', 'Farm - Friday', 'Farm - Tuesday',
-                   'Woodstock',
-                   'Cully', 'St Johns', 'PSU', 'Hollywood']
+                   'Woodstock', 'Cully', 'St Johns', 'PSU', 'Hollywood', 'Zafar']
 
 DELIVERY_CSVS = {
     1: [
