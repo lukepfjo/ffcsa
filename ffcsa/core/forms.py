@@ -86,6 +86,8 @@ class DropsiteSelectWidget(forms.Select):
         if opt['value'] in self._full_locations:
             opt['attrs']['disabled'] = True
             opt['label'] = '(Full) - ' + opt['label']
+        if opt['value'] in dropsites.PRIVATE_DROPSITES:
+            opt['attrs']['hidden'] = True
         return opt
 
 
