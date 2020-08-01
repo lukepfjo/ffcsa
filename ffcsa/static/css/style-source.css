@@ -47,18 +47,14 @@
 2. Specialty
 ==================================== */
 
-/* Mostly for header "Member Sign In" text */
+/* For header "Member Sign In" text */
 a.text-brown-7:hover {
     color: #28130b;
 }
 
 #header-dropdown-menu:not(.hidden) {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    
-    position: absolute;
-    
+    @apply flex flex-col justify-around absolute;
+
     height: 100px;
     padding: 10px;
     
@@ -72,9 +68,46 @@ a.text-brown-7:hover {
 
 /* Used for homepage cover image */
 .bg-overlay-dark {
-     background-color: rgba(20, 20, 20, .5);
+     background-color: rgba(100, 100, 100, .4);
      background-blend-mode: multiply;
 }
+
+/* 3 blocks underneath homepage cover image */
+.checked-pin-block {
+    @apply flex flex-col justify-center w-full;
+    height: 225px;
+    }
+
+    .checked-pin-block > div {
+        @apply flex justify-center;
+        }
+
+        /* Color blob behind checkmark */
+        .checked-pin-block div div {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            margin-right: -88px;
+            margin-top: 8px;
+            border-radius: 999px;
+        }
+
+        .checked-pin-block div img {
+            position: relative;
+            height: 115px;
+    }
+
+    .checked-pin-block h4 {
+        @apply text-white text-center text-2xl mt-2;
+    }
+
+    /* Same as md: */
+    @media (min-width: 768px) {
+        .checked-pin-block {
+            @apply w-1/3;
+    }
+}
+
 
 /*========================
 Google Maps Autocomplete
