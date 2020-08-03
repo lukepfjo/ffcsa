@@ -27,6 +27,9 @@ def generate_deliveries_optimoroute_csv(date):
     drop_site = 'Home Delivery'
     day_of_week = date.isoweekday()
 
+    if day_of_week not in settings.DELIVERY_CSVS:
+        return []
+
     annotations = {
         'last_name': F('billing_detail_last_name'),
         'first_name': F('billing_detail_first_name'),
@@ -39,9 +42,6 @@ def generate_deliveries_optimoroute_csv(date):
         'shipping_ins': F('shipping_instructions'),
     }
     qs, columns = _get_market_checklist_qs(date, drop_site, annotations)
-
-    if day_of_week not in settings.DELIVERY_CSVS:
-        return []
 
     file_settings = settings.DELIVERY_CSVS[day_of_week]
 

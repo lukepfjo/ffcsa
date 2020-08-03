@@ -429,7 +429,7 @@ def generate_market_checklists(date):
 
 def _get_market_checklist_qs(date, drop_site, annotations):
     # checklist columns -> (category list, additional kwargs, default)
-    qs = Order.objects.filter(drop_site=drop_site, time__date=date)  # .annotate(**annotations)
+    qs = Order.objects.filter(drop_site__startswith=drop_site, time__date=date)  # .annotate(**annotations)
     annotates = OrderedDict(annotations)
 
     for column, (categories, kwargs, default) in settings.MARKET_CHECKLIST_COLUMN_CATEGORIES.items():
