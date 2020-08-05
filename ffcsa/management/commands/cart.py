@@ -85,7 +85,7 @@ class Command(BaseCommand):
 
                 drop_site = user.profile.drop_site
                 if user.profile.home_delivery:
-                    drop_site = 'Home Delivery - {}'.format(formats.date_format(pickup_date, "l"))
+                    drop_site = 'Home Delivery - {}'.format(formats.date_format(pickup_date, "D"))
                 if cart.attending_dinner:
                     drop_site = 'Farm'
 
