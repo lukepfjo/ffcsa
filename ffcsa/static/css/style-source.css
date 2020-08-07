@@ -33,18 +33,23 @@
     color: theme(colors.green.3);
 }
 
-/*
-.text-brown-6 {
-    color: theme(colors.brown.6);
+blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre, a, span {
+    font-family: sans-serif;
 }
 
-.text-brown-7 {
-    color: theme(colors.brown.7);
-}
-*/
 
 /* ===================================
-2. Specialty
+2. Utility
+==================================== */
+
+.grid-span-two-cols {
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+
+
+/* ===================================
+3. Specialty
 ==================================== */
 
 header > nav {
@@ -88,15 +93,25 @@ header > nav {
         box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
         }
 
+        #header-dropdown-menu li a {
+            width: 100%;
+        }
+
         #header-dropdown-menu li:first-of-type {
             border-bottom: 1px solid rgba(100, 100, 100, .1);
             padding-bottom: 8px;
 }
 
-/* Used for homepage cover image */
+/* Used for homepage hero cover image */
 .bg-overlay-dark {
      background-color: rgba(100, 100, 100, .4);
      background-blend-mode: multiply;
+}
+
+/* Used for homepage 2nd cover image */
+.bg-overlay-light {
+     background-color: rgba(255, 255, 255, .87);
+     background-blend-mode: color;
 }
 
 /* 3 blocks underneath homepage cover image */
@@ -135,6 +150,14 @@ header > nav {
     }
 }
 
+/* Much cleaner to use a grid than to use nested flexboxes, but finicky. WIP. */
+#home-section-3-grid {
+  display: grid;
+  grid-template-rows: 75px 150px 150px 150px 150px;
+  grid-template-columns: 250px 400px;
+  column-gap: 10px;
+  row-gap: 10px;
+}
 
 /*========================
 Google Maps Autocomplete

@@ -57,10 +57,16 @@ module.exports = {
             '5': '#914323',
             '6': '#694334',
             '7': '#502616',
-        }
+        },
+
+        tan: {
+            '1': '#fBf0d0',
+            '2': '#eadcd2',
+        },
       },
 
       minHeight: {
+        'inherit': 'inherit',
         '100px': '100px',
         '200px': '200px',
         '300px': '300px',
@@ -69,6 +75,16 @@ module.exports = {
       },
 
       height: {
+        'inherit': 'inherit',
+        '100px': '100px',
+        '200px': '200px',
+        '300px': '300px',
+        '400px': '400px',
+        '500px': '500px',
+      },
+
+      width: {
+        'inherit': 'inherit',
         '100px': '100px',
         '200px': '200px',
         '300px': '300px',
