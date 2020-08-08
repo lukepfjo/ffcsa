@@ -69,10 +69,28 @@
         {% block extra_head %}{% endblock %}
         
         <script>
-            function header_dropdown_onclick(btn) {
+            /* Accessibility. Emulate click event in place of enter for focusable divs. This allows 'onclick' to handle enter presses. */
+            document.addEventListener('keyup', (event) => {
+                if (event.keyCode === 13 && event.target.tagName.toLowerCase() === 'div') {
+                    event.preventDefault();
+                    event.target.click();
+                    event.target.classList.remove('outline-none')
+
+                // Make sure outline is shown on tab
+                } else if (event.keyCode === 9) {
+                    event.target.classList.remove('outline-none')
+
+                } else {
+                    return false;
+                }
+            });
+
+            function header_dropdown_toggle(btn) {
                 let menu = document.querySelector('#header-dropdown-menu');
+                document.querySelector('#header-hamburger-stack').classList.toggle('opened');
                 menu.classList.toggle('hidden');
                 btn.setAttribute('aria-expanded', !menu.classList.contains('hidden'));
+                btn.classList.add('outline-none');
             }
         </script>
             
@@ -82,8 +100,8 @@
         <div id="wrapper">
             <header>
                 <nav class="flex justify-between mx-4 my-5 lg:mx-10 lg:my-6">
-                    <a href="/" aria-label="Home" class="inline-block w-3/5 lg:w-2/5">
-                        <img class="h-13" src="/static/img/dff-logo-long.png" draggable="false">
+                    <a href="/" id="header-home-icon" class="inline-block w-3/5 lg:w-2/5" role="button" tabindex="1" aria-label="Home">
+                        <img class="h-13" src="/static/img/dff-logo-long.png" draggable="false" aria-hidden="true">
                     </a>
 
                     <!-- Desktop menu -->
@@ -93,14 +111,10 @@
                     </ul>
 
                     <!-- Mobile menu -->
-                    <div class="flex lg:hidden" onclick="header_dropdown_onclick(this)" aria-haspopup="true" aria-expanded="false">
-                        <!--<svg id="header-hamburger-stack" class="self-center" viewBox="0 0 100 80" width="40" height="40" aria-hidden="true">
-                            <rect width="90" height="15"></rect>
-                            <rect y="30" width="90" height="15"></rect>
-                            <rect y="60" width="90" height="15"></rect>
-                        </svg>-->
+                    <div id="header-mobile-menu" class="flex no-select-background lg:hidden" role="button" tabindex="2" onclick="header_dropdown_toggle(this)"
+                         aria-haspopup="true" aria-expanded="false" aria-label="Expand and collapse main navigation menu">
 
-                        <svg id="header-hamburger-stack" class="self-center" viewBox="0 0 100 51" width="40" height="50" aria-hidden="true">
+                        <svg id="header-hamburger-stack" class="self-center" viewBox="0 0 100 50" width="40" height="50" aria-hidden="true">
                             <rect width="90" height="9"></rect>
                             <rect y="25" width="90" height="9"></rect>
                             <rect y="50" width="90" height="9"></rect>

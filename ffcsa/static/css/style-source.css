@@ -42,11 +42,15 @@ blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre, a, span {
 2. Utility
 ==================================== */
 
-.grid-span-two-cols {
-    grid-column-start: 1;
-    grid-column-end: 3;
+.no-select-background {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
-
 
 /* ===================================
 3. Specialty
@@ -76,10 +80,32 @@ header > nav {
         color: #28130b;
     }
 
+    #header-hamburger-stack rect {
+        /* Center lines */
+        transform-origin: center;
+        transform: translateX(5px);
+        transition: 0.1s ease-in-out;
+        }
+
+        /* Next three turn stack into 'x' */
+        #header-hamburger-stack.opened rect:first-of-type {
+            transform: translateX(-10px) translateY(16px) rotate(45deg);
+        }
+
+        #header-hamburger-stack.opened rect:nth-of-type(2) {
+            opacity: 0;
+        }
+
+        #header-hamburger-stack.opened rect:nth-of-type(2),
+        #header-hamburger-stack.opened rect:last-of-type {
+            transform: translateX(-20px) translateY(-25px) rotate(-45deg);
+    }
+
     #header-dropdown-menu:not(.hidden) {
-        @apply flex flex-col justify-around absolute h-100px;
+        @apply flex flex-col justify-around absolute;
 
         width: calc(100% - 14px);
+        height: 125px;
         right: 0px;
         top: 107px;
         margin: 0 7px;
@@ -99,7 +125,13 @@ header > nav {
 
         #header-dropdown-menu li:first-of-type {
             border-bottom: 1px solid rgba(100, 100, 100, .1);
-            padding-bottom: 8px;
+            padding-bottom: 15px;
+}
+
+.btn_shop-the-farm {
+    @apply btn text-lg self-center w-auto;
+    padding: 15px 20px;
+    max-height: 57px;
 }
 
 /* Used for homepage hero cover image */
@@ -148,15 +180,6 @@ header > nav {
         .checked-pin-block {
             @apply w-1/3;
     }
-}
-
-/* Much cleaner to use a grid than to use nested flexboxes, but finicky. WIP. */
-#home-section-3-grid {
-  display: grid;
-  grid-template-rows: 75px 150px 150px 150px 150px;
-  grid-template-columns: 250px 400px;
-  column-gap: 10px;
-  row-gap: 10px;
 }
 
 /*========================
