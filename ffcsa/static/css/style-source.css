@@ -182,6 +182,34 @@ header > nav {
     }
 }
 
+.livestock-dropdown {
+    width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 10px;
+    background-color: #999;
+    }
+
+    .livestock-dropdown-title-bar {
+        @apply flex justify-between text-2xl;
+        background-color: #f2eae5;
+        }
+
+        .livestock-dropdown-title {
+            font-weight: bold;
+        }
+
+        .livestock-dropdown-button {
+            @apply text-xl;
+            color: red;
+            line-height: 2.25rem;  /* Vertical centering */
+    }
+
+    .livestock-dropdown-details {
+        background-color: #f2eae5;
+        height: 300px;
+}
+
 /*========================
 Google Maps Autocomplete
 ========================*/

@@ -2,6 +2,20 @@
 
 {% block main %} {{ block.super }}
 
+<script>
+    function livestock_dropdown_toggle(dropdown_titlebar) {
+        let button  = dropdown_titlebar.querySelector('.livestock-dropdown-button'),
+            details = dropdown_titlebar.parentElement.querySelector('.livestock-dropdown-details');
+
+        button.innerText = button.innerText == '+' ? 'Read less' : '+';
+
+        dropdown_titlebar.classList.toggle('opened');
+        details.classList.toggle('hidden');
+        button.setAttribute('aria-expanded', !details.classList.contains('hidden'));
+        button.classList.add('outline-none');
+    }
+</script>
+
 <div class="min-h-300px lg:min-h-400px xl:min-h-500px bg-cover bg-center bg-overlay-dark" style="background-image: url('static/img/cows-banner.jpg');">
     <div class="flex flex-col justify-center px-4 pt-4 pb-8 min-h-300px lg:min-h-400px xl:min-h-500px">
         <h2 class="text-white text-center text-5xl mb-4">Organic-Pasture Raised Meats & Eggs</h2>
@@ -63,6 +77,59 @@
     </div>
 
     <a href="#shop" class="btn_shop-the-farm self-center mt-20">SHOP THE FARM</a>
+</div>
+
+<div class="flex flex-col justify-center px-4 py-20">
+    <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
+
+    <div class="grid justify-center" style="grid-template-columns: repeat(auto-fit, 250px); grid-gap: 15px;">
+        <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
+        <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
+        <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
+        <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
+        <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
+    </div>
+
+    <div class="livestock-dropdown">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+            <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
+            <span class="livestock-dropdown-button">+</span>
+        </div>
+        <div class="livestock-dropdown-details hidden"></div>
+    </div>
+
+    <div class="livestock-dropdown">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+            <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
+            <span class="livestock-dropdown-button">+</span>
+        </div>
+        <div class="livestock-dropdown-details hidden"></div>
+    </div>
+
+    <div class="livestock-dropdown">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+            <h3 class="livestock-dropdown-title">Spring Lamb</h3>
+            <span class="livestock-dropdown-button">+</span>
+        </div>
+        <div class="livestock-dropdown-details hidden"></div>
+    </div>
+
+    <div class="livestock-dropdown">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+            <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
+            <span class="livestock-dropdown-button">+</span>
+        </div>
+        <div class="livestock-dropdown-details hidden"></div>
+    </div>
+
+    <div class="livestock-dropdown">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+            <h3 class="livestock-dropdown-title">Laying Hens</h3>
+            <span class="livestock-dropdown-button">+</span>
+        </div>
+        <div class="livestock-dropdown-details hidden"></div>
+    </div>
+
 </div>
 
 {% endblock %}
