@@ -5,10 +5,10 @@
 @import url("components/toggle-switch.css");
 @import url("components/spinner.css");
 @import url("components/button.css");
-/* === this needs to follow custom components */
+/* === tailwindcss/utilities needs to follow custom components per the docs ===*/
 @import "tailwindcss/utilities";
 /* ==== Google font ==== */
-@import url('https://fonts.googleapis.com/css?family=Noto+Serif:400,400italic,700|Open+Sans:300,400,600,700');
+/* @import url('https://fonts.googleapis.com/css?family=Noto+Serif:400,400italic,700|Open+Sans:300,400,600,700'); */
 /* === prettify === */
 /* @import url('../js/google-code-prettify/prettify.css'); */
 /* === fontawesome === */
@@ -49,7 +49,13 @@ blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre, a, span {
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    -o-user-select: none;
     user-select: none;
+}
+
+.tab-navigation-outline {
+    outline-offset: 4px;
+    outline: 6px solid black;
 }
 
 /* ===================================
@@ -72,11 +78,6 @@ header > nav {
 
     /* For header "Member Sign In" text */
     header a.text-brown-7:hover {
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -o-user-select: none;
-        user-select: none;
         color: #28130b;
     }
 
@@ -183,16 +184,21 @@ header > nav {
 }
 
 .livestock-dropdown {
-    width: 75%;
+    width: 100%;
+    /* Margins have to be kept separate so inline styles can override them */
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 10px;
-    background-color: #999;
+    padding: 10px 15px;
+    background-color: #f2eae5;
     }
 
     .livestock-dropdown-title-bar {
-        @apply flex justify-between text-2xl;
-        background-color: #f2eae5;
+        @apply flex justify-between text-xl;
+        }
+
+        .livestock-dropdown-title-bar.opened {
+            margin-bottom: 15px;
         }
 
         .livestock-dropdown-title {
@@ -200,14 +206,27 @@ header > nav {
         }
 
         .livestock-dropdown-button {
-            @apply text-xl;
-            color: red;
-            line-height: 2.25rem;  /* Vertical centering */
-    }
+            @apply text-lg text-center italic;
+            width: 90px;
+            margin-right: 30px;
+            color: #be253e;
+        }
 
     .livestock-dropdown-details {
-        background-color: #f2eae5;
+        @apply text-lg;
         height: 300px;
+        padding-bottom: 10px;
+        }
+
+        .livestock-dropdown-details > p + p {
+            margin-top: 1rem;
+    }
+
+    /* Triggers when animal image row unwraps */
+    @media (min-width: 1361px) {
+        .livestock-dropdown {
+            width: 1315px;
+    }
 }
 
 /*========================

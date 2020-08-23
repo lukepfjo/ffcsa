@@ -1,4 +1,4 @@
-{% extends "new_base.html" %}
+{% extends "base.html" %}
 
 {% block main %} {{ block.super }}
 
@@ -16,15 +16,15 @@
     }
 </script>
 
-<div class="min-h-300px lg:min-h-400px xl:min-h-500px bg-cover bg-center bg-overlay-dark" style="background-image: url('static/img/cows-banner.jpg');">
+<section class="min-h-300px lg:min-h-400px xl:min-h-500px bg-cover bg-center bg-overlay-dark" style="background-image: url('static/img/cows-banner.jpg');">
     <div class="flex flex-col justify-center px-4 pt-4 pb-8 min-h-300px lg:min-h-400px xl:min-h-500px">
         <h2 class="text-white text-center text-5xl mb-4">Organic-Pasture Raised Meats & Eggs</h2>
         <h4 class="text-white text-center text-2xl mb-8 leading-snug">Bringing you nutrient-dense meat, milk, and eggs<br/>while building healthier soil</h4>
         <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
     </div>
-</div>
+</section>
 
-<div class="flex flex-col md:flex-row">
+<section class="flex flex-col md:flex-row">
     <div class="checked-pin-block bg-orange-4">
         <div>
             <div class="bg-yellow-1"></div>
@@ -47,18 +47,18 @@
         </div>
         <h4>Local</h4>
     </div>
-</div>
+</section>
 
-<div class="min-h-500px xl:min-h-600px bg-cover bg-center bg-overlay-light" style="background-image: url('static/img/cows-banner-2.jpg');">
+<section class="min-h-500px xl:min-h-600px bg-cover bg-center bg-overlay-light" style="background-image: url('static/img/cows-banner-2.jpg');">
     <div class="flex flex-col justify-center px-4 py-12 min-h-inherit">
         <h2 class="text-brown-6 text-center font-bold text-3xl mb-6" style="line-height: 1.375;">How your meat and eggs are produced is <br class="hidden sm:inline"/>too important to leave to chance.</h2>
         <h4 class="text-brown-7 text-center text-2xl mb-12 leading-snug">How do you know your food was raised responsibly?<br/>Meat and egg production standards are lacking.<br/>Are you craving a better option?</h4>
         <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
     </div>
-</div>
+</section>
 
 
-<div class="flex flex-col justify-center px-4 py-20 bg-tan-1">
+<section class="flex flex-col justify-center px-4 py-20 bg-tan-1">
     <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Fresh Locally Sourced Meat and Eggs</h2>
 
     <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
@@ -77,9 +77,9 @@
     </div>
 
     <a href="#shop" class="btn_shop-the-farm self-center mt-20">SHOP THE FARM</a>
-</div>
+</section>
 
-<div class="flex flex-col justify-center px-4 py-20">
+<section class="flex flex-col justify-center px-4 py-20">
     <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
 
     <div class="grid justify-center" style="grid-template-columns: repeat(auto-fit, 250px); grid-gap: 15px;">
@@ -90,46 +90,57 @@
         <img src="/static/img/placeholders/cows.jpg" alt="Cows in one of our fields">
     </div>
 
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+    <div class="livestock-dropdown mt-6">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
             <span class="livestock-dropdown-button">+</span>
         </div>
-        <div class="livestock-dropdown-details hidden"></div>
+        <div class="livestock-dropdown-details hidden">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+        </div>
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
             <span class="livestock-dropdown-button">+</span>
         </div>
-        <div class="livestock-dropdown-details hidden"></div>
+        <div class="livestock-dropdown-details hidden">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+        </div>
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Spring Lamb</h3>
             <span class="livestock-dropdown-button">+</span>
         </div>
-        <div class="livestock-dropdown-details hidden"></div>
+        <div class="livestock-dropdown-details hidden">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+        </div>
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
             <span class="livestock-dropdown-button">+</span>
         </div>
-        <div class="livestock-dropdown-details hidden"></div>
+        <div class="livestock-dropdown-details hidden">
+            <p>Our pasture-raised broilers are raised on pasture where they consume up to 20% of their diet on grass, herbs, and clover. The birds are moved daily to fresh forage, keeping them well-fed and happy.</p>
+            <p>We also raise Bourban, Bronze, and White Turkeys. All birds are raised on pasture and housed at night to prevent predation.</p>
+        </div>
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Laying Hens</h3>
             <span class="livestock-dropdown-button">+</span>
         </div>
-        <div class="livestock-dropdown-details hidden"></div>
+        <div class="livestock-dropdown-details hidden">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+        </div>
     </div>
 
-</div>
+</section>
 
 {% endblock %}
