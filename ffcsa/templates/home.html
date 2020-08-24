@@ -2,6 +2,8 @@
 
 {% block main %} {{ block.super }}
 
+
+
 <script>
     function livestock_dropdown_toggle(dropdown_titlebar) {
         let button  = dropdown_titlebar.querySelector('.livestock-dropdown-button'),
@@ -11,8 +13,8 @@
 
         dropdown_titlebar.classList.toggle('opened');
         details.classList.toggle('hidden');
-        button.setAttribute('aria-expanded', !details.classList.contains('hidden'));
-        button.classList.add('outline-none');
+        dropdown_titlebar.setAttribute('aria-expanded', !details.classList.contains('hidden'));
+        dropdown_titlebar.classList.add('outline-none');
     }
 </script>
 
@@ -35,7 +37,7 @@
 
     <div class="checked-pin-block bg-orange-5">
         <div>
-            <img src="/static/img/pin-with-checkmark.svg" draggable="false">
+            <img src="/static/img/pin-with-checkmark.svg" draggable="false">  <!-- /static/img/pin-with-checkmark.svg -->
         </div>
         <h4>Delicious</h4>
     </div>
@@ -91,9 +93,9 @@
     </div>
 
     <div class="livestock-dropdown mt-6">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
-            <span class="livestock-dropdown-button">+</span>
+            <span class="livestock-dropdown-button select-none">+</span>
         </div>
         <div class="livestock-dropdown-details hidden">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
@@ -101,9 +103,9 @@
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
-            <span class="livestock-dropdown-button">+</span>
+            <span class="livestock-dropdown-button select-none">+</span>
         </div>
         <div class="livestock-dropdown-details hidden">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
@@ -111,9 +113,9 @@
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Spring Lamb</h3>
-            <span class="livestock-dropdown-button">+</span>
+            <span class="livestock-dropdown-button select-none">+</span>
         </div>
         <div class="livestock-dropdown-details hidden">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
@@ -121,9 +123,9 @@
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
-            <span class="livestock-dropdown-button">+</span>
+            <span class="livestock-dropdown-button select-none">+</span>
         </div>
         <div class="livestock-dropdown-details hidden">
             <p>Our pasture-raised broilers are raised on pasture where they consume up to 20% of their diet on grass, herbs, and clover. The birds are moved daily to fresh forage, keeping them well-fed and happy.</p>
@@ -132,9 +134,9 @@
     </div>
 
     <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Show or hide further information">
+        <div class="livestock-dropdown-title-bar" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
             <h3 class="livestock-dropdown-title">Laying Hens</h3>
-            <span class="livestock-dropdown-button">+</span>
+            <span class="livestock-dropdown-button select-none">+</span>
         </div>
         <div class="livestock-dropdown-details hidden">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
