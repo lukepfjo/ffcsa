@@ -54,11 +54,7 @@ blockquote, dd, dl, figure, h1, h2, h3, h4, h5, h6, hr, p, pre, a, span {
 }
 
 .tab-navigation-outline:focus {
-    /* Properties have to be long-form so inline styles can override them */
-    outline-offset: 4px;
-    /* outline-color: rgb(0, 0, 0); */
-    outline-style: solid;
-    outline-width: 4px;
+    outline-offset: 6px;
 }
 
 /* ===================================
@@ -191,9 +187,22 @@ header > nav {
     /* Margin properties have to be long-form so inline styles can override them */
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 10px;
     padding: 10px 15px;
     background-color: #f2eae5;
+    }
+
+    #livestock-image-group img {
+        width: 250px;
+    }
+
+    .livestock-image-single {
+        @apply mt-6 mb-4 mx-auto;
+        width: 75%;
+        min-width: 250px;
+    }
+
+    .livestock-image-single:first-of-type {
+        margin-top: 0;
     }
 
     .livestock-dropdown-title-bar {
@@ -205,12 +214,13 @@ header > nav {
         }
 
         .livestock-dropdown-title {
-            max-width: 210px;
+            @apply select-none;
             font-weight: bold;
         }
 
         .livestock-dropdown-button {
             @apply text-lg text-right italic;
+            width: 100px;
             color: #be253e;
         }
 
@@ -224,7 +234,7 @@ header > nav {
     }
 
     /* Triggers when animal images are a single row */
-    @media (min-width: 1361px) {
+    @media (min-width: 1341px) {
         .livestock-dropdown {
             width: 1315px;
         }
@@ -232,8 +242,20 @@ header > nav {
 
     /* Triggers when animal image row is no longer a single column */
     @media (min-width: 547px) {
-        .livestock-dropdown-title {
-            max-width: unset;
+        #livestock-image-group {
+            display: flex;
+        }
+
+        .livestock-dropdown {
+            margin-bottom: 10px;
+        }
+
+        .livestock-image-single {
+            display: none;
+        }
+
+        .livestock-image-single:first-of-type {
+            @apply mt-6;
         }
 
         .livestock-dropdown-button {
@@ -241,6 +263,12 @@ header > nav {
             width: 90px;
             margin-right: 30px;
     }
+}
+
+#organic-certifications img {
+    height: 225px;
+    border-radius: 15px;
+    box-shadow: #888 0px 0px 15px;
 }
 
 /*========================
