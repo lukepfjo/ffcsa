@@ -2,167 +2,239 @@
 
 {% load staticfiles static %}
 
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'js/glider/glider.min.css' %}">
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="{% static 'js/glider/glider.min.js' %}"></script>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        function livestock_dropdown_toggle(dropdown_titlebar) {
+            let button  = dropdown_titlebar.querySelector('.livestock-dropdown-button'),
+                details = dropdown_titlebar.parentElement.querySelector('.livestock-dropdown-details');
+
+            button.innerText = button.innerText == '+' ? 'Read less' : '+';
+
+            dropdown_titlebar.classList.toggle('opened');
+            details.classList.toggle('hidden');
+            dropdown_titlebar.setAttribute('aria-expanded', !details.classList.contains('hidden'));
+            dropdown_titlebar.classList.add('outline-none');
+        }
+
+        window.addEventListener('load', function(){
+            new Glider(document.querySelector('#reviews-slider .reviews-slider-contents'), {
+                slidesToShow: 1,
+                draggable: true,
+                rewind: true,
+                arrows: {
+                    prev: '#reviews-slider .reviews-slider-prev',
+                    next: '#reviews-slider .reviews-slider-next'
+                },
+                responsive: [
+                    {
+                        breakpoint: 200,
+                        settings: {
+                            itemWidth: 200,
+                        }
+                    },
+
+                    {
+                        breakpoint: 1400,
+                        settings: {
+                            itemWidth: 1400,
+                        }
+                    }
+                ],
+            });
+        });
+
+    </script>
+{% endblock %}
+
+
 {% block main %} {{ block.super }}
 
-<script>
-    function livestock_dropdown_toggle(dropdown_titlebar) {
-        let button  = dropdown_titlebar.querySelector('.livestock-dropdown-button'),
-            details = dropdown_titlebar.parentElement.querySelector('.livestock-dropdown-details');
-
-        button.innerText = button.innerText == '+' ? 'Read less' : '+';
-
-        dropdown_titlebar.classList.toggle('opened');
-        details.classList.toggle('hidden');
-        dropdown_titlebar.setAttribute('aria-expanded', !details.classList.contains('hidden'));
-        dropdown_titlebar.classList.add('outline-none');
-    }
-</script>
-
-<section class="min-h-300px lg:min-h-400px xl:min-h-500px bg-cover bg-center bg-overlay-dark" style="background-image: url('{% static 'img/cows-banner.jpg' %}');">
-    <div class="flex flex-col justify-center px-4 pt-4 pb-8 min-h-300px lg:min-h-400px xl:min-h-500px">
-        <h2 class="text-white text-center text-5xl mb-4">Organic-Pasture Raised Meats & Eggs</h2>
-        <h4 class="text-white text-center text-2xl mb-8 leading-snug">Bringing you nutrient-dense meat, milk, and eggs<br/>while building healthier soil</h4>
-        <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
-    </div>
-</section>
-
-<section class="flex flex-col md:flex-row">
-    <div class="checked-pin-block bg-orange-4">
-        <div>
-            <div class="bg-yellow-1"></div>
-            <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+    <section class="min-h-300px lg:min-h-400px xl:min-h-500px bg-cover bg-center bg-overlay-dark" style="background-image: url('{% static 'img/cows-banner.jpg' %}');">
+        <div class="flex flex-col justify-center px-4 pt-4 pb-8 min-h-300px lg:min-h-400px xl:min-h-500px">
+            <h2 class="text-white text-center text-5xl mb-4">Organic-Pasture Raised Meats & Eggs</h2>
+            <h4 class="text-white text-center text-2xl mb-8 leading-snug">Bringing you nutrient-dense meat, milk, and eggs<br/>while building healthier soil</h4>
+            <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
         </div>
-        <h4>Nutrient-Dense</h4>
-    </div>
+    </section>
 
-    <div class="checked-pin-block bg-orange-5">
-        <div>
-            <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+    <section class="flex flex-col md:flex-row">
+        <div class="checked-pin-block bg-orange-4">
+            <div>
+                <div class="bg-yellow-1"></div>
+                <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+            </div>
+            <h4>Nutrient-Dense</h4>
         </div>
-        <h4>Delicious</h4>
-    </div>
 
-    <div class="checked-pin-block bg-orange-4">
-        <div>
-            <div class="bg-green-1"></div>
-            <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+        <div class="checked-pin-block bg-orange-5">
+            <div>
+                <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+            </div>
+            <h4>Delicious</h4>
         </div>
-        <h4>Local</h4>
-    </div>
-</section>
 
-<section class="min-h-500px xl:min-h-600px bg-cover bg-center bg-overlay-light" style="background-image: url('{% static 'img/cows-banner-2.jpg' %}');">
-    <div class="flex flex-col justify-center px-4 py-12 min-h-inherit">
-        <h2 class="text-brown-6 text-center font-bold text-3xl mb-6" style="line-height: 1.375;">How your meat and eggs are produced is <br class="hidden sm:inline"/>too important to leave to chance.</h2>
-        <h4 class="text-brown-7 text-center text-2xl leading-snug mb-12">How do you know your food was raised responsibly?<br/>Meat and egg production standards are lacking.<br/>Are you craving a better option?</h4>
-        <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
-    </div>
-</section>
-
-<section class="flex flex-col justify-center px-4 py-20 bg-tan-1">
-    <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Fresh Locally Sourced Meat and Eggs</h2>
-
-    <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
-        <img src="{% static 'img/placeholders/cows.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Cows in one of our fields">
-        <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Farmers focused on providing <br class="hidden sm:inline"/>nutrient-dense meat, milk, and eggs.</h3>
-    </div>
-
-    <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
-        <img src="{% static 'img/placeholders/dog.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with chicken supplies">
-        <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Raising the bar for farm <br class="hidden sm:inline"/>production standards.</h3>
-    </div>
-
-    <div class="flex flex-col space-between self-center sm:flex-row">
-        <img src="{% static 'img/placeholders/dog-2.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with wine">
-        <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Treating animals humanely, sustainably, <br class="hidden sm:inline"/>and in harmony with nature.</h3>
-    </div>
-
-    <a href="#shop" class="btn_shop-the-farm self-center mt-20">SHOP THE FARM</a>
-</section>
-
-<section class="flex flex-col justify-center px-4 py-20">
-    <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
-
-    <div id="livestock-image-group" class="justify-center flex-wrap mb-6 hidden" style="grid-gap: 15px;">  <!-- grid-template-columns: repeat(auto-fit, 250px); -->
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-    </div>
-
-    <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
-            <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
-            <span class="livestock-dropdown-button select-none">+</span>
+        <div class="checked-pin-block bg-orange-4">
+            <div>
+                <div class="bg-green-1"></div>
+                <img src="{% static 'img/pin-with-checkmark.svg' %}" draggable="false">
+            </div>
+            <h4>Local</h4>
         </div>
-        <div class="livestock-dropdown-details hidden">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+    </section>
+
+    <section class="min-h-500px xl:min-h-600px bg-cover bg-center bg-overlay-light" style="background-image: url('{% static 'img/cows-banner-2.jpg' %}');">
+        <div class="flex flex-col justify-center px-4 py-12 min-h-inherit">
+            <h2 class="text-brown-6 text-center font-bold text-3xl mb-6" style="line-height: 1.375;">How your meat and eggs are produced is <br class="hidden sm:inline">too important to leave to chance.</h2>
+            <h4 class="text-brown-7 text-center text-2xl leading-snug mb-12">How do you know your food was raised responsibly?<br>Meat and egg production standards are lacking.<br>Are you craving a better option?</h4>
+            <a href="#shop" class="btn_shop-the-farm">SHOP THE FARM</a>
         </div>
-    </div>
+    </section>
 
-    <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
-            <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
-            <span class="livestock-dropdown-button select-none">+</span>
+    <section class="flex flex-col justify-center px-4 py-20 bg-tan-1">
+        <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Fresh Locally Sourced Meat and Eggs</h2>
+
+        <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
+            <img src="{% static 'img/placeholders/cows.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Cows in one of our fields">
+            <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Farmers focused on providing <br class="hidden sm:inline">nutrient-dense meat, milk, and eggs.</h3>
         </div>
-        <div class="livestock-dropdown-details hidden">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+
+        <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
+            <img src="{% static 'img/placeholders/dog.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with chicken supplies">
+            <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Raising the bar for farm <br class="hidden sm:inline">production standards.</h3>
         </div>
-    </div>
 
-    <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
-            <h3 class="livestock-dropdown-title">Spring Lamb</h3>
-            <span class="livestock-dropdown-button select-none">+</span>
+        <div class="flex flex-col space-between self-center sm:flex-row">
+            <img src="{% static 'img/placeholders/dog-2.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with wine">
+            <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Treating animals humanely, sustainably, <br class="hidden sm:inline">and in harmony with nature.</h3>
         </div>
-        <div class="livestock-dropdown-details hidden">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+
+        <a href="#shop" class="btn_shop-the-farm self-center mt-20">SHOP THE FARM</a>
+    </section>
+
+    <section class="flex flex-col justify-center px-4 py-20">
+        <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
+
+        <div id="livestock-image-group" class="justify-center flex-wrap mb-6 hidden" style="grid-gap: 15px;">  <!-- grid-template-columns: repeat(auto-fit, 250px); -->
+            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
         </div>
-    </div>
 
-    <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
-            <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
-            <span class="livestock-dropdown-button select-none">+</span>
+        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <div class="livestock-dropdown">
+            <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
+                <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
+                <span class="livestock-dropdown-button select-none">+</span>
+            </div>
+            <div class="livestock-dropdown-details hidden">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+            </div>
         </div>
-        <div class="livestock-dropdown-details hidden">
-            <p>Our pasture-raised broilers are raised on pasture where they consume up to 20% of their diet on grass, herbs, and clover. The birds are moved daily to fresh forage, keeping them well-fed and happy.</p>
-            <p>We also raise Bourban, Bronze, and White Turkeys. All birds are raised on pasture and housed at night to prevent predation.</p>
+
+        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <div class="livestock-dropdown">
+            <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
+                <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
+                <span class="livestock-dropdown-button select-none">+</span>
+            </div>
+            <div class="livestock-dropdown-details hidden">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+            </div>
         </div>
-    </div>
 
-    <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
-    <div class="livestock-dropdown">
-        <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
-            <h3 class="livestock-dropdown-title">Laying Hens</h3>
-            <span class="livestock-dropdown-button select-none">+</span>
+        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <div class="livestock-dropdown">
+            <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
+                <h3 class="livestock-dropdown-title">Spring Lamb</h3>
+                <span class="livestock-dropdown-button select-none">+</span>
+            </div>
+            <div class="livestock-dropdown-details hidden">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+            </div>
         </div>
-        <div class="livestock-dropdown-details hidden">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+
+        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <div class="livestock-dropdown">
+            <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
+                <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
+                <span class="livestock-dropdown-button select-none">+</span>
+            </div>
+            <div class="livestock-dropdown-details hidden">
+                <p>Our pasture-raised broilers are raised on pasture where they consume up to 20% of their diet on grass, herbs, and clover. The birds are moved daily to fresh forage, keeping them well-fed and happy.</p>
+                <p>We also raise Bourban, Bronze, and White Turkeys. All birds are raised on pasture and housed at night to prevent predation.</p>
+            </div>
         </div>
-    </div>
 
-    <a href="#shop" class="btn_shop-the-farm self-center my-10">SHOP THE FARM</a>
-</section>
+        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <div class="livestock-dropdown">
+            <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
+                <h3 class="livestock-dropdown-title">Laying Hens</h3>
+                <span class="livestock-dropdown-button select-none">+</span>
+            </div>
+            <div class="livestock-dropdown-details hidden">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse at mauris id ligula tincidunt mattis. Etiam semper lacus sed eros condimentum elementum. Pellentesque tristique diam ut posuere scelerisque. Cras in enim vel mauris finibus iaculis.</p>
+            </div>
+        </div>
 
-<section class="flex flex-col justify-center px-4 py-20" style="background-color: #f8daC7;">
-    <h2 class="text-brown-6 text-center font-bold text-3xl mt-10">We care about the environment AND about you!</h2>
+        <a href="#shop" class="btn_shop-the-farm self-center my-10">SHOP THE FARM</a>
+    </section>
 
-    <p class="text-center text-2xl leading-snug my-20">Your health matters to us. That’s why our meat comes from humanely treated animals <br class="hidden sm:inline"/>that were raised sustainably on organic-pastures without growth hormones or confined spaces. <br class="hidden sm:inline"/>Food that’s good for you and tastes good, too.</p>
+    <section class="flex flex-col justify-center px-4 py-20" style="background-color: #f8daC7;">
+        <h2 class="text-brown-6 text-center font-bold text-3xl mt-10">We care about the environment AND about you!</h2>
 
-    <div id="organic-certifications" class="flex flex-wrap justify-center space-between" style="grid-gap: 50px;">
-        <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
-        <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
-        <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
-        <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
-        <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
-    </div>
+        <p class="text-center text-2xl leading-snug my-20">Your health matters to us. That’s why our meat comes from humanely treated animals <br class="hidden sm:inline">that were raised sustainably on organic-pastures without growth hormones or confined spaces. <br class="hidden sm:inline">Food that’s good for you and tastes good, too.</p>
 
-</section>
+        <div id="organic-certifications" class="flex flex-wrap justify-center space-between mb-20" style="grid-gap: 50px;">
+            <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
+            <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
+            <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
+            <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
+            <img src="{% static 'img/oregon-tilth-certified-orangic.png' %}">
+        </div>
 
+        <div id="reviews-slider" class="reviews-slider flex justify-center mt-10 mb-20">
+            <div class="flex" style="max-width: 1700px">
+                <div class="reviews-slider-prev flex flex-col justify-center mr-5 cursor-pointer outline-none" tabindex="0" aria-label="Previous review">
+                    <svg width="48" height="48" viewBox="0 0 25 25" style="fill: #999;" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M20 .755l-14.374 11.245 14.374 11.219-.619.781-15.381-12 15.391-12 .609.755z"/></svg>
+                </div>
+
+                <div class="reviews-slider-contents text-center" style="max-width: 1400px;">
+                    <div class="review-panel">
+                        <p class="text-3xl leading-relaxed mb-10">Testimony text goes here, consectetur adipiscing elit. Nullam <br class="hidden sm:inline">mollis, erat ut laoreet lacinia, leo nibh laoreet leo, a rutrum tellus lectus <br class="hidden sm:inline">a lorem. Curabitur nec lectus a felis ultricies ultricies at ut nibh. <br class="hidden sm:inline">Praesent cursus velit nulla, nec rhoncus ipsum volutpat vitae. </p>
+
+                        <span class="text-2xl font-bold">- Happy Customer, <span class="font-normal">Portland, OR</span></span>
+                    </div>
+
+                    <div class="review-panel">
+                        <p class="text-3xl leading-relaxed mb-10">Testimony text goes here, consectetur adipiscing elit. Nullam <br class="hidden sm:inline">mollis, erat ut laoreet lacinia, leo nibh laoreet leo, a rutrum tellus lectus <br class="hidden sm:inline">a lorem. Curabitur nec lectus a felis ultricies ultricies at ut nibh. <br class="hidden sm:inline">Praesent cursus velit nulla, nec rhoncus ipsum volutpat vitae. </p>
+
+                        <span class="text-2xl font-bold">- Happy Customer 2, <span class="font-normal">Eugene, OR</span></span>
+                    </div>
+
+                    <div class="review-panel">
+                        <p class="text-3xl leading-relaxed mb-10">Testimony text goes here, consectetur adipiscing elit. Nullam <br class="hidden sm:inline">mollis, erat ut laoreet lacinia, leo nibh laoreet leo, a rutrum tellus lectus <br class="hidden sm:inline">a lorem. Curabitur nec lectus a felis ultricies ultricies at ut nibh. <br class="hidden sm:inline">Praesent cursus velit nulla, nec rhoncus ipsum volutpat vitae. </p>
+
+                        <span class="text-2xl font-bold"> Happy Customer 3, <span class="font-normal">Junction City, OR</span></span>
+                    </div>
+                </div>
+
+                <div class="reviews-slider-next flex flex-col justify-center ml-5 cursor-pointer outline-none" tabindex="0" aria-label="Next review">
+                    <svg width="48" height="48" viewBox="0 0 25 25" style="fill: #999;" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M4 .755l14.374 11.245-14.374 11.219.619.781 15.381-12-15.391-12-.609.755z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <a href="#shop" class="btn_shop-the-farm self-center my-10">SHOP THE FARM</a>
+
+    </section>
 {% endblock %}
