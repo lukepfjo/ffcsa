@@ -9,6 +9,9 @@ from ffcsa.shop.orders import valid_order_period_for_user, get_order_period_for_
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 SIGNUP_DESCRIPTION = 'FFCSA Raw Dairy Fee'
+# This is set via stripe FFCSA Membership product
+MEMBERSHIP_PAYMENT_DESCRIPTION = 'FFCSA Membership'
+PAYMENT_DESCRIPTION = 'FFCSA Payment'
 
 
 def charge_signup_fee_if_needed(user):

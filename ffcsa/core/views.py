@@ -46,7 +46,7 @@ from ffcsa.core.subscriptions import (SIGNUP_DESCRIPTION,
                                       send_first_payment_email,
                                       send_pending_payment_email,
                                       send_subscription_canceled_email,
-                                      update_stripe_subscription)
+                                      update_stripe_subscription, PAYMENT_DESCRIPTION, MEMBERSHIP_PAYMENT_DESCRIPTION)
 from ffcsa.shop.utils import set_home_delivery, clear_shipping
 
 from .utils import (ORDER_CUTOFF_DAY, next_weekday)
@@ -401,10 +401,10 @@ def make_payment(request):
             stripe.Charge.create(
                 amount=(amount * 100).quantize(0),  # in cents
                 currency='usd',
-                description='FFCSA Payment',
+                description=PAYMENT_DESCRIPTION,
                 customer=user.profile.stripe_customer_id,
                 source=card.id if card else None,
-                statement_descriptor='FFCSA Payment'
+                statement_descriptor=PAYMENT_DESCRIPTION,
             )
             success(request, 'Your payment is pending.')
             # Payment will be created when the charge is successful
@@ -622,7 +622,8 @@ def stripe_webhooks(request):
                             user.profile.start_date = date
                             user.profile.save()
                             send_first_payment_email(user)
-            else:
+            elif charge.statement_descriptor in [SIGNUP_DESCRIPTION, MEMBERSHIP_PAYMENT_DESCRIPTION,
+                                                 PAYMENT_DESCRIPTION]:
                 logger.error('Failed to find user with stripe_customer_id: ', event.data.object.customer)
 
         elif event.type == 'charge.failed':
