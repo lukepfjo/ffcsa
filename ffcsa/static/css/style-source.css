@@ -5,6 +5,7 @@
 @import url("components/toggle-switch.css");
 @import url("components/spinner.css");
 @import url("components/button.css");
+@import url("components/review-slider.css");
 /* === tailwindcss/utilities needs to follow custom components per the docs ===*/
 @import "tailwindcss/utilities";
 /* ==== Google font ==== */
