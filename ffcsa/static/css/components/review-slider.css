@@ -12,7 +12,7 @@
     }
 
     .reviews-slider .reviews-slider-contents {
-        @apply flex text-center pb-10;
+        @apply flex text-center;
 
         scrollbar-width: none;
         -ms-overflow-style: none;
@@ -20,16 +20,34 @@
 
         .reviews-slider .reviews-slider-contents .glider-track {
             display: flex;
-            gap: 20px;
         }
 
-        .reviews-slider .reviews-slider-contents .review-panel p {
-            @apply text-3xl leading-relaxed mb-10;
+            .reviews-slider .reviews-slider-contents .review-panel {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-height: 325px;
+                margin-left: 10px;
+                margin-right: 10px;
+                }
+
+                .reviews-slider .reviews-slider-contents .review-panel p {
+                    @apply text-3xl mb-10;
+                }
+
+                .reviews-slider .reviews-slider-contents .review-panel span {
+                    @apply text-2xl;
         }
 
         .reviews-slider .reviews-slider-prev,
         .reviews-slider .reviews-slider-next {
-            @apply flex-col justify-center cursor-pointer outline-none;
+            @apply flex-col justify-center cursor-pointer;
+        }
+
+        .reviews-slider .reviews-slider-dots {
+            width: 14px;
+            height: 14px;
+            margin: 10px;
         }
 
         .reviews-slider .reviews-slider-contents::-webkit-scrollbar {
