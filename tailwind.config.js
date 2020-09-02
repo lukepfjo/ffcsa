@@ -60,7 +60,7 @@ module.exports = {
         },
 
         tan: {
-            '1': '#fBf0d0',
+            '1': '#fbf0d0',
             '2': '#eadcd2',
         },
       },

@@ -23,7 +23,7 @@ a.btn {
 }
 
 .btn-green {
-    background-color: theme(colors.green.3);
+    background-color: theme(colors.green.1);
 }
 
 .btn-green:hover {

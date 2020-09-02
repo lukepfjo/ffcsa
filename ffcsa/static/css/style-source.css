@@ -13,7 +13,7 @@
 /* === prettify === */
 /* @import url('../js/google-code-prettify/prettify.css'); */
 /* === fontawesome === */
-@import url('font-awesome.css');
+@import url('fontawesome-all.min.css');
 /* === custom icon === */
 @import url('custom-fonts.css');
 /* ==== overwrite bootstrap standard ==== */
@@ -130,9 +130,13 @@ header > nav {
 }
 
 .btn_shop-the-farm {
-    @apply btn text-lg self-center w-auto;
+    @apply text-lg self-center w-auto;
     padding: 15px 20px;
     max-height: 57px;
+}
+
+.btn_faq {
+    @apply btn_shop-the-farm;
 }
 
 /* Used for homepage hero cover image */
@@ -270,6 +274,29 @@ header > nav {
     height: 225px;
     border-radius: 15px;
     box-shadow: #888 0px 0px 15px;
+}
+
+.our-practices-card {
+    width: 100%;
+    max-width: 490px;
+    margin: 20px;
+    background-color: #f9eab4;
+    color: theme(colors.brown.6);
+    }
+
+    .our-practices-card i {
+        @apply bg-white rounded-full;
+        position: absolute;
+        margin-top: -15px;
+        margin-left: -21px;
+        padding: 5px;
+        font-size: 25px;
+        color: theme(colors.green.1);
+        border: solid white;
+    }
+
+    .our-practices-card p {
+        @apply p-6 text-lg;
 }
 
 /*========================
