@@ -129,16 +129,6 @@ header > nav {
             padding-bottom: 15px;
 }
 
-.btn_shop-the-farm {
-    @apply text-lg self-center w-auto;
-    padding: 15px 20px;
-    max-height: 57px;
-}
-
-.btn_faq {
-    @apply btn_shop-the-farm;
-}
-
 /* Used for homepage hero cover image */
 .bg-overlay-dark {
      background-color: rgba(100, 100, 100, .4);
@@ -277,16 +267,15 @@ header > nav {
 }
 
 .our-practices-card {
-    width: 100%;
-    max-width: 490px;
-    margin: 20px;
+    width: calc(100vw - 70px);
+    max-width: 460px;
+    margin: 20px auto;
     background-color: #f9eab4;
     color: theme(colors.brown.6);
     }
 
     .our-practices-card i {
-        @apply bg-white rounded-full;
-        position: absolute;
+        @apply bg-white rounded-full absolute;
         margin-top: -15px;
         margin-left: -21px;
         padding: 5px;
@@ -296,7 +285,14 @@ header > nav {
     }
 
     .our-practices-card p {
-        @apply p-6 text-lg;
+        @apply p-6 text-xl;
+    }
+
+    /* Same as sm: */
+    @media (min-width: 640px) {
+        .our-practices-card {
+            margin: 20px;
+    }
 }
 
 /*========================
