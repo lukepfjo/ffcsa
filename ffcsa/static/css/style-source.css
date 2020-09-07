@@ -261,7 +261,7 @@ header > nav {
 }
 
 #organic-certifications img {
-    height: 225px;
+    width: 175px;
     border-radius: 15px;
     box-shadow: #888 0px 0px 15px;
 }

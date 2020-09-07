@@ -83,17 +83,17 @@
     <section class="flex flex-col justify-center px-4 py-20 bg-tan-1">
         <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Fresh Locally Sourced Meat and Eggs</h2>
 
-        <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
+        <div class="flex flex-col self-center mb-12 sm:flex-row">
             <img src="{% static 'img/placeholders/cows.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Cows in one of our fields">
             <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Farmers focused on providing <br class="hidden sm:inline">nutrient-dense meat, milk, and eggs.</h3>
         </div>
 
-        <div class="flex flex-col space-between self-center mb-12 sm:flex-row">
+        <div class="flex flex-col self-center mb-12 sm:flex-row">
             <img src="{% static 'img/placeholders/dog.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with chicken supplies">
             <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Raising the bar for farm <br class="hidden sm:inline">production standards.</h3>
         </div>
 
-        <div class="flex flex-col space-between self-center sm:flex-row">
+        <div class="flex flex-col self-center sm:flex-row">
             <img src="{% static 'img/placeholders/dog-2.jpg' %}" class="w-300px mb-4 self-center sm:mr-10 sm:mb-0" alt="Dog with wine">
             <h3 class="text-center text-2xl leading-snug self-center sm:text-left sm:w-500px">Treating animals humanely, sustainably, <br class="hidden sm:inline">and in harmony with nature.</h3>
         </div>
@@ -104,12 +104,12 @@
     <section class="flex flex-col justify-center px-4 py-20">
         <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
 
-        <div id="livestock-image-group" class="justify-center flex-wrap mb-6 hidden" style="grid-gap: 15px;">  <!-- grid-template-columns: repeat(auto-fit, 250px); -->
-            <img src="{% static 'img/grassfed-cattle.jpg' %}" alt="Cows in one of our fields">
-            <img src="{% static 'img/pasture-raised-pigs.jpg' %}" alt="Pigs in one of our fields">
-            <img src="{% static 'img/spring-lamb.jpg' %}" alt="A full-grown sheep with two lambs in one of our fields">
-            <img src="{% static 'img/pastured-chickens-and-turkeys.jpg' %}" alt="A group of chickens">
-            <img src="{% static 'img/laying-hens.jpg' %}" alt="A large flock of chickens">
+        <div id="livestock-image-group" class="flex-wrap mb-6 w-full mx-auto hidden" style="max-width: 1315px;">
+            <img class="mt-4 mx-auto" src="{% static 'img/grassfed-cattle.jpg' %}" alt="Cows in one of our fields">
+            <img class="mt-4 mx-auto" src="{% static 'img/pasture-raised-pigs.jpg' %}" alt="Pigs in one of our fields">
+            <img class="mt-4 mx-auto" src="{% static 'img/spring-lamb.jpg' %}" alt="A full-grown sheep with two lambs in one of our fields">
+            <img class="mt-4 mx-auto" src="{% static 'img/pastured-chickens-and-turkeys.jpg' %}" alt="A group of chickens">
+            <img class="mt-4 mx-auto" src="{% static 'img/laying-hens.jpg' %}" alt="A large flock of chickens">
         </div>
 
         <img src="{% static 'img/grassfed-cattle.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
@@ -174,14 +174,14 @@
     <section class="flex flex-col justify-center px-4 py-20" style="background-color: #f8daC7;">
         <h2 class="text-brown-6 text-center font-bold text-3xl mt-10" style="line-height: 1.25em;">We care about the environment AND about you!</h2>
 
-        <p class="text-center text-2xl leading-snug my-20">Your health matters to us. That’s why our meat comes from humanely treated animals <br class="hidden lg:inline">that were raised sustainably on organic-pastures without growth hormones or confined spaces. <br class="hidden lg:inline">Food that’s good for you and tastes good, too.</p>
+        <p class="text-center text-2xl leading-snug mt-20 mb-16">Your health matters to us. That’s why our meat comes from humanely treated animals <br class="hidden lg:inline">that were raised sustainably on organic-pastures without growth hormones or confined spaces. <br class="hidden lg:inline">Food that’s good for you and tastes good, too.</p>
 
-        <div id="organic-certifications" class="flex flex-wrap justify-center space-between mb-20" style="grid-gap: 50px;">
-            <img src="{% static 'img/oregon-tilth-certified-organic.png' %}">
-            <img src="{% static 'img/oregon-tilth-certified-organic.png' %}">
-            <img src="{% static 'img/oregon-tilth-certified-organic.png' %}">
-            <img src="{% static 'img/oregon-tilth-certified-organic.png' %}">
-            <img src="{% static 'img/oregon-tilth-certified-organic.png' %}">
+        <div id="organic-certifications" class="flex flex-wrap w-full mx-auto mb-20" style="max-width: 1150px;">
+            <img class="mt-4 mx-auto" src="{% static 'img/oregon-tilth-certified-organic.png' %}">
+            <img class="mt-4 mx-auto" src="{% static 'img/oregon-tilth-certified-organic.png' %}">
+            <img class="mt-4 mx-auto" src="{% static 'img/oregon-tilth-certified-organic.png' %}">
+            <img class="mt-4 mx-auto" src="{% static 'img/oregon-tilth-certified-organic.png' %}">
+            <img class="mt-4 mx-auto" src="{% static 'img/oregon-tilth-certified-organic.png' %}">
         </div>
 
         <div id="reviews-slider" class="reviews-slider mt-10 mb-10 text-brown-6">
@@ -224,7 +224,7 @@
     <section class="flex flex-col justify-center px-4 py-20">
         <h2 class="text-brown-6 text-center font-bold text-4xl my-20" style="line-height: 1.25;">Ready to Shop the Farm?</h2>
 
-        <div class="flex justify-between items-end w-full self-center flex-wrap" style="max-width: 1300px;">
+        <div class="flex flex-col flex-wrap items-end w-full mx-auto sm:flex-row" style="max-width: 1300px;">
             <a href="#shop-beef" class="flex flex-col mt-16 mx-auto">
                 <img src="{% static 'img/beef.jpg' %}" style="width: 200px;" draggable="false">
                 <h3 class="text-brown-7 text-center font-bold text-3xl mt-12">SHOP BEEF</h3>
