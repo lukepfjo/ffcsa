@@ -105,14 +105,14 @@
         <h2 class="text-brown-6 text-center font-bold text-3xl mb-20">Our Livestock</h2>
 
         <div id="livestock-image-group" class="justify-center flex-wrap mb-6 hidden" style="grid-gap: 15px;">  <!-- grid-template-columns: repeat(auto-fit, 250px); -->
-            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
-            <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/grassfed-cattle.jpg' %}" alt="Cows in one of our fields">
+            <img src="{% static 'img/pasture-raised-pigs.jpg' %}" alt="Pigs in one of our fields">
+            <img src="{% static 'img/spring-lamb.jpg' %}" alt="A full-grown sheep with two lambs in one of our fields">
+            <img src="{% static 'img/pastured-chickens-and-turkeys.jpg' %}" alt="A group of chickens">
+            <img src="{% static 'img/laying-hens.jpg' %}" alt="A large flock of chickens">
         </div>
 
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <img src="{% static 'img/grassfed-cattle.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
         <div class="livestock-dropdown">
             <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
                 <h3 class="livestock-dropdown-title">Grassfed Cattle</h3>
@@ -123,7 +123,7 @@
             </div>
         </div>
 
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <img src="{% static 'img/pasture-raised-pigs.jpg' %}" alt="Pigs in one of our fields" class="livestock-image-single">
         <div class="livestock-dropdown">
             <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
                 <h3 class="livestock-dropdown-title">Pasture-Raised Pigs</h3>
@@ -134,7 +134,7 @@
             </div>
         </div>
 
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <img src="{% static 'img/spring-lamb.jpg' %}" alt="A full-grown sheep with two lambs in one of our fields" class="livestock-image-single">
         <div class="livestock-dropdown">
             <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
                 <h3 class="livestock-dropdown-title">Spring Lamb</h3>
@@ -145,7 +145,7 @@
             </div>
         </div>
 
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <img src="{% static 'img/pastured-chickens-and-turkeys.jpg' %}" alt="A group of chickens" class="livestock-image-single">
         <div class="livestock-dropdown">
             <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
                 <h3 class="livestock-dropdown-title">Pastured Chickens & Turkeys</h3>
@@ -157,7 +157,7 @@
             </div>
         </div>
 
-        <img src="{% static 'img/placeholders/cows.jpg' %}" alt="Cows in one of our fields" class="livestock-image-single">
+        <img src="{% static 'img/laying-hens.jpg' %}" alt="A large flock of chickens" class="livestock-image-single">
         <div class="livestock-dropdown">
             <div class="livestock-dropdown-title-bar outline-none" onclick="livestock_dropdown_toggle(this)" tabindex="0" role="button" aria-expanded="false" aria-label="Show or hide further information">
                 <h3 class="livestock-dropdown-title">Laying Hens</h3>
@@ -375,5 +375,25 @@
         </div>
 
         <a href="#shop" class="btn btn-sm mt-16">SHOP THE FARM</a>
+    </section>
+
+    <section class="flex flex-col justify-center px-4 py-20">
+        <h2 class="text-brown-6 text-center font-bold text-3xl mb-12" style="line-height: 1.25em;">Need Some Fruits and Veggies Too?</h2>
+
+        <div class="flex flex-col mx-auto justify-center xl:flex-row">
+            <div class="text-2xl w-full pt-4 xl:w-2/5 xl:mr-12">
+                <p class="mb-6">Have you been hunting for a trusted local partner that enables you to make environmentally responsible and healthy food choices for your entire grocery list?</p>
+                <p class="mb-6"><span class="font-bold">Search no more!</span> Just because you’re not the farmer, doesn’t mean you can’t be confident in where your food came from.</p>
+                <p class="font-bold mb-6">Now you have a hyper-local place to find everything on your grocery list.</p>
+                <a href="#read-more" class="font-bold text-lg" style="color: #be253e; display: block;">READ MORE</a>
+            </div>
+
+            <img class="w-full mx-auto mt-20 xl:w-2/5 xl:mx-0 xl:mt-0" style="max-width: 786px;" alt="Two workers holding bags of fresh veggies" src="{% static 'img/bags-of-veggies.jpg' %}">
+        </div>
+
+        <div class="flex flex-col flex-wrap justify-center mt-24 sm:flex-row">
+            <a href="#become-a-member" class="btn btn-sm mb-4 sm:mr-12 sm:mb-0" style="width: 230px;">BECOME A MEMBER</a>
+            <a href="#browse-the-store" class="btn btn-sm btn-green mb-4 sm:mb-0" style="width: 230px;">BROWSE THE STORE</a>
+        </div>
     </section>
 {% endblock %}
